@@ -44,12 +44,23 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   const now = new Date();
 
   if (result.error) {
+    const errors = monitor.consecutiveErrors + 1;
+    const healthStatus = errors >= 3 ? "error" : errors >= 2 ? "unstable" : "healthy";
+    const healthReason = errors >= 3
+      ? `Page unreachable for ${errors} consecutive checks: ${result.error}`
+      : errors >= 2
+      ? `Page returned errors ${errors} times: ${result.error}`
+      : null;
+
     await db
       .update(monitors)
       .set({
         lastCheckedAt: now,
-        consecutiveErrors: monitor.consecutiveErrors + 1,
+        consecutiveErrors: errors,
         lastError: result.error,
+        healthStatus,
+        healthReason,
+        healthCheckedAt: now,
         updatedAt: now,
       })
       .where(eq(monitors.id, monitorId));
@@ -89,6 +100,10 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
         lastCheckedAt: now,
         consecutiveErrors: 0,
         lastError: null,
+        healthStatus: "healthy",
+        healthReason: null,
+        healthCheckedAt: now,
+        lastHealthyAt: now,
         updatedAt: now,
       })
       .where(eq(monitors.id, monitorId));
@@ -139,6 +154,10 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       lastCheckedAt: now,
       consecutiveErrors: 0,
       lastError: null,
+      healthStatus: "healthy",
+      healthReason: null,
+      healthCheckedAt: now,
+      lastHealthyAt: now,
       updatedAt: now,
     })
     .where(eq(monitors.id, monitorId));

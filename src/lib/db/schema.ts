@@ -76,6 +76,15 @@ export const monitors = pgTable(
     consecutiveErrors: integer("consecutive_errors").notNull().default(0),
     lastError: text("last_error"),
 
+    // Health (separate from content changes)
+    healthStatus: varchar("health_status", { length: 20 }).notNull().default("healthy"), // healthy, unstable, blocked, error
+    healthReason: text("health_reason"),
+    healthCheckedAt: timestamp("health_checked_at", { withTimezone: true }),
+    lastHealthyAt: timestamp("last_healthy_at", { withTimezone: true }),
+
+    // Use case metadata
+    useCase: varchar("use_case", { length: 30 }), // competitor, regulatory, ecommerce, jobs, content, custom
+
     // Metadata
     description: text("description"),
     tags: text("tags"), // comma-separated

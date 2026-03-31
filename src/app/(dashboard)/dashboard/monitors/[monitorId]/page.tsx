@@ -14,6 +14,9 @@ interface Monitor {
   lastCheckedAt: string | null;
   consecutiveErrors: number;
   lastError: string | null;
+  healthStatus: string;
+  healthReason: string | null;
+  useCase: string | null;
 }
 
 interface Change {
@@ -111,17 +114,19 @@ export default function MonitorDetailPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Status</p>
+          <p className="text-sm text-gray-500">Health</p>
           <div className="flex items-center gap-2 mt-1">
             <span className={`w-2.5 h-2.5 rounded-full ${
-              monitor.consecutiveErrors > 0 ? "bg-red-500" :
-              monitor.isActive && !monitor.isPaused ? "bg-green-500" : "bg-gray-300"
+              monitor.healthStatus === "error" ? "bg-red-500" :
+              monitor.healthStatus === "unstable" ? "bg-yellow-500" :
+              monitor.healthStatus === "blocked" ? "bg-orange-500" :
+              "bg-green-500"
             }`} />
-            <span className="font-semibold">
-              {monitor.consecutiveErrors > 0 ? "Error" :
-               monitor.isPaused ? "Paused" : "Active"}
-            </span>
+            <span className="font-semibold capitalize">{monitor.healthStatus}</span>
           </div>
+          {monitor.healthReason && (
+            <p className="text-xs text-gray-400 mt-1">{monitor.healthReason}</p>
+          )}
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Frequency</p>
