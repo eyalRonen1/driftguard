@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 
 const navigation = [
@@ -66,18 +67,16 @@ export function Sidebar({ user }: { user: User }) {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-30
-        w-64 bg-gray-950 flex flex-col
+        w-64 bg-[#0f1f0f] flex flex-col
         transform transition-transform duration-200
         ${open ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
         pt-14 lg:pt-0
       `}>
-        <div className="p-4 border-b border-gray-800 hidden lg:block">
+        <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">PL</span>
-            </div>
-            <span className="font-semibold text-lg text-white">PageLifeguard</span>
+            <Image src="/assets/chameleon-main.png" alt="" width={32} height={32} className="animate-sway" />
+            <span className="font-semibold text-lg text-[var(--text-light)]">PageLifeguard</span>
           </Link>
         </div>
 
@@ -91,8 +90,8 @@ export function Sidebar({ user }: { user: User }) {
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                   isActive
-                    ? "bg-white/10 text-white font-medium"
-                    : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
+                    ? "bg-[var(--accent-lime)]/10 text-[var(--accent-lime)] font-medium"
+                    : "text-gray-400 hover:bg-[var(--bg-leaf)]/50 hover:text-[var(--text-light)]"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -102,9 +101,9 @@ export function Sidebar({ user }: { user: User }) {
           })}
         </nav>
 
-        <div className="p-3 border-t border-gray-800">
+        <div className="p-3 border-t border-[#1a3a1a]">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-sm font-medium text-gray-300">
+            <div className="w-8 h-8 bg-[var(--bg-moss)] rounded-full flex items-center justify-center text-sm font-medium text-gray-300">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">

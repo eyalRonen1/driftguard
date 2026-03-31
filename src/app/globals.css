@@ -1,82 +1,152 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --bg-jungle: #1a2e1a;
+  --bg-canopy: #243524;
+  --bg-leaf: #2d4a2d;
+  --bg-moss: #3a5c3a;
+  --bg-sage: #4a7a4a;
+  --bg-card: #2a3f2a;
+  --bg-card-hover: #325032;
+  --text-light: #e8f5e8;
+  --text-muted: #a8cfa8;
+  --text-dim: #7aaa7a;
+  --accent-lime: #a3e635;
+  --accent-yellow: #fbbf24;
+  --accent-orange: #fb923c;
+  --accent-red: #f87171;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  background: var(--bg-jungle);
+  color: var(--text-light);
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Premium gradient backgrounds */
-.gradient-hero {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
-              radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.08), transparent),
-              radial-gradient(ellipse 60% 40% at 20% 80%, rgba(168, 85, 247, 0.06), transparent);
+/* Jungle backgrounds */
+.bg-jungle { background: var(--bg-jungle); }
+.bg-canopy { background: var(--bg-canopy); }
+.bg-leaf { background: var(--bg-leaf); }
+.bg-moss { background: var(--bg-moss); }
+
+.bg-jungle-gradient {
+  background: linear-gradient(180deg, #1a2e1a 0%, #243524 40%, #2d4a2d 100%);
 }
 
-.gradient-section {
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%);
+.bg-jungle-hero {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74, 222, 128, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(163, 230, 53, 0.05), transparent),
+    linear-gradient(180deg, #1a2e1a 0%, #243524 100%);
 }
 
-.gradient-dark {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+/* Cards */
+.card-jungle {
+  background: rgba(42, 63, 42, 0.8);
+  border: 1px solid rgba(74, 122, 74, 0.3);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  transition: all 0.2s ease;
 }
 
-/* Glow effects */
-.glow-card {
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.1),
-              0 4px 6px -1px rgba(0, 0, 0, 0.05),
-              0 10px 15px -3px rgba(99, 102, 241, 0.05);
-  transition: all 0.3s ease;
+.card-jungle:hover {
+  background: rgba(50, 80, 50, 0.9);
+  border-color: rgba(163, 230, 53, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-.glow-card:hover {
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2),
-              0 4px 6px -1px rgba(0, 0, 0, 0.08),
-              0 20px 25px -5px rgba(99, 102, 241, 0.1);
-  transform: translateY(-2px);
+/* Buttons */
+.btn-jungle {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #052e05;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 10px 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(74, 222, 128, 0.2);
 }
 
-.glow-primary {
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3),
-              0 0 20px rgba(99, 102, 241, 0.15),
-              0 10px 30px -5px rgba(99, 102, 241, 0.2);
+.btn-jungle:hover {
+  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.4);
+  transform: translateY(-1px);
 }
 
-/* Smooth animations */
+.btn-vine {
+  background: rgba(74, 122, 74, 0.4);
+  color: #a3e635;
+  border: 1px solid rgba(163, 230, 53, 0.3);
+  border-radius: 12px;
+  padding: 10px 20px;
+  transition: all 0.2s ease;
+}
+
+.btn-vine:hover {
+  background: rgba(74, 122, 74, 0.6);
+  border-color: rgba(163, 230, 53, 0.5);
+}
+
+/* Glass nav */
+.nav-jungle {
+  background: rgba(26, 46, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(74, 122, 74, 0.2);
+}
+
+/* Leaf pattern overlay */
+.leaf-pattern {
+  background-image: url('/assets/leaf-pattern.png');
+  background-size: 300px;
+  background-repeat: repeat;
+  opacity: 0.03;
+}
+
+/* Animations */
+@keyframes sway {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+
+.animate-sway {
+  animation: sway 4s ease-in-out infinite;
+}
+
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-up {
-  animation: fade-up 0.6s ease-out forwards;
+  animation: fade-up 0.5s ease-out forwards;
 }
 
-/* Grid pattern for hero */
-.grid-pattern {
-  background-image:
-    linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-jungle); }
+::-webkit-scrollbar-thumb { background: var(--bg-moss); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--bg-sage); }
+
+/* Input fields in jungle theme */
+.input-jungle {
+  background: rgba(42, 63, 42, 0.6);
+  border: 1px solid rgba(74, 122, 74, 0.4);
+  color: var(--text-light);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
 }
 
-/* Blur glass effect */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.input-jungle:focus {
+  outline: none;
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+
+.input-jungle::placeholder {
+  color: var(--text-dim);
 }
