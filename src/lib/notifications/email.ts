@@ -1,66 +1,76 @@
 /**
  * Email notifications via Resend API.
- * Sends drift alerts and weekly digests.
+ * Sends change alerts with AI summaries - the notification IS the product.
  */
 
 const RESEND_API = "https://api.resend.com/emails";
 
-interface DriftAlertData {
+interface ChangeAlertData {
   to: string;
-  botName: string;
-  previousScore: number;
-  currentScore: number;
-  failedTests: Array<{
-    question: string;
-    expectedAnswer: string;
-    actualAnswer: string;
-    score: number;
-  }>;
+  monitorName: string;
+  monitorUrl: string;
+  summary: string;
+  importanceScore: number;
+  changeType: string;
+  addedText?: string | null;
+  removedText?: string | null;
   dashboardUrl: string;
 }
 
-export async function sendDriftAlert(data: DriftAlertData): Promise<boolean> {
+export async function sendChangeAlert(data: ChangeAlertData): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.error("RESEND_API_KEY not configured");
+    console.log("RESEND_API_KEY not set, skipping email alert");
     return false;
   }
 
-  const failedTestsHtml = data.failedTests
-    .map(
-      (t) => `
-      <div style="margin-bottom: 16px; padding: 12px; background: #FEF2F2; border-radius: 8px; border-left: 4px solid #EF4444;">
-        <p style="margin: 0 0 4px; font-weight: 600; color: #991B1B;">Q: ${escapeHtml(t.question)}</p>
-        <p style="margin: 0 0 4px; color: #6B7280; font-size: 14px;">Expected: ${escapeHtml(t.expectedAnswer.slice(0, 200))}</p>
-        <p style="margin: 0 0 4px; color: #DC2626; font-size: 14px;">Got: ${escapeHtml((t.actualAnswer || "No response").slice(0, 200))}</p>
-        <p style="margin: 0; color: #9CA3AF; font-size: 12px;">Score: ${t.score}%</p>
-      </div>`
-    )
-    .join("");
-
-  const scoreColor = data.currentScore >= 80 ? "#059669" : data.currentScore >= 50 ? "#D97706" : "#DC2626";
+  const importanceColor = data.importanceScore >= 7 ? "#DC2626" : data.importanceScore >= 4 ? "#D97706" : "#6B7280";
+  const importanceLabel = data.importanceScore >= 7 ? "Important" : data.importanceScore >= 4 ? "Notable" : "Minor";
+  const emoji = data.importanceScore >= 7 ? "🔴" : data.importanceScore >= 4 ? "🟡" : "⚪";
 
   const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="padding: 24px; background: #1E40AF; border-radius: 12px 12px 0 0;">
-        <h1 style="margin: 0; color: white; font-size: 20px;">PageLifeguard Alert</h1>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+      <div style="padding: 24px; background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%); border-radius: 12px 12px 0 0;">
+        <h1 style="margin: 0; color: white; font-size: 18px; font-weight: 600;">
+          ${emoji} Change detected
+        </h1>
+        <p style="margin: 6px 0 0; color: rgba(255,255,255,0.8); font-size: 13px;">
+          ${data.monitorName}
+        </p>
       </div>
+
       <div style="padding: 24px; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 12px 12px;">
-        <h2 style="margin: 0 0 8px; font-size: 18px;">${escapeHtml(data.botName)} quality dropped</h2>
-        <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-          <div style="padding: 12px 20px; background: #F3F4F6; border-radius: 8px; text-align: center;">
-            <p style="margin: 0; color: #6B7280; font-size: 12px;">Previous</p>
-            <p style="margin: 4px 0 0; font-size: 24px; font-weight: 700;">${data.previousScore}%</p>
-          </div>
-          <div style="display: flex; align-items: center; font-size: 24px; color: #DC2626;">→</div>
-          <div style="padding: 12px 20px; background: #FEF2F2; border-radius: 8px; text-align: center;">
-            <p style="margin: 0; color: #6B7280; font-size: 12px;">Current</p>
-            <p style="margin: 4px 0 0; font-size: 24px; font-weight: 700; color: ${scoreColor};">${data.currentScore}%</p>
-          </div>
+        <!-- AI Summary -->
+        <div style="background: #F0F9FF; border-left: 4px solid #3B82F6; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
+          <p style="margin: 0 0 4px; font-size: 11px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">AI Summary</p>
+          <p style="margin: 0; font-size: 15px; color: #111827; line-height: 1.5;">${escapeHtml(data.summary)}</p>
         </div>
-        <h3 style="margin: 0 0 12px; font-size: 16px;">Failed tests:</h3>
-        ${failedTestsHtml}
-        <a href="${data.dashboardUrl}" style="display: inline-block; margin-top: 16px; padding: 10px 20px; background: #1E40AF; color: white; text-decoration: none; border-radius: 8px; font-weight: 500;">View in Dashboard</a>
+
+        <!-- Badges -->
+        <div style="margin-bottom: 20px;">
+          <span style="display: inline-block; padding: 4px 10px; background: ${importanceColor}15; color: ${importanceColor}; font-size: 12px; font-weight: 600; border-radius: 12px; margin-right: 8px;">
+            ${importanceLabel} (${data.importanceScore}/10)
+          </span>
+          <span style="display: inline-block; padding: 4px 10px; background: #EFF6FF; color: #1D4ED8; font-size: 12px; border-radius: 12px;">
+            ${data.changeType}
+          </span>
+        </div>
+
+        <!-- URL -->
+        <p style="margin: 0 0 20px; font-size: 13px; color: #6B7280;">
+          Page: <a href="${data.monitorUrl}" style="color: #2563EB;">${data.monitorUrl}</a>
+        </p>
+
+        <!-- CTA -->
+        <a href="${data.dashboardUrl}" style="display: inline-block; padding: 10px 24px; background: #1E40AF; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px;">
+          View full details
+        </a>
+
+        <!-- Footer -->
+        <p style="margin: 20px 0 0; padding-top: 16px; border-top: 1px solid #E5E7EB; font-size: 11px; color: #9CA3AF;">
+          Sent by <a href="https://pagelifeguard.com" style="color: #6B7280;">PageLifeguard</a> ·
+          <a href="${data.dashboardUrl}/settings" style="color: #6B7280;">Manage alerts</a>
+        </p>
       </div>
     </div>`;
 
@@ -72,28 +82,26 @@ export async function sendDriftAlert(data: DriftAlertData): Promise<boolean> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "PageLifeguard <alerts@driftguard.com>",
+        from: "PageLifeguard <alerts@pagelifeguard.com>",
         to: data.to,
-        subject: `⚠️ ${data.botName} health dropped to ${data.currentScore}%`,
+        subject: `${emoji} ${data.monitorName}: ${data.summary.slice(0, 80)}`,
         html,
       }),
     });
 
     return response.ok;
   } catch {
-    console.error("Failed to send drift alert email");
+    console.error("Failed to send change alert email");
     return false;
   }
 }
 
-export async function sendSlackAlert(
+export async function sendSlackChangeAlert(
   webhookUrl: string,
-  data: DriftAlertData
+  data: ChangeAlertData
 ): Promise<boolean> {
   try {
-    const failedList = data.failedTests
-      .map((t) => `• *Q:* ${t.question}\n  Expected: _${t.expectedAnswer.slice(0, 100)}_\n  Got: _${(t.actualAnswer || "No response").slice(0, 100)}_\n  Score: ${t.score}%`)
-      .join("\n\n");
+    const emoji = data.importanceScore >= 7 ? "🔴" : data.importanceScore >= 4 ? "🟡" : "⚪";
 
     const response = await fetch(webhookUrl, {
       method: "POST",
@@ -102,29 +110,23 @@ export async function sendSlackAlert(
         blocks: [
           {
             type: "header",
-            text: { type: "plain_text", text: `⚠️ ${data.botName} quality dropped` },
+            text: { type: "plain_text", text: `${emoji} Change detected: ${data.monitorName}` },
+          },
+          {
+            type: "section",
+            text: { type: "mrkdwn", text: `*AI Summary:*\n${data.summary}` },
           },
           {
             type: "section",
             fields: [
-              { type: "mrkdwn", text: `*Previous Score:*\n${data.previousScore}%` },
-              { type: "mrkdwn", text: `*Current Score:*\n${data.currentScore}%` },
+              { type: "mrkdwn", text: `*Importance:* ${data.importanceScore}/10` },
+              { type: "mrkdwn", text: `*Type:* ${data.changeType}` },
             ],
           },
-          { type: "divider" },
           {
-            type: "section",
-            text: { type: "mrkdwn", text: `*Failed Tests:*\n\n${failedList}` },
-          },
-          {
-            type: "actions",
+            type: "context",
             elements: [
-              {
-                type: "button",
-                text: { type: "plain_text", text: "View Dashboard" },
-                url: data.dashboardUrl,
-                style: "primary",
-              },
+              { type: "mrkdwn", text: `<${data.monitorUrl}|View page> · <${data.dashboardUrl}|View in dashboard>` },
             ],
           },
         ],
@@ -139,9 +141,5 @@ export async function sendSlackAlert(
 }
 
 function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
