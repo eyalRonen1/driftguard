@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { LiveDemo } from "@/components/marketing/live-demo";
+import { UseCases } from "@/components/marketing/use-cases";
+import { StatsCounter } from "@/components/marketing/stats-counter";
 
 export default function LandingPage() {
   return (
@@ -105,32 +107,69 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Stats */}
+      <section className="py-12 border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6">
+          <StatsCounter />
+        </div>
+      </section>
+
+      {/* Use Cases */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">Built for every team</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            Whether you track competitors, regulations, suppliers, or job postings — PageLifeguard has you covered.
+          </p>
+          <UseCases />
+        </div>
+      </section>
+
       {/* How it works */}
       <section id="how-it-works" className="py-16">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12">How PageLifeguard works</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connecting line */}
+            <div className="hidden md:block absolute top-10 left-[20%] right-[20%] h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200" />
+
             {[
               {
                 step: "1",
                 title: "Paste a URL",
                 desc: "Any public web page — competitor pricing, regulatory docs, job boards, product pages.",
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                  </svg>
+                ),
               },
               {
                 step: "2",
                 title: "We check it for you",
                 desc: "Daily, hourly, or every 15 minutes. We fetch the page and compare it to the last version.",
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                  </svg>
+                ),
               },
               {
                 step: "3",
                 title: "Get smart alerts",
                 desc: "When something changes, you get a plain-English summary: what changed, why it matters.",
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                  </svg>
+                ),
               },
             ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                  {item.step}
+              <div key={item.step} className="text-center relative">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200 relative z-10">
+                  {item.icon}
                 </div>
+                <div className="text-xs text-blue-600 font-bold mb-2">STEP {item.step}</div>
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                 <p className="text-gray-500">{item.desc}</p>
               </div>
