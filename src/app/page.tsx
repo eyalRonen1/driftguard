@@ -64,12 +64,23 @@ export default function LandingPage() {
         <p className="text-sm text-gray-400 mt-4">No credit card required. Free plan includes 3 monitors.</p>
       </section>
 
-      {/* Interactive Demo */}
+      {/* Try it live - HERO ACTION (Codex recommendation: make this the #1 focus) */}
       <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-4">See it in action</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Try it right now</h2>
           <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
-            Watch how PageLifeguard detects a competitor price change and sends you an AI-powered alert.
+            Paste any URL and see if PageLifeguard can monitor it. Real results, no signup needed.
+          </p>
+          <LiveUrlChecker />
+        </div>
+      </section>
+
+      {/* Simulated Demo */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">See a change detected live</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            Watch how PageLifeguard catches a competitor price drop and summarizes it with AI.
           </p>
           <LiveDemo />
         </div>
@@ -201,17 +212,6 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Try it live */}
-      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-4">Try it right now</h2>
-          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
-            Paste any URL and see if PageLifeguard can monitor it. No signup needed.
-          </p>
-          <LiveUrlChecker />
         </div>
       </section>
 
