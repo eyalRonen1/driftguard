@@ -25,7 +25,10 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 sm:pt-40 sm:pb-28 relative">
+      <section className="pt-32 pb-20 sm:pt-40 sm:pb-28 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]">
+          <Image src="/assets/pat-eye.png" alt="" fill className="object-cover" />
+        </div>
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <Camo size={96} className="mx-auto mb-8 animate-sway" />
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
@@ -53,14 +56,19 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {[
-              { t: "Paste a URL", d: "Any page — pricing, docs, jobs, regulations.", img: "/assets/step-url.png" },
-              { t: "Camo watches", d: "We check hourly, daily, or every 15 minutes.", img: "/assets/step-watch.png" },
-              { t: "Get a summary", d: "AI explains what changed in plain English.", img: "/assets/step-alert.png" },
+              { t: "Paste a URL", d: "Any page — pricing, docs, jobs, regulations.", img: "/assets/step-url.png", pat: "/assets/pat-eye.png" },
+              { t: "Camo watches", d: "We check hourly, daily, or every 15 minutes.", img: "/assets/step-watch.png", pat: "/assets/pat-chameleon.png" },
+              { t: "Get a summary", d: "AI explains what changed in plain English.", img: "/assets/step-alert.png", pat: "/assets/pat-swirl.png" },
             ].map((s, i) => (
-              <div key={i} className="card-glass p-6 text-center">
+              <div key={i} className="card-glass p-6 text-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.06]">
+                  <Image src={s.pat} alt="" fill className="object-cover" />
+                </div>
+                <div className="relative z-10">
                 <Image src={s.img} alt="" width={80} height={80} className="mx-auto mb-4 rounded-xl" />
                 <h3 className="font-semibold mb-1">{s.t}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{s.d}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -80,16 +88,19 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">What teams watch</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { t: "Competitor pricing", d: "Know the moment they change plans.", img: "/assets/uc-pricing.png" },
-              { t: "Regulations", d: "Track compliance and legal pages.", img: "/assets/uc-regulate.png" },
-              { t: "Supplier costs", d: "Catch price increases early.", img: "/assets/uc-supplier.png" },
-              { t: "Job postings", d: "See new openings from targets.", img: "/assets/uc-jobs.png" },
-              { t: "Documentation", d: "Watch API docs and changelogs.", img: "/assets/uc-docs.png" },
-              { t: "SEO changes", d: "Track content and meta updates.", img: "/assets/uc-search.png" },
+              { t: "Competitor pricing", d: "Know the moment they change plans.", img: "/assets/uc-pricing.png", pat: "/assets/pat-stripes.png" },
+              { t: "Regulations", d: "Track compliance and legal pages.", img: "/assets/uc-regulate.png", pat: "/assets/pat-scales.png" },
+              { t: "Supplier costs", d: "Catch price increases early.", img: "/assets/uc-supplier.png", pat: "/assets/pat-rings.png" },
+              { t: "Job postings", d: "See new openings from targets.", img: "/assets/uc-jobs.png", pat: "/assets/pat-tail.png" },
+              { t: "Documentation", d: "Watch API docs and changelogs.", img: "/assets/uc-docs.png", pat: "/assets/pat-vines.png" },
+              { t: "SEO changes", d: "Track content and meta updates.", img: "/assets/uc-search.png", pat: "/assets/pat-mandala.png" },
             ].map((u, i) => (
-              <div key={i} className="card-glass p-5 flex items-start gap-3">
-                <Image src={u.img} alt="" width={48} height={48} className="rounded-lg flex-shrink-0" />
-                <div>
+              <div key={i} className="card-glass p-5 flex items-start gap-3 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.05]">
+                  <Image src={u.pat} alt="" fill className="object-cover" />
+                </div>
+                <Image src={u.img} alt="" width={48} height={48} className="rounded-lg flex-shrink-0 relative z-10" />
+                <div className="relative z-10">
                   <h3 className="font-semibold text-sm">{u.t}</h3>
                   <p className="text-sm text-[var(--text-muted)] mt-0.5">{u.d}</p>
                 </div>
@@ -142,7 +153,10 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 relative">
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]">
+          <Image src="/assets/pat-camo2.png" alt="" fill className="object-cover" />
+        </div>
         <div className="max-w-2xl mx-auto px-6 text-center relative z-10">
           <Camo state="sleep" size={72} className="mx-auto mb-6" />
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Let Camo do the watching</h2>
