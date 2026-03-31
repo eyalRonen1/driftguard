@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Camo } from "@/components/brand/camo";
+import { Camo, CamoStripes, CamoEye, CamoPaw } from "@/components/brand/camo";
 
 export default function LandingPage() {
   return (
@@ -45,6 +45,7 @@ export default function LandingPage() {
         <div className="section-line-top" />
         <div className="section-line-bottom" />
         <div className="max-w-4xl mx-auto px-6 relative z-10">
+          <div className="flex justify-center mb-3"><CamoPaw size={20} /></div>
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">How it works</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -66,6 +67,7 @@ export default function LandingPage() {
       {/* Use cases */}
       <section className="py-20 relative">
         <div className="max-w-4xl mx-auto px-6 relative z-10">
+          <div className="flex justify-center mb-3"><CamoEye size={22} /></div>
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Use cases</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">What teams watch</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -94,6 +96,7 @@ export default function LandingPage() {
         <div className="section-line-top" />
         <div className="section-line-bottom" />
         <div className="max-w-4xl mx-auto px-6 relative z-10">
+          <CamoStripes className="max-w-xs mx-auto mb-4" />
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Pricing</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Simple and transparent</h2>
           <div className="grid sm:grid-cols-3 gap-4">
@@ -112,7 +115,7 @@ export default function LandingPage() {
                 <ul className="space-y-2 mb-6">
                   {p.features.map((f) => (
                     <li key={f} className="text-sm text-[var(--text-sage)] flex items-center gap-2">
-                      <span className="text-[var(--accent-jade)]">✓</span>{f}
+                      <CamoPaw size={14} />{f}
                     </li>
                   ))}
                 </ul>

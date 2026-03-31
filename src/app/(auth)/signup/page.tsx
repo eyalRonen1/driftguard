@@ -50,7 +50,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-jungle-stage">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border">
         <div className="flex justify-center mb-6">
           <a href="/" className="flex items-center gap-2 text-gray-400 hover:text-gray-900 transition">

@@ -20,8 +20,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-jungle-gradient">
-      <div className="fixed inset-0 leaf-pattern pointer-events-none" />
+    <div className="min-h-screen bg-jungle-stage">
       <Sidebar user={user} />
       <main className="lg:ml-64 pt-14 lg:pt-0 p-4 sm:p-6 min-h-screen relative z-10">
         {children}

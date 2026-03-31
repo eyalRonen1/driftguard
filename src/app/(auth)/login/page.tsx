@@ -42,7 +42,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-jungle-gradient">
+    <div className="min-h-screen flex items-center justify-center bg-jungle-stage">
       <div className="w-full max-w-md p-8 card-jungle mx-4">
         <div className="flex justify-center mb-6">
           <a href="/" className="flex items-center gap-2 text-[var(--text-dim)] hover:text-[var(--accent-lime)] transition">
