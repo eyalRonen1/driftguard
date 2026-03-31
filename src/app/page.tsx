@@ -53,12 +53,12 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {[
-              { icon: <LinkIcon />, t: "Paste a URL", d: "Any page — pricing, docs, jobs, regulations.", color: "var(--accent-jade)" },
-              { icon: <Camo size={36} />, t: "Camo watches", d: "We check hourly, daily, or every 15 minutes.", color: "var(--accent-gold)" },
-              { icon: <BellIcon />, t: "Get a summary", d: "AI explains what changed in plain English.", color: "var(--accent-lime)" },
+              { t: "Paste a URL", d: "Any page — pricing, docs, jobs, regulations.", img: "/assets/step-url.png" },
+              { t: "Camo watches", d: "We check hourly, daily, or every 15 minutes.", img: "/assets/step-watch.png" },
+              { t: "Get a summary", d: "AI explains what changed in plain English.", img: "/assets/step-alert.png" },
             ].map((s, i) => (
               <div key={i} className="card-glass p-6 text-center">
-                <div className="icon-shell mx-auto mb-4">{s.icon}</div>
+                <Image src={s.img} alt="" width={80} height={80} className="mx-auto mb-4 rounded-xl" />
                 <h3 className="font-semibold mb-1">{s.t}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{s.d}</p>
               </div>
@@ -109,11 +109,15 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Simple and transparent</h2>
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { name: "Free", price: "$0", per: "", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts"], pop: false },
-              { name: "Pro", price: "$19", per: "/mo", features: ["20 monitors", "Hourly checks", "Slack alerts", "CSS selectors", "History"], pop: true },
-              { name: "Business", price: "$49", per: "/mo", features: ["100 monitors", "15-min checks", "API access", "Team members", "Priority"], pop: false },
+              { name: "Free", price: "$0", per: "", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts"], pop: false, pattern: "/assets/pat-leaves.png" },
+              { name: "Pro", price: "$19", per: "/mo", features: ["20 monitors", "Hourly checks", "Slack alerts", "CSS selectors", "History"], pop: true, pattern: "/assets/pat-scales.png" },
+              { name: "Business", price: "$49", per: "/mo", features: ["100 monitors", "15-min checks", "API access", "Team members", "Priority"], pop: false, pattern: "/assets/pat-spiral.png" },
             ].map((p) => (
-              <div key={p.name} className={p.pop ? "card-glass-featured p-6" : "card-glass p-6"}>
+              <div key={p.name} className={`relative overflow-hidden ${p.pop ? "card-glass-featured p-6" : "card-glass p-6"}`}>
+                <div className="absolute inset-0 opacity-[0.06]">
+                  <Image src={p.pattern} alt="" fill className="object-cover" />
+                </div>
+                <div className="relative z-10">
                 {p.pop && <span className="text-[10px] font-bold text-[var(--accent-gold)] uppercase tracking-wider">Most popular</span>}
                 <h3 className="font-semibold mt-1">{p.name}</h3>
                 <div className="mt-3 mb-5">
@@ -130,6 +134,7 @@ export default function LandingPage() {
                 <Link href="/signup" className={`block text-center text-sm ${p.pop ? "btn-primary" : "btn-secondary"}`}>
                   {p.name === "Free" ? "Start free" : "Try free"}
                 </Link>
+                </div>
               </div>
             ))}
           </div>
