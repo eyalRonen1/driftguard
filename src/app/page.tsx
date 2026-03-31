@@ -2,6 +2,8 @@ import Link from "next/link";
 import { LiveDemo } from "@/components/marketing/live-demo";
 import { UseCases } from "@/components/marketing/use-cases";
 import { StatsCounter } from "@/components/marketing/stats-counter";
+import { Testimonials } from "@/components/marketing/testimonials";
+import { ComparisonTable } from "@/components/marketing/comparison";
 
 export default function LandingPage() {
   return (
@@ -197,6 +199,30 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Comparison */}
+      <section className="py-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">How we compare</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            PageLifeguard goes beyond simple change detection. We tell you what changed and why it matters.
+          </p>
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <ComparisonTable />
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">Loved by teams worldwide</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            See why professionals trust PageLifeguard to stay informed.
+          </p>
+          <Testimonials />
         </div>
       </section>
 
