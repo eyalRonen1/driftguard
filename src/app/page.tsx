@@ -80,15 +80,15 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">What teams watch</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { t: "Competitor pricing", d: "Know the moment they change plans.", icon: <TagIcon /> },
-              { t: "Regulations", d: "Track compliance and legal pages.", icon: <ShieldIcon /> },
-              { t: "Supplier costs", d: "Catch price increases early.", icon: <TruckIcon /> },
-              { t: "Job postings", d: "See new openings from targets.", icon: <BriefcaseIcon /> },
-              { t: "Documentation", d: "Watch API docs and changelogs.", icon: <FileIcon /> },
-              { t: "SEO changes", d: "Track content and meta updates.", icon: <SearchIcon /> },
+              { t: "Competitor pricing", d: "Know the moment they change plans.", img: "/assets/uc-pricing.png" },
+              { t: "Regulations", d: "Track compliance and legal pages.", img: "/assets/uc-regulate.png" },
+              { t: "Supplier costs", d: "Catch price increases early.", img: "/assets/uc-supplier.png" },
+              { t: "Job postings", d: "See new openings from targets.", img: "/assets/uc-jobs.png" },
+              { t: "Documentation", d: "Watch API docs and changelogs.", img: "/assets/uc-docs.png" },
+              { t: "SEO changes", d: "Track content and meta updates.", img: "/assets/uc-search.png" },
             ].map((u, i) => (
               <div key={i} className="card-glass p-5 flex items-start gap-3">
-                <div className="icon-shell flex-shrink-0 !w-9 !h-9 !rounded-xl">{u.icon}</div>
+                <Image src={u.img} alt="" width={48} height={48} className="rounded-lg flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-sm">{u.t}</h3>
                   <p className="text-sm text-[var(--text-muted)] mt-0.5">{u.d}</p>
