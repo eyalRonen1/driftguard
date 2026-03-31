@@ -8,6 +8,7 @@ import { monitors, snapshots, changes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { fetchPage } from "./fetcher";
 import { summarizeChange } from "./summarizer";
+import { filterNoise, calculateSignalScore, shouldAlert } from "./noise-filter";
 
 export interface CheckResult {
   monitorId: string;
@@ -69,8 +70,14 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     })
     .returning();
 
-  // Compare with previous content
-  const hasChanged = monitor.lastContentHash !== null && monitor.lastContentHash !== result.hash;
+  // Compare with previous content using noise filtering
+  const previousRaw = monitor.lastContentText || "";
+  const filteredBefore = filterNoise(previousRaw);
+  const filteredAfter = filterNoise(result.text);
+  const signalScore = calculateSignalScore(previousRaw, result.text, filteredBefore, filteredAfter);
+
+  // Only count as changed if content hash changed AND signal is meaningful
+  const hasChanged = monitor.lastContentHash !== null && monitor.lastContentHash !== result.hash && signalScore > 0;
 
   if (!hasChanged) {
     // No change - just update the monitor
