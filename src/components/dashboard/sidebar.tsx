@@ -66,18 +66,18 @@ export function Sidebar({ user }: { user: User }) {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-30
-        w-64 bg-white border-r border-gray-200 flex flex-col
+        w-64 bg-gray-950 flex flex-col
         transform transition-transform duration-200
         ${open ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
         pt-14 lg:pt-0
       `}>
-        <div className="p-4 border-b border-gray-200 hidden lg:block">
+        <div className="p-4 border-b border-gray-800 hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">PL</span>
             </div>
-            <span className="font-semibold text-lg">PageLifeguard</span>
+            <span className="font-semibold text-lg text-white">PageLifeguard</span>
           </Link>
         </div>
 
@@ -91,8 +91,8 @@ export function Sidebar({ user }: { user: User }) {
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                   isActive
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-white/10 text-white font-medium"
+                    : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -102,13 +102,13 @@ export function Sidebar({ user }: { user: User }) {
           })}
         </nav>
 
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3 border-t border-gray-800">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-600">
+            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-sm font-medium text-gray-300">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-white truncate">
                 {user.user_metadata?.full_name || user.email}
               </p>
               <p className="text-xs text-gray-500 truncate">{user.email}</p>
@@ -116,7 +116,7 @@ export function Sidebar({ user }: { user: User }) {
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full mt-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition text-left"
+            className="w-full mt-2 px-3 py-2 text-sm text-gray-500 hover:bg-white/5 hover:text-gray-300 rounded-lg transition text-left"
           >
             Sign out
           </button>
