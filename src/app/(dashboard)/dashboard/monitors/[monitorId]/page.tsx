@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { ChangeTimeline } from "@/components/dashboard/change-timeline";
 
 interface Monitor {
   id: string;
@@ -112,35 +114,44 @@ export default function MonitorDetailPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-        <div className="card-glass rounded-xl border border-white/8 p-4">
-          <p className="text-sm text-[var(--text-muted)]">Health</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`w-2.5 h-2.5 rounded-full ${
-              monitor.healthStatus === "error" ? "bg-[var(--accent-ruby)]/100" :
-              monitor.healthStatus === "unstable" ? "bg-yellow-500" :
-              monitor.healthStatus === "blocked" ? "bg-orange-500" :
-              "bg-green-500"
-            }`} />
-            <span className="font-semibold capitalize">{monitor.healthStatus}</span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div className="card-glass p-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-scales.png" alt="" fill className="object-cover" /></div>
+          <div className="relative z-10">
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Health</p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="relative flex h-3 w-3">
+                {monitor.healthStatus === "healthy" && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-jade)] opacity-75" />}
+                <span className={`relative inline-flex rounded-full h-3 w-3 ${
+                  monitor.healthStatus === "error" ? "bg-[var(--accent-ruby)]" :
+                  monitor.healthStatus === "unstable" ? "bg-[var(--accent-gold)]" :
+                  "bg-[var(--accent-jade)]"
+                }`} />
+              </span>
+              <span className="font-bold capitalize">{monitor.healthStatus}</span>
+            </div>
           </div>
-          {monitor.healthReason && (
-            <p className="text-xs text-[var(--text-muted)] mt-1">{monitor.healthReason}</p>
-          )}
         </div>
-        <div className="card-glass rounded-xl border border-white/8 p-4">
-          <p className="text-sm text-[var(--text-muted)]">Frequency</p>
-          <p className="font-semibold mt-1 capitalize">{monitor.checkFrequency}</p>
+        <div className="card-glass p-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-rings.png" alt="" fill className="object-cover" /></div>
+          <div className="relative z-10">
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Frequency</p>
+            <p className="font-bold mt-2 capitalize">{monitor.checkFrequency}</p>
+          </div>
         </div>
-        <div className="card-glass rounded-xl border border-white/8 p-4">
-          <p className="text-sm text-[var(--text-muted)]">Last Checked</p>
-          <p className="font-semibold mt-1">
-            {monitor.lastCheckedAt ? new Date(monitor.lastCheckedAt).toLocaleString() : "Never"}
-          </p>
+        <div className="card-glass p-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-eye.png" alt="" fill className="object-cover" /></div>
+          <div className="relative z-10">
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Last Check</p>
+            <p className="font-bold text-sm mt-2">{monitor.lastCheckedAt ? new Date(monitor.lastCheckedAt).toLocaleString() : "Never"}</p>
+          </div>
         </div>
-        <div className="card-glass rounded-xl border border-white/8 p-4">
-          <p className="text-sm text-[var(--text-muted)]">Changes Detected</p>
-          <p className="font-semibold mt-1 text-[var(--accent-jade)]">{changes.length}</p>
+        <div className="card-glass p-4 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
+          <div className="relative z-10">
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Changes</p>
+            <p className="font-bold text-lg mt-2 text-[var(--accent-gold)]">{changes.length}</p>
+          </div>
         </div>
       </div>
 
@@ -153,42 +164,11 @@ export default function MonitorDetailPage() {
       )}
 
       {/* Changes timeline */}
-      <h2 className="text-lg font-semibold mb-4">Change History</h2>
-      {changes.length === 0 ? (
-        <div className="card-glass rounded-xl border border-white/8 p-8 text-center">
-          <p className="text-[var(--text-muted)]">No changes detected yet. We&apos;ll alert you when something changes.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {changes.map((change) => (
-            <div key={change.id} className="card-glass rounded-xl border border-white/8 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <p className="text-[var(--text-cream)] font-medium">{change.summary}</p>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      change.importanceScore >= 7 ? "bg-[var(--accent-ruby)]/15 text-[var(--accent-ruby)]" :
-                      change.importanceScore >= 4 ? "bg-[var(--accent-gold)]/15 text-[var(--accent-gold)]" :
-                      "bg-white/6 text-[var(--text-sage)]"
-                    }`}>
-                      {change.importanceScore}/10
-                    </span>
-                    <span className="text-xs px-2 py-0.5 bg-[var(--accent-jade)]/10 text-[var(--accent-jade)] rounded-full">
-                      {change.changeType}
-                    </span>
-                    {change.diffPercentage && (
-                      <span className="text-xs text-[var(--text-muted)]">{parseFloat(change.diffPercentage).toFixed(1)}% changed</span>
-                    )}
-                    <span className="text-xs text-[var(--text-muted)]">
-                      {new Date(change.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <Image src="/assets/camo-watch.png" alt="" width={24} height={24} />
+        Change History
+      </h2>
+      <ChangeTimeline changes={changes} />
     </div>
   );
 }
