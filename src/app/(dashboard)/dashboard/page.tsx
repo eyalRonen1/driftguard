@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { monitors, changes } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -60,14 +61,16 @@ export default async function DashboardPage() {
 
       {allMonitors.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Start monitoring</h2>
+          <Image
+            src="/assets/sloth-sleeping.png"
+            alt="Sleeping sloth"
+            width={120}
+            height={120}
+            className="mx-auto mb-4"
+          />
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Nothing to watch yet</h2>
           <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-            Add a URL to monitor. Get AI summaries when it changes.
+            Add a URL and let our sloth keep an eye on it for you.
           </p>
           <Link
             href="/dashboard/monitors/new"

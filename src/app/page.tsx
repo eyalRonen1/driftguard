@@ -23,17 +23,28 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="gradient-hero grid-pattern pt-28 pb-20 sm:pt-36 sm:pb-28">
-        <div className="max-w-3xl mx-auto px-6 text-center">
+      <section className="relative pt-28 pb-20 sm:pt-36 sm:pb-28 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/assets/sloth-hero-bg.png"
+            alt=""
+            fill
+            className="object-cover opacity-15 blur-sm"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white" />
+        </div>
+        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
+          <Image src="/assets/sloth-mascot.png" alt="PageLifeguard Sloth" width={80} height={80} className="mx-auto mb-6 drop-shadow-lg" />
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-            Website changes,
+            We watch pages
             <br />
             <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              explained by AI
+              so you can relax
             </span>
           </h1>
           <p className="text-gray-500 mt-5 text-lg max-w-lg mx-auto">
-            Monitor any page. Get summaries, not diffs.
+            AI-powered website monitoring. Get summaries, not diffs.
           </p>
           <div className="flex items-center justify-center gap-3 mt-8">
             <Link href="/signup" className="px-5 py-2.5 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition font-medium">
