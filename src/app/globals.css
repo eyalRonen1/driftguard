@@ -1,20 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --bg-jungle: #1a2e1a;
-  --bg-canopy: #243524;
-  --bg-leaf: #2d4a2d;
-  --bg-moss: #3a5c3a;
-  --bg-sage: #4a7a4a;
-  --bg-card: #2a3f2a;
-  --bg-card-hover: #325032;
-  --text-light: #e8f5e8;
-  --text-muted: #a8cfa8;
-  --text-dim: #7aaa7a;
-  --accent-lime: #a3e635;
-  --accent-yellow: #fbbf24;
-  --accent-orange: #fb923c;
-  --accent-red: #f87171;
+  /* Ink backgrounds - deep jungle layers */
+  --bg-ink-1: #07130f;
+  --bg-ink-2: #0b1c15;
+  --bg-ink-3: #11241b;
+  --bg-ink-4: #08120f;
+
+  /* Glows */
+  --bg-gold-glow: rgba(227, 190, 105, 0.18);
+  --bg-jade-glow: rgba(71, 168, 107, 0.16);
+  --bg-canopy-shadow: rgba(0, 0, 0, 0.52);
+
+  /* Text */
+  --text-cream: #F4F1E8;
+  --text-sage: #D5E1CC;
+  --text-muted: #8BA88B;
+  --text-dim: #5A7A5A;
+
+  /* Accents */
+  --accent-gold: #E3BE69;
+  --accent-jade: #7CCB8B;
+  --accent-lime: #A8E06C;
+  --accent-ember: #C8743F;
+  --accent-ruby: #E05858;
+
+  /* Camo brand colors */
+  --camo-body: #46a86b;
+  --camo-head: #57b877;
+  --camo-eye: #fff9ef;
+  --camo-stripe: #1f6a46;
+  --camo-tail: #d8ad4a;
+  --camo-branch: #76573a;
 }
 
 @theme inline {
@@ -23,130 +40,263 @@
 }
 
 body {
-  background: var(--bg-jungle);
-  color: var(--text-light);
+  color: var(--text-cream);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Jungle backgrounds */
-.bg-jungle { background: var(--bg-jungle); }
-.bg-canopy { background: var(--bg-canopy); }
-.bg-leaf { background: var(--bg-leaf); }
-.bg-moss { background: var(--bg-moss); }
+/* ==========================================
+   LAYERED JUNGLE BACKGROUNDS (from Codex)
+   ========================================== */
 
-.bg-jungle-gradient {
-  background: linear-gradient(180deg, #1a2e1a 0%, #243524 40%, #2d4a2d 100%);
+.bg-jungle-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background: linear-gradient(180deg, var(--bg-ink-1) 0%, var(--bg-ink-2) 34%, var(--bg-ink-3) 68%, var(--bg-ink-4) 100%);
 }
 
-.bg-jungle-hero {
+.bg-jungle-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(74, 222, 128, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(163, 230, 53, 0.05), transparent),
-    linear-gradient(180deg, #1a2e1a 0%, #243524 100%);
+    radial-gradient(circle at 12% 0%, var(--bg-gold-glow), transparent 30%),
+    radial-gradient(circle at 88% 8%, var(--bg-jade-glow), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(13, 61, 43, 0.42), transparent 42%),
+    linear-gradient(135deg, rgba(255,255,255,0.035), transparent 18%, transparent 82%, rgba(255,255,255,0.02));
 }
 
-/* Cards */
-.card-jungle {
-  background: rgba(42, 63, 42, 0.8);
-  border: 1px solid rgba(74, 122, 74, 0.3);
-  backdrop-filter: blur(8px);
+.bg-jungle-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.06;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+}
+
+/* Canopy vignette - top shadow */
+.canopy-vignette {
+  position: absolute;
+  inset-inline: 0;
+  top: -14rem;
+  height: 28rem;
+  background: radial-gradient(ellipse at top, var(--bg-canopy-shadow), transparent 68%);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Golden light shaft */
+.gold-shaft {
+  position: absolute;
+  left: 50%;
+  top: -10rem;
+  height: 30rem;
+  width: 72rem;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: rgba(227, 190, 105, 0.06);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ==========================================
+   SECTION BANDS
+   ========================================== */
+
+.section-band {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.012));
+}
+
+.section-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(124,203,139,0.06), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(200,155,67,0.07), transparent 26%);
+}
+
+.section-line-top {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+}
+
+.section-line-bottom {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+}
+
+/* ==========================================
+   CARDS
+   ========================================== */
+
+.card-glass {
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
-  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 2px 8px rgba(0,0,0,0.2);
+  transition: all 0.25s ease;
 }
 
-.card-jungle:hover {
-  background: rgba(50, 80, 50, 0.9);
-  border-color: rgba(163, 230, 53, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Buttons */
-.btn-jungle {
-  background: linear-gradient(135deg, #4ade80, #22c55e);
-  color: #052e05;
-  font-weight: 600;
-  border-radius: 12px;
-  padding: 10px 20px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 10px rgba(74, 222, 128, 0.2);
-}
-
-.btn-jungle:hover {
-  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.4);
+.card-glass:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  border-color: rgba(124,203,139,0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 8px 24px rgba(0,0,0,0.3),
+    0 0 0 1px rgba(124,203,139,0.08);
   transform: translateY(-1px);
 }
 
-.btn-vine {
-  background: rgba(74, 122, 74, 0.4);
-  color: #a3e635;
-  border: 1px solid rgba(163, 230, 53, 0.3);
-  border-radius: 12px;
-  padding: 10px 20px;
+.card-glass-featured {
+  background: linear-gradient(135deg, rgba(124,203,139,0.08), rgba(227,190,105,0.04));
+  border: 1px solid rgba(124,203,139,0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 0 24px rgba(124,203,139,0.08),
+    0 4px 16px rgba(0,0,0,0.2);
+}
+
+/* ==========================================
+   BUTTONS
+   ========================================== */
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-jade), #5ab873);
+  color: #052e12;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 22px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(124,203,139,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 20px rgba(124,203,139,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-sage);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 22px;
   transition: all 0.2s ease;
 }
 
-.btn-vine:hover {
-  background: rgba(74, 122, 74, 0.6);
-  border-color: rgba(163, 230, 53, 0.5);
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.18);
 }
 
-/* Glass nav */
-.nav-jungle {
-  background: rgba(26, 46, 26, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(74, 122, 74, 0.2);
+/* ==========================================
+   NAV
+   ========================================== */
+
+.nav-glass {
+  background: rgba(7, 19, 15, 0.8);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Leaf pattern overlay */
-.leaf-pattern {
-  background-image: url('/assets/leaf-pattern.png');
-  background-size: 300px;
-  background-repeat: repeat;
-  opacity: 0.03;
+/* ==========================================
+   ICON SHELL
+   ========================================== */
+
+.icon-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
 }
 
-/* Animations */
-@keyframes sway {
-  0%, 100% { transform: rotate(-1deg); }
-  50% { transform: rotate(1deg); }
+/* ==========================================
+   CAMO SVG STATES
+   ========================================== */
+
+.camo { --camo-body: #46a86b; --camo-head: #57b877; }
+.camo[data-state="alert"] { --camo-body: #c8743f; --camo-head: #de8a4d; }
+.camo[data-state="sleep"] { --camo-body: #3b8c5e; --camo-head: #4b9c69; }
+
+.camo svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.3));
 }
 
-.animate-sway {
-  animation: sway 4s ease-in-out infinite;
-}
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
 
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-up {
-  animation: fade-up 0.5s ease-out forwards;
+.animate-fade-up { animation: fade-up 0.5s ease-out forwards; }
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-jungle); }
-::-webkit-scrollbar-thumb { background: var(--bg-moss); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--bg-sage); }
+.animate-sway { animation: sway 4s ease-in-out infinite; }
 
-/* Input fields in jungle theme */
-.input-jungle {
-  background: rgba(42, 63, 42, 0.6);
-  border: 1px solid rgba(74, 122, 74, 0.4);
-  color: var(--text-light);
-  border-radius: 12px;
+/* ==========================================
+   SCROLLBAR
+   ========================================== */
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-ink-1); }
+::-webkit-scrollbar-thumb { background: rgba(124,203,139,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,203,139,0.35); }
+
+/* ==========================================
+   INPUTS
+   ========================================== */
+
+.input-glass {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-cream);
+  border-radius: 10px;
   padding: 10px 14px;
   transition: all 0.2s ease;
 }
 
-.input-jungle:focus {
+.input-glass:focus {
   outline: none;
-  border-color: #4ade80;
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+  border-color: var(--accent-jade);
+  box-shadow: 0 0 0 3px rgba(124,203,139,0.12);
 }
 
-.input-jungle::placeholder {
-  color: var(--text-dim);
-}
+.input-glass::placeholder { color: var(--text-dim); }
