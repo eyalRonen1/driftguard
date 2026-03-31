@@ -75,7 +75,7 @@ export function Sidebar({ user }: { user: User }) {
       `}>
         <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Image src="/assets/chameleon-main.png" alt="" width={32} height={32} className="animate-sway" />
+            <Image src="/assets/camo-brand.png" alt="" width={32} height={32} className="animate-sway" />
             <span className="font-semibold text-lg text-[var(--text-light)]">PageLifeguard</span>
           </Link>
         </div>

@@ -11,7 +11,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 nav-jungle">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/assets/chameleon-main.png" alt="PageLifeguard" width={32} height={32} className="animate-sway" />
+            <Image src="/assets/camo-brand.png" alt="PageLifeguard" width={32} height={32} className="animate-sway" />
             <span className="font-semibold text-[var(--text-light)] tracking-tight">PageLifeguard</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -27,7 +27,7 @@ export default function LandingPage() {
           <Image src="/assets/jungle-bg.png" alt="" fill className="object-cover opacity-20" priority />
         </div>
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-          <Image src="/assets/chameleon-main.png" alt="" width={100} height={100} className="mx-auto mb-6 drop-shadow-2xl animate-sway" />
+          <Image src="/assets/camo-brand.png" alt="" width={100} height={100} className="mx-auto mb-6 drop-shadow-2xl animate-sway" />
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-[var(--text-light)]">
             Your pages change.
             <br />
@@ -49,12 +49,16 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12 text-[var(--text-light)]">Three steps. Zero effort.</h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {[
-              { n: "1", t: "Paste a URL", d: "Any page — competitor pricing, legal docs, job boards.", color: "text-[var(--accent-lime)]" },
-              { n: "2", t: "Chameleon watches", d: "We check daily, hourly, or every 15 minutes.", color: "text-[var(--accent-yellow)]" },
-              { n: "3", t: "Get a summary", d: "AI explains the change in plain English.", color: "text-[var(--accent-orange)]" },
+              { n: "1", t: "Paste a URL", d: "Any page — competitor pricing, legal docs, job boards.", color: "text-[var(--accent-lime)]", img: null },
+              { n: "2", t: "Camo watches", d: "We check daily, hourly, or every 15 minutes.", color: "text-[var(--accent-yellow)]", img: "/assets/camo-watching.png" },
+              { n: "3", t: "Get a summary", d: "AI explains the change in plain English.", color: "text-[var(--accent-orange)]", img: "/assets/camo-alert.png" },
             ].map((s) => (
               <div key={s.n} className="card-jungle p-5 text-center">
-                <span className={`text-3xl font-bold ${s.color}`}>{s.n}</span>
+                {s.img ? (
+                  <Image src={s.img} alt="" width={48} height={48} className="mx-auto mb-2" />
+                ) : (
+                  <span className={`text-3xl font-bold ${s.color}`}>{s.n}</span>
+                )}
                 <h3 className="font-semibold mt-2 mb-1 text-[var(--text-light)]">{s.t}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{s.d}</p>
               </div>
@@ -121,7 +125,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-16 sm:py-20 relative z-10">
         <div className="max-w-2xl mx-auto px-6 text-center">
-          <Image src="/assets/chameleon-sleeping.png" alt="" width={80} height={80} className="mx-auto mb-4" />
+          <Image src="/assets/camo-sleeping.png" alt="" width={80} height={80} className="mx-auto mb-4" />
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-light)] mb-3">Let the chameleon do the watching</h2>
           <p className="text-[var(--text-muted)] mb-8">Set up in 30 seconds. Free forever for 3 monitors.</p>
           <Link href="/signup" className="btn-jungle text-lg">Get started free</Link>
@@ -132,7 +136,7 @@ export default function LandingPage() {
       <footer className="border-t border-[var(--bg-moss)] py-8 relative z-10">
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[var(--text-dim)]">
           <div className="flex items-center gap-2">
-            <Image src="/assets/chameleon-main.png" alt="" width={20} height={20} />
+            <Image src="/assets/camo-brand.png" alt="" width={20} height={20} />
             <span>&copy; {new Date().getFullYear()} PageLifeguard</span>
           </div>
           <div className="flex gap-6">

@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   } catch {
     return (
       <div className="p-8 text-center">
-        <Image src="/assets/chameleon-sleeping.png" alt="" width={100} height={100} className="mx-auto mb-4" />
+        <Image src="/assets/camo-sleeping.png" alt="" width={100} height={100} className="mx-auto mb-4" />
         <p className="text-[var(--text-muted)]">Setting up... refresh in a moment.</p>
       </div>
     );
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
       {/* Welcome */}
       <div className="relative card-jungle p-6 sm:p-8 mb-6 overflow-hidden !bg-gradient-to-r !from-[#1a3a1a] !to-[#2d4a2d]">
         <div className="absolute right-2 bottom-0 opacity-30 hidden sm:block">
-          <Image src="/assets/chameleon-main.png" alt="" width={120} height={120} />
+          <Image src="/assets/camo-waving.png" alt="" width={120} height={120} />
         </div>
         <div className="relative z-10">
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-light)]">Hey {firstName}!</h1>
@@ -49,7 +49,7 @@ export default async function DashboardPage() {
 
       {allMonitors.length === 0 ? (
         <div className="card-jungle p-10 text-center">
-          <Image src="/assets/chameleon-sleeping.png" alt="" width={130} height={130} className="mx-auto mb-5" />
+          <Image src="/assets/camo-sleeping.png" alt="" width={130} height={130} className="mx-auto mb-5" />
           <h2 className="text-xl font-bold text-[var(--text-light)] mb-2">No pages to watch yet</h2>
           <p className="text-[var(--text-muted)] mb-6 max-w-sm mx-auto">Give your chameleon a page to watch. It&apos;ll alert you when something changes.</p>
           <Link href="/dashboard/monitors/new" className="btn-jungle inline-flex items-center gap-2">
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
           {recentChanges.length > 0 && (
             <div className="mb-6">
               <h2 className="text-sm font-semibold text-[var(--text-light)] mb-3 flex items-center gap-2">
-                <Image src="/assets/chameleon-alert.png" alt="" width={22} height={22} />
+                <Image src="/assets/camo-alert.png" alt="" width={22} height={22} />
                 Recent changes
               </h2>
               <div className="space-y-2">
