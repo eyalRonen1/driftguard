@@ -11,21 +11,21 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200/50">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-sm">PL</span>
             </div>
-            <span className="font-semibold text-lg">PageLifeguard</span>
+            <span className="font-semibold text-lg tracking-tight">PageLifeguard</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
+            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition">
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="text-sm px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="text-sm px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-indigo-200 transition-all duration-200"
             >
               Get started free
             </Link>
@@ -34,34 +34,40 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full mb-6">
-          Website Change Monitoring with AI Summaries
+      <section className="gradient-hero grid-pattern pt-32 pb-20">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm rounded-full mb-8 shadow-sm">
+            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+            AI-Powered Website Change Monitoring
+          </div>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-[1.1] max-w-4xl mx-auto tracking-tight">
+            Know when any page
+            <br />
+            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              changes — in plain English
+            </span>
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-500 mt-8 max-w-2xl mx-auto leading-relaxed">
+            Monitor any URL. Get AI-powered summaries, not raw diffs.
+            <br className="hidden sm:block" />
+            <span className="text-gray-700 font-medium">&quot;Competitor dropped prices by 15%&quot;</span> — not &quot;line 47 changed.&quot;
+          </p>
+          <div className="flex items-center justify-center gap-4 mt-10">
+            <Link
+              href="/signup"
+              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-indigo-200 transition-all duration-200 text-lg font-medium"
+            >
+              Start monitoring free
+            </Link>
+            <a
+              href="#how-it-works"
+              className="px-6 py-3 text-gray-600 hover:text-gray-900 transition text-lg"
+            >
+              How it works
+            </a>
+          </div>
+          <p className="text-sm text-gray-400 mt-4">No credit card required. Free plan includes 3 monitors.</p>
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 leading-tight max-w-3xl mx-auto">
-          Know when any webpage
-          <br />
-          <span className="text-blue-600">changes — in plain English</span>
-        </h1>
-        <p className="text-xl text-gray-500 mt-6 max-w-2xl mx-auto">
-          PageLifeguard monitors any URL and sends you AI-powered summaries of what changed.
-          Not raw diffs — real insights like &quot;Competitor dropped prices by 15%.&quot;
-        </p>
-        <div className="flex items-center justify-center gap-4 mt-10">
-          <Link
-            href="/signup"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-lg font-medium"
-          >
-            Start monitoring free
-          </Link>
-          <a
-            href="#how-it-works"
-            className="px-6 py-3 text-gray-600 hover:text-gray-900 transition text-lg"
-          >
-            How it works
-          </a>
-        </div>
-        <p className="text-sm text-gray-400 mt-4">No credit card required. Free plan includes 3 monitors.</p>
       </section>
 
       {/* Try it live - HERO ACTION (Codex recommendation: make this the #1 focus) */}
