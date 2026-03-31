@@ -51,9 +51,9 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-jungle-stage">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border">
+      <div className="w-full max-w-md p-8 card-glass">
         <div className="flex justify-center mb-6">
-          <a href="/" className="flex items-center gap-2 text-gray-400 hover:text-gray-900 transition">
+          <a href="/" className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--accent-jade)] transition">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
             </svg>

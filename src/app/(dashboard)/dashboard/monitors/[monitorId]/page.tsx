@@ -125,7 +125,7 @@ export default function MonitorDetailPage() {
             <span className="font-semibold capitalize">{monitor.healthStatus}</span>
           </div>
           {monitor.healthReason && (
-            <p className="text-xs text-[var(--text-dim)] mt-1">{monitor.healthReason}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">{monitor.healthReason}</p>
           )}
         </div>
         <div className="card-glass rounded-xl border border-white/8 p-4">
@@ -177,9 +177,9 @@ export default function MonitorDetailPage() {
                       {change.changeType}
                     </span>
                     {change.diffPercentage && (
-                      <span className="text-xs text-[var(--text-dim)]">{parseFloat(change.diffPercentage).toFixed(1)}% changed</span>
+                      <span className="text-xs text-[var(--text-muted)]">{parseFloat(change.diffPercentage).toFixed(1)}% changed</span>
                     )}
-                    <span className="text-xs text-[var(--text-dim)]">
+                    <span className="text-xs text-[var(--text-muted)]">
                       {new Date(change.createdAt).toLocaleString()}
                     </span>
                   </div>

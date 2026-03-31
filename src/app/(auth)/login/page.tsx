@@ -43,21 +43,21 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-jungle-stage">
-      <div className="w-full max-w-md p-8 card-jungle mx-4">
+      <div className="w-full max-w-md p-8 card-glass mx-4">
         <div className="flex justify-center mb-6">
-          <a href="/" className="flex items-center gap-2 text-[var(--text-dim)] hover:text-[var(--accent-lime)] transition">
+          <a href="/" className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--accent-lime)] transition">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
             </svg>
             <span className="text-sm">Back to home</span>
           </a>
         </div>
-        <h1 className="text-2xl font-bold text-center mb-2 text-[var(--text-light)]">Welcome back</h1>
+        <h1 className="text-2xl font-bold text-center mb-2 text-[var(--text-cream)]">Welcome back</h1>
         <p className="text-[var(--text-muted)] text-center mb-8">Sign in to PageLifeguard</p>
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition mb-6"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-white/12 rounded-lg hover:bg-white/6 transition mb-6"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

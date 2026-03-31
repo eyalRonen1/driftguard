@@ -153,7 +153,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/6 py-8 relative z-10">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[var(--text-dim)]">
+        <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[var(--text-muted)]">
           <div className="flex items-center gap-2">
             <Camo size={18} />
             <span>&copy; {new Date().getFullYear()} PageLifeguard</span>

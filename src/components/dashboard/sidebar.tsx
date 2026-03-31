@@ -76,7 +76,7 @@ export function Sidebar({ user }: { user: User }) {
         <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image src="/assets/camo-brand.png" alt="" width={32} height={32} className="animate-sway" />
-            <span className="font-semibold text-lg text-[var(--text-light)]">PageLifeguard</span>
+            <span className="font-semibold text-lg text-[var(--text-cream)]">PageLifeguard</span>
           </Link>
         </div>
 
@@ -91,7 +91,7 @@ export function Sidebar({ user }: { user: User }) {
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                   isActive
                     ? "bg-[var(--accent-lime)]/10 text-[var(--accent-lime)] font-medium"
-                    : "text-gray-400 hover:bg-[var(--bg-leaf)]/50 hover:text-[var(--text-light)]"
+                    : "text-gray-400 hover:bg-[var(--bg-ink-2)]/50 hover:text-[var(--text-cream)]"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -103,7 +103,7 @@ export function Sidebar({ user }: { user: User }) {
 
         <div className="p-3 border-t border-[#1a3a1a]">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-[var(--bg-moss)] rounded-full flex items-center justify-center text-sm font-medium text-gray-300">
+            <div className="w-8 h-8 bg-[var(--bg-ink-3)] rounded-full flex items-center justify-center text-sm font-medium text-gray-300">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">

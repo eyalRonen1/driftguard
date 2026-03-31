@@ -82,12 +82,12 @@ export default function MonitorsPage() {
             >
               <div className="min-w-0 flex-1">
                 <h3 className="font-medium text-[var(--text-cream)]">{m.name}</h3>
-                <p className="text-sm text-[var(--text-dim)] truncate">{m.url}</p>
+                <p className="text-sm text-[var(--text-muted)] truncate">{m.url}</p>
               </div>
               <div className="flex items-center gap-3 ml-4">
-                <span className="text-xs text-[var(--text-dim)] hidden sm:block">{m.checkFrequency}</span>
+                <span className="text-xs text-[var(--text-muted)] hidden sm:block">{m.checkFrequency}</span>
                 {m.lastCheckedAt && (
-                  <span className="text-xs text-[var(--text-dim)] hidden sm:block">
+                  <span className="text-xs text-[var(--text-muted)] hidden sm:block">
                     {new Date(m.lastCheckedAt).toLocaleDateString()}
                   </span>
                 )}
@@ -142,7 +142,7 @@ function AddMonitorForm({ onClose, onCreated }: { onClose: () => void; onCreated
     <div className="card-glass rounded-xl border border-white/8 p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Add a monitor</h2>
-        <button onClick={onClose} className="text-[var(--text-dim)] hover:text-[var(--text-sage)]">
+        <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-sage)]">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
@@ -164,7 +164,7 @@ function AddMonitorForm({ onClose, onCreated }: { onClose: () => void; onCreated
 
         <div>
           <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">
-            Name <span className="text-[var(--text-dim)]">(optional)</span>
+            Name <span className="text-[var(--text-muted)]">(optional)</span>
           </label>
           <input
             type="text"
@@ -192,7 +192,7 @@ function AddMonitorForm({ onClose, onCreated }: { onClose: () => void; onCreated
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">
-              CSS Selector <span className="text-[var(--text-dim)]">(optional)</span>
+              CSS Selector <span className="text-[var(--text-muted)]">(optional)</span>
             </label>
             <input
               type="text"
@@ -201,7 +201,7 @@ function AddMonitorForm({ onClose, onCreated }: { onClose: () => void; onCreated
               className="w-full px-3 py-2 border border-white/12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)] font-mono text-sm"
               placeholder="#pricing, .main-content"
             />
-            <p className="text-xs text-[var(--text-dim)] mt-1">Monitor only a specific section</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">Monitor only a specific section</p>
           </div>
         </div>
 
