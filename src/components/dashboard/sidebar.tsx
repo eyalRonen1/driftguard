@@ -33,16 +33,14 @@ export function Sidebar({ user }: { user: User }) {
   return (
     <>
       {/* Mobile header bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 nav-glass px-4 py-3 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">PL</span>
-          </div>
-          <span className="font-semibold">PageLifeguard</span>
+          <Image src="/assets/camo-happy.png" alt="" width={28} height={28} />
+          <span className="font-semibold text-[var(--text-cream)]">PageLifeguard</span>
         </Link>
         <button
           onClick={() => setOpen(!open)}
-          className="p-2 rounded-lg hover:bg-gray-100"
+          className="p-2 rounded-lg hover:bg-white/10 text-[var(--text-cream)]"
         >
           {open ? (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -59,7 +57,7 @@ export function Sidebar({ user }: { user: User }) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-30 bg-black/30"
+          className="lg:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
@@ -75,7 +73,7 @@ export function Sidebar({ user }: { user: User }) {
       `}>
         <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <Image src="/assets/camo-brand.png" alt="" width={32} height={32} className="animate-sway" />
+            <Image src="/assets/camo-happy.png" alt="" width={32} height={32} className="animate-sway" />
             <span className="font-semibold text-lg text-[var(--text-cream)]">PageLifeguard</span>
           </Link>
         </div>

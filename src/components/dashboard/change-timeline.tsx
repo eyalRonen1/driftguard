@@ -63,7 +63,7 @@ export function ChangeTimeline({ changes }: { changes: Change[] }) {
                   {/* Camo reaction */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <p className="text-sm text-[var(--text-cream)] font-medium">{change.summary}</p>
+                      <p className="text-sm text-[var(--text-cream)] font-medium line-clamp-2">{change.summary}</p>
                     </div>
                     {i === 0 && (
                       <Image src="/assets/camo-watch.png" alt="" width={28} height={28} className="flex-shrink-0 opacity-60" />
