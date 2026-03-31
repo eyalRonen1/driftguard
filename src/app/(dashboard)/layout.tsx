@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { ensureUserAndOrg } from "@/lib/db/ensure-user";
 
 export default async function DashboardLayout({
   children,
@@ -11,6 +12,9 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  // Ensure user has DB record + organization (auto-creates on first visit)
+  await ensureUserAndOrg(user);
 
   return (
     <div className="min-h-screen flex bg-gray-50">
