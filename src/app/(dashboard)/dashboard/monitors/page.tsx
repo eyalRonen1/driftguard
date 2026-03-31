@@ -44,7 +44,7 @@ export default function MonitorsPage() {
           <p className="text-gray-500 mt-1">Track changes on any web page</p>
         </div>
         <button
-          onClick={() => setShowAdd(true)}
+          onClick={() => window.location.href = "/dashboard/monitors/new"}
           className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -66,7 +66,7 @@ export default function MonitorsPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">No monitors yet</h2>
           <p className="text-gray-500 mb-6">Paste a URL to start tracking changes.</p>
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={() => window.location.href = "/dashboard/monitors/new"}
             className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             Add your first monitor
