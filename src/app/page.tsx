@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LiveDemo } from "@/components/marketing/live-demo";
 
 export default function LandingPage() {
   return (
@@ -55,6 +56,17 @@ export default function LandingPage() {
           </a>
         </div>
         <p className="text-sm text-gray-400 mt-4">No credit card required. Free plan includes 3 monitors.</p>
+      </section>
+
+      {/* Interactive Demo */}
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">See it in action</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            Watch how PageLifeguard detects a competitor price change and sends you an AI-powered alert.
+          </p>
+          <LiveDemo />
+        </div>
       </section>
 
       {/* Problem */}

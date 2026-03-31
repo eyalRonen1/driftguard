@@ -43,7 +43,7 @@ export async function sendDriftAlert(data: DriftAlertData): Promise<boolean> {
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="padding: 24px; background: #1E40AF; border-radius: 12px 12px 0 0;">
-        <h1 style="margin: 0; color: white; font-size: 20px;">DriftGuard Alert</h1>
+        <h1 style="margin: 0; color: white; font-size: 20px;">PageLifeguard Alert</h1>
       </div>
       <div style="padding: 24px; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 12px 12px;">
         <h2 style="margin: 0 0 8px; font-size: 18px;">${escapeHtml(data.botName)} quality dropped</h2>
@@ -72,7 +72,7 @@ export async function sendDriftAlert(data: DriftAlertData): Promise<boolean> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "DriftGuard <alerts@driftguard.com>",
+        from: "PageLifeguard <alerts@driftguard.com>",
         to: data.to,
         subject: `⚠️ ${data.botName} health dropped to ${data.currentScore}%`,
         html,
