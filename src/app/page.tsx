@@ -8,9 +8,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">DG</span>
+              <span className="text-white font-bold text-sm">PL</span>
             </div>
-            <span className="font-semibold text-lg">DriftGuard</span>
+            <span className="font-semibold text-lg">PageLifeguard</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
@@ -29,16 +29,16 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-20 pb-16 text-center">
         <div className="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full mb-6">
-          UptimeRobot for AI Chatbots
+          Website Change Monitoring with AI Summaries
         </div>
         <h1 className="text-5xl font-bold text-gray-900 leading-tight max-w-3xl mx-auto">
-          Know when your chatbot
+          Know when any webpage
           <br />
-          <span className="text-blue-600">starts giving wrong answers</span>
+          <span className="text-blue-600">changes — in plain English</span>
         </h1>
         <p className="text-xl text-gray-500 mt-6 max-w-2xl mx-auto">
-          DriftGuard monitors your AI chatbot 24/7. When knowledge bases change, models update,
-          or prompts break — we catch the drift before your customers do.
+          PageLifeguard monitors any URL and sends you AI-powered summaries of what changed.
+          Not raw diffs — real insights like &quot;Competitor dropped prices by 15%.&quot;
         </p>
         <div className="flex items-center justify-center gap-4 mt-10">
           <Link
@@ -54,34 +54,33 @@ export default function LandingPage() {
             How it works
           </a>
         </div>
-        <p className="text-sm text-gray-400 mt-4">No credit card required. Free plan includes 1 bot.</p>
+        <p className="text-sm text-gray-400 mt-4">No credit card required. Free plan includes 3 monitors.</p>
       </section>
 
       {/* Problem */}
       <section className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-4">The silent problem with AI chatbots</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Important pages change without warning</h2>
           <p className="text-gray-500 text-center max-w-2xl mx-auto mb-12">
-            Your chatbot worked perfectly yesterday. Today, someone updated the knowledge base,
-            the model provider pushed a silent update, or a prompt was edited.
-            Now it&apos;s giving wrong answers — and you don&apos;t know.
+            Competitor pricing, regulatory pages, product listings, job boards — they all change.
+            By the time you notice manually, it&apos;s too late.
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Knowledge base changes",
-                desc: "Someone adds, removes, or edits a document. The chatbot now gives outdated or contradictory answers.",
-                icon: "📄",
+                title: "Competitor pricing changes",
+                desc: "Your competitor drops prices or launches a new plan. You find out from a customer, not your own intelligence.",
+                icon: "💰",
               },
               {
-                title: "Model updates",
-                desc: "Your LLM provider updates the model. Responses change subtly. No one notices for days.",
-                icon: "🔄",
+                title: "Regulatory updates",
+                desc: "A compliance page updates with new requirements. Your team misses it for weeks.",
+                icon: "📋",
               },
               {
-                title: "Prompt drift",
-                desc: "A team member tweaks the system prompt. Quality degrades on edge cases no one tested.",
-                icon: "💬",
+                title: "Content disappears",
+                desc: "A key page gets removed or restructured. Links break, information vanishes.",
+                icon: "🔍",
               },
             ].map((item) => (
               <div key={item.title} className="bg-white p-6 rounded-xl border border-gray-200">
@@ -97,23 +96,23 @@ export default function LandingPage() {
       {/* How it works */}
       <section id="how-it-works" className="py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">How DriftGuard works</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">How PageLifeguard works</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 step: "1",
-                title: "Connect your bot",
-                desc: "Paste your chatbot API endpoint. Or let us auto-generate test questions from your website.",
+                title: "Paste a URL",
+                desc: "Any public web page — competitor pricing, regulatory docs, job boards, product pages.",
               },
               {
                 step: "2",
-                title: "Define what matters",
-                desc: "Add the questions your bot must answer correctly. Set priorities and match strategies.",
+                title: "We check it for you",
+                desc: "Daily, hourly, or every 15 minutes. We fetch the page and compare it to the last version.",
               },
               {
                 step: "3",
-                title: "Get alerted on drift",
-                desc: "We test your bot daily. When answers change, you get an instant alert with a detailed diff.",
+                title: "Get smart alerts",
+                desc: "When something changes, you get a plain-English summary: what changed, why it matters.",
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -131,15 +130,15 @@ export default function LandingPage() {
       {/* Features */}
       <section className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">Built for teams that ship AI</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">More than a change detector</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { title: "Health Score", desc: "0-100 score updated with every scan. Share with your team in seconds." },
-              { title: "Golden Set Generator", desc: "We scan your website and auto-generate the most critical test questions." },
-              { title: "LLM-as-Judge", desc: "Semantic comparison powered by AI. Not just keyword matching." },
-              { title: "Instant Alerts", desc: "Email and Slack notifications the moment quality drops." },
-              { title: "Scan Throttling", desc: "Human-like pacing between questions. Won't trigger your bot's rate limits." },
-              { title: "Zero-Code Setup", desc: "No SDK, no integration. Just paste your endpoint and go." },
+              { title: "AI Summaries", desc: "Not raw diffs. Plain-English descriptions: 'Price dropped from $49 to $39.'" },
+              { title: "Importance Scoring", desc: "AI rates each change 1-10. Only get alerted on what actually matters." },
+              { title: "Smart Filtering", desc: "Ignore timestamps, ads, and layout noise. Focus on real content changes." },
+              { title: "Instant Alerts", desc: "Email and Slack notifications the moment something important changes." },
+              { title: "CSS Selectors", desc: "Monitor just the pricing table, just the FAQ, or just the part you care about." },
+              { title: "Zero Setup", desc: "Paste a URL and go. No code, no integration, no SDK." },
             ].map((feature) => (
               <div key={feature.title} className="bg-white p-5 rounded-xl border border-gray-200">
                 <h3 className="font-semibold mb-1">{feature.title}</h3>
@@ -161,36 +160,36 @@ export default function LandingPage() {
                 name: "Free",
                 price: "$0",
                 desc: "For trying it out",
-                features: ["1 chatbot", "5 test cases", "Weekly scans", "Email alerts"],
+                features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts"],
                 cta: "Start free",
                 highlighted: false,
               },
               {
                 name: "Pro",
-                price: "$29",
-                desc: "For growing teams",
+                price: "$19",
+                desc: "For professionals",
                 features: [
-                  "3 chatbots",
-                  "50 test cases per bot",
-                  "Daily scans",
+                  "20 monitors",
+                  "Hourly checks",
+                  "AI summaries",
                   "Email + Slack alerts",
-                  "Golden Set Generator",
-                  "Health Score dashboard",
+                  "CSS selectors",
+                  "Change history",
                 ],
                 cta: "Start free trial",
                 highlighted: true,
               },
               {
                 name: "Business",
-                price: "$79",
-                desc: "For serious monitoring",
+                price: "$49",
+                desc: "For teams & agencies",
                 features: [
-                  "10 chatbots",
-                  "200 test cases per bot",
-                  "Hourly scans",
-                  "Priority support",
-                  "Advanced analytics",
+                  "100 monitors",
+                  "Every 15 min checks",
+                  "AI summaries",
+                  "Priority alerts",
                   "API access",
+                  "Team members",
                 ],
                 cta: "Start free trial",
                 highlighted: false,
@@ -245,10 +244,10 @@ export default function LandingPage() {
       <section className="bg-blue-600 py-16">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Stop finding out from angry customers
+            Stop checking pages manually
           </h2>
           <p className="text-blue-100 text-lg mb-8">
-            Set up monitoring in 60 seconds. Know the moment your chatbot drifts.
+            Set up monitoring in 30 seconds. Get AI summaries when things change.
           </p>
           <Link
             href="/signup"
@@ -262,7 +261,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-8">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} DriftGuard. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} PageLifeguard. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-gray-600">Privacy</a>
             <a href="#" className="hover:text-gray-600">Terms</a>

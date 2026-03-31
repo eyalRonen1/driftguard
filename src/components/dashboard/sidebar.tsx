@@ -9,7 +9,7 @@ import type { User } from "@supabase/supabase-js";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutIcon },
-  { name: "Chatbots", href: "/dashboard/bots", icon: BotIcon },
+  { name: "Monitors", href: "/dashboard/monitors", icon: BotIcon },
   { name: "Settings", href: "/dashboard/settings", icon: SettingsIcon },
 ];
 
@@ -35,9 +35,9 @@ export function Sidebar({ user }: { user: User }) {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2">
           <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">DG</span>
+            <span className="text-white font-bold text-xs">PL</span>
           </div>
-          <span className="font-semibold">DriftGuard</span>
+          <span className="font-semibold">PageLifeguard</span>
         </Link>
         <button
           onClick={() => setOpen(!open)}
@@ -75,9 +75,9 @@ export function Sidebar({ user }: { user: User }) {
         <div className="p-4 border-b border-gray-200 hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">DG</span>
+              <span className="text-white font-bold text-sm">PL</span>
             </div>
-            <span className="font-semibold text-lg">DriftGuard</span>
+            <span className="font-semibold text-lg">PageLifeguard</span>
           </Link>
         </div>
 

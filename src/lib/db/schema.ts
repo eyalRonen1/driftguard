@@ -9,12 +9,11 @@ import {
   timestamp,
   jsonb,
   index,
-  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ==========================================
-// USERS
+// USERS (kept from DriftGuard)
 // ==========================================
 
 export const users = pgTable("users", {
@@ -28,7 +27,7 @@ export const users = pgTable("users", {
 });
 
 // ==========================================
-// ORGANIZATIONS
+// ORGANIZATIONS (kept from DriftGuard)
 // ==========================================
 
 export const organizations = pgTable("organizations", {
@@ -40,135 +39,113 @@ export const organizations = pgTable("organizations", {
   paddleCustomerId: varchar("paddle_customer_id", { length: 255 }),
   paddleSubscriptionId: varchar("paddle_subscription_id", { length: 255 }),
   paddleSubscriptionStatus: varchar("paddle_subscription_status", { length: 50 }).default("none"),
-  monthlyScanQuota: integer("monthly_scan_quota").notNull().default(100),
-  monthlyScansUsed: integer("monthly_scans_used").notNull().default(0),
+  monthlyCheckQuota: integer("monthly_check_quota").notNull().default(100),
+  monthlyChecksUsed: integer("monthly_checks_used").notNull().default(0),
   quotaResetAt: timestamp("quota_reset_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ==========================================
-// CHATBOTS
+// MONITORS - URLs being tracked
 // ==========================================
 
-export const chatbots = pgTable(
-  "chatbots",
+export const monitors = pgTable(
+  "monitors",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 255 }).notNull(),
+    url: text("url").notNull(),
 
-    // Connection - MVP: api_endpoint + custom_webhook only
-    connectionType: varchar("connection_type", { length: 30 }).notNull().default("api_endpoint"),
-    endpointUrl: text("endpoint_url"),
-    apiKeyEncrypted: text("api_key_encrypted"),
-    requestTemplate: jsonb("request_template"),
-    responsePath: varchar("response_path", { length: 500 }),
-    headers: jsonb("headers").default({}),
+    // Check configuration
+    checkFrequency: varchar("check_frequency", { length: 20 }).notNull().default("daily"),
+    cssSelector: text("css_selector"), // Optional: monitor only a specific part of the page
+    ignoreSelectors: text("ignore_selectors"), // CSS selectors to ignore (ads, timestamps, etc.)
+    headers: jsonb("headers").default({}), // Custom request headers
 
-    // Scan config
-    scanFrequency: varchar("scan_frequency", { length: 20 }).notNull().default("daily"),
-    nextScanAt: timestamp("next_scan_at", { withTimezone: true }),
-    scanDelayMs: integer("scan_delay_ms").notNull().default(1500), // throttle: 1.5s between questions
-    timeoutMs: integer("timeout_ms").notNull().default(30000),
+    // Content tracking
+    lastContentHash: varchar("last_content_hash", { length: 64 }),
+    lastContentText: text("last_content_text"),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+    nextCheckAt: timestamp("next_check_at", { withTimezone: true }),
 
     // Status
     isActive: boolean("is_active").notNull().default(true),
-    lastScanAt: timestamp("last_scan_at", { withTimezone: true }),
-    lastHealthScore: decimal("last_health_score", { precision: 5, scale: 2 }),
-    consecutiveFailures: integer("consecutive_failures").notNull().default(0),
+    isPaused: boolean("is_paused").notNull().default(false),
+    consecutiveErrors: integer("consecutive_errors").notNull().default(0),
+    lastError: text("last_error"),
 
     // Metadata
-    websiteUrl: text("website_url"),
     description: text("description"),
+    tags: text("tags"), // comma-separated
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index("idx_chatbots_org").on(table.orgId),
-    index("idx_chatbots_next_scan").on(table.nextScanAt),
+    index("idx_monitors_org").on(table.orgId),
+    index("idx_monitors_next_check").on(table.nextCheckAt),
   ]
 );
 
 // ==========================================
-// TEST CASES
+// SNAPSHOTS - Content captures at a point in time
 // ==========================================
 
-export const testCases = pgTable(
-  "test_cases",
+export const snapshots = pgTable(
+  "snapshots",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    chatbotId: uuid("chatbot_id").notNull().references(() => chatbots.id, { onDelete: "cascade" }),
-    question: text("question").notNull(),
-    expectedAnswer: text("expected_answer").notNull(),
-    category: varchar("category", { length: 100 }),
-    priority: varchar("priority", { length: 10 }).notNull().default("medium"),
-    matchStrategy: varchar("match_strategy", { length: 30 }).notNull().default("semantic"),
-    semanticThreshold: decimal("semantic_threshold", { precision: 3, scale: 2 }).notNull().default("0.70"),
-    isAutoGenerated: boolean("is_auto_generated").notNull().default(false),
-    generationSource: varchar("generation_source", { length: 50 }),
-    isActive: boolean("is_active").notNull().default(true),
-    lastScore: decimal("last_score", { precision: 5, scale: 2 }),
-    lastTestedAt: timestamp("last_tested_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    monitorId: uuid("monitor_id").notNull().references(() => monitors.id, { onDelete: "cascade" }),
+    contentText: text("content_text").notNull(),
+    contentHash: varchar("content_hash", { length: 64 }).notNull(),
+    contentLength: integer("content_length").notNull().default(0),
+    statusCode: integer("status_code"),
+    responseTimeMs: integer("response_time_ms"),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("idx_test_cases_chatbot").on(table.chatbotId)]
+  (table) => [
+    index("idx_snapshots_monitor").on(table.monitorId),
+  ]
 );
 
 // ==========================================
-// SCAN RUNS
+// CHANGES - Detected changes with AI summaries
 // ==========================================
 
-export const scanRuns = pgTable(
-  "scan_runs",
+export const changes = pgTable(
+  "changes",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    chatbotId: uuid("chatbot_id").notNull().references(() => chatbots.id, { onDelete: "cascade" }),
+    monitorId: uuid("monitor_id").notNull().references(() => monitors.id, { onDelete: "cascade" }),
     orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-    triggerType: varchar("trigger_type", { length: 20 }).notNull(),
-    status: varchar("status", { length: 20 }).notNull().default("pending"),
-    totalTests: integer("total_tests").notNull().default(0),
-    passedTests: integer("passed_tests").notNull().default(0),
-    failedTests: integer("failed_tests").notNull().default(0),
-    errorTests: integer("error_tests").notNull().default(0),
-    healthScore: decimal("health_score", { precision: 5, scale: 2 }),
-    startedAt: timestamp("started_at", { withTimezone: true }),
-    completedAt: timestamp("completed_at", { withTimezone: true }),
-    durationMs: integer("duration_ms"),
-    errorMessage: text("error_message"),
+    snapshotBeforeId: uuid("snapshot_before_id").references(() => snapshots.id, { onDelete: "set null" }),
+    snapshotAfterId: uuid("snapshot_after_id").references(() => snapshots.id, { onDelete: "set null" }),
+
+    // AI-generated summary
+    summary: text("summary").notNull(), // "Competitor dropped price from $49 to $39"
+    summaryModel: varchar("summary_model", { length: 50 }),
+
+    // Classification
+    changeType: varchar("change_type", { length: 30 }).notNull().default("content"), // content, price, removal, addition, structure
+    importanceScore: integer("importance_score").notNull().default(5), // 1-10, AI-assigned
+
+    // Raw diff data
+    addedText: text("added_text"),
+    removedText: text("removed_text"),
+    diffPercentage: decimal("diff_percentage", { precision: 5, scale: 2 }), // how much changed (0-100%)
+
+    // Notification tracking
+    notified: boolean("notified").notNull().default(false),
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index("idx_scan_runs_chatbot").on(table.chatbotId),
-    index("idx_scan_runs_status").on(table.status),
+    index("idx_changes_monitor").on(table.monitorId),
+    index("idx_changes_org").on(table.orgId),
   ]
-);
-
-// ==========================================
-// SCAN RESULTS
-// ==========================================
-
-export const scanResults = pgTable(
-  "scan_results",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    scanRunId: uuid("scan_run_id").notNull().references(() => scanRuns.id, { onDelete: "cascade" }),
-    testCaseId: uuid("test_case_id").notNull().references(() => testCases.id, { onDelete: "cascade" }),
-    questionSent: text("question_sent").notNull(),
-    actualAnswer: text("actual_answer"),
-    expectedAnswer: text("expected_answer").notNull(),
-    score: decimal("score", { precision: 5, scale: 2 }).notNull().default("0"),
-    passed: boolean("passed").notNull().default(false),
-    matchStrategy: varchar("match_strategy", { length: 30 }).notNull(),
-    judgeReasoning: text("judge_reasoning"),
-    judgeModel: varchar("judge_model", { length: 50 }),
-    latencyMs: integer("latency_ms"),
-    error: text("error"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [index("idx_scan_results_run").on(table.scanRunId)]
 );
 
 // ==========================================
@@ -177,27 +154,12 @@ export const scanResults = pgTable(
 
 export const alertConfigs = pgTable("alert_configs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  chatbotId: uuid("chatbot_id").notNull().references(() => chatbots.id, { onDelete: "cascade" }),
-  type: varchar("type", { length: 30 }).notNull(), // health_drop, drift_detected, endpoint_down, critical_failure
+  monitorId: uuid("monitor_id").references(() => monitors.id, { onDelete: "cascade" }),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   channel: varchar("channel", { length: 20 }).notNull(), // email, slack
-  destination: text("destination").notNull(), // email address or slack webhook URL
-  threshold: decimal("threshold", { precision: 5, scale: 2 }),
+  destination: text("destination").notNull(), // email address or webhook URL
+  minImportance: integer("min_importance").notNull().default(3), // only alert on changes >= this score
   isActive: boolean("is_active").notNull().default(true),
-  cooldownMinutes: integer("cooldown_minutes").notNull().default(60),
-  lastTriggeredAt: timestamp("last_triggered_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-// ==========================================
-// ALERT HISTORY
-// ==========================================
-
-export const alertHistory = pgTable("alert_history", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  alertConfigId: uuid("alert_config_id").notNull().references(() => alertConfigs.id, { onDelete: "cascade" }),
-  scanRunId: uuid("scan_run_id").references(() => scanRuns.id, { onDelete: "set null" }),
-  message: text("message").notNull(),
-  deliveryStatus: varchar("delivery_status", { length: 20 }).notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -211,28 +173,24 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const organizationsRelations = relations(organizations, ({ one, many }) => ({
   owner: one(users, { fields: [organizations.ownerId], references: [users.id] }),
-  chatbots: many(chatbots),
+  monitors: many(monitors),
+  changes: many(changes),
 }));
 
-export const chatbotsRelations = relations(chatbots, ({ one, many }) => ({
-  organization: one(organizations, { fields: [chatbots.orgId], references: [organizations.id] }),
-  testCases: many(testCases),
-  scanRuns: many(scanRuns),
+export const monitorsRelations = relations(monitors, ({ one, many }) => ({
+  organization: one(organizations, { fields: [monitors.orgId], references: [organizations.id] }),
+  snapshots: many(snapshots),
+  changes: many(changes),
   alertConfigs: many(alertConfigs),
 }));
 
-export const testCasesRelations = relations(testCases, ({ one, many }) => ({
-  chatbot: one(chatbots, { fields: [testCases.chatbotId], references: [chatbots.id] }),
-  scanResults: many(scanResults),
+export const snapshotsRelations = relations(snapshots, ({ one }) => ({
+  monitor: one(monitors, { fields: [snapshots.monitorId], references: [monitors.id] }),
 }));
 
-export const scanRunsRelations = relations(scanRuns, ({ one, many }) => ({
-  chatbot: one(chatbots, { fields: [scanRuns.chatbotId], references: [chatbots.id] }),
-  organization: one(organizations, { fields: [scanRuns.orgId], references: [organizations.id] }),
-  results: many(scanResults),
-}));
-
-export const scanResultsRelations = relations(scanResults, ({ one }) => ({
-  scanRun: one(scanRuns, { fields: [scanResults.scanRunId], references: [scanRuns.id] }),
-  testCase: one(testCases, { fields: [scanResults.testCaseId], references: [testCases.id] }),
+export const changesRelations = relations(changes, ({ one }) => ({
+  monitor: one(monitors, { fields: [changes.monitorId], references: [monitors.id] }),
+  organization: one(organizations, { fields: [changes.orgId], references: [organizations.id] }),
+  snapshotBefore: one(snapshots, { fields: [changes.snapshotBeforeId], references: [snapshots.id] }),
+  snapshotAfter: one(snapshots, { fields: [changes.snapshotAfterId], references: [snapshots.id] }),
 }));

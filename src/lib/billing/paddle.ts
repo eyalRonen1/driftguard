@@ -1,17 +1,15 @@
 /**
- * Paddle billing integration.
- * Handles webhook events and subscription lifecycle.
+ * Paddle billing integration for PageLifeguard.
  */
 
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-// Plan limits
 export const PLAN_LIMITS = {
-  free: { bots: 1, testsPerBot: 5, scansPerMonth: 30, scanFrequency: ["weekly", "manual"] },
-  pro: { bots: 3, testsPerBot: 50, scansPerMonth: 500, scanFrequency: ["hourly", "every_6h", "daily", "weekly", "manual"] },
-  business: { bots: 10, testsPerBot: 200, scansPerMonth: 5000, scanFrequency: ["hourly", "every_6h", "daily", "weekly", "manual"] },
+  free: { monitors: 3, checkFrequency: ["daily", "weekly"], checksPerMonth: 100 },
+  pro: { monitors: 20, checkFrequency: ["15min", "hourly", "every_6h", "daily", "weekly"], checksPerMonth: 2000 },
+  business: { monitors: 100, checkFrequency: ["15min", "hourly", "every_6h", "daily", "weekly"], checksPerMonth: 10000 },
 } as const;
 
 export type PlanCode = keyof typeof PLAN_LIMITS;
@@ -27,22 +25,12 @@ interface PaddleWebhookEvent {
   };
 }
 
-/**
- * Map Paddle price IDs to plan codes.
- * These IDs come from the Paddle dashboard after creating products.
- */
-const PRICE_TO_PLAN: Record<string, PlanCode> = {
-  // These will be filled in after creating products in Paddle
-  // Format: "pri_xxx": "pro"
-};
+const PRICE_TO_PLAN: Record<string, PlanCode> = {};
 
 export function getPlanFromPriceId(priceId: string): PlanCode {
   return PRICE_TO_PLAN[priceId] || "free";
 }
 
-/**
- * Process Paddle webhook events
- */
 export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
   const orgId = event.data?.custom_data?.org_id;
 
@@ -61,56 +49,24 @@ export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
           paddleCustomerId: event.data.customer_id || null,
           paddleSubscriptionId: event.data.id || null,
           paddleSubscriptionStatus: event.data.status || "active",
-          monthlyScanQuota: limits.scansPerMonth,
+          monthlyCheckQuota: limits.checksPerMonth,
           updatedAt: new Date(),
         })
         .where(eq(organizations.id, orgId));
       break;
     }
 
-    case "subscription.updated": {
+    case "subscription.canceled": {
       if (!orgId) break;
-      const priceId = event.data.items?.[0]?.price?.id;
-      const plan = priceId ? getPlanFromPriceId(priceId) : "pro";
-      const limits = PLAN_LIMITS[plan];
-
       await db
         .update(organizations)
         .set({
-          plan,
-          paddleSubscriptionStatus: event.data.status || "active",
-          monthlyScanQuota: limits.scansPerMonth,
+          plan: "free",
+          paddleSubscriptionStatus: "canceled",
+          monthlyCheckQuota: PLAN_LIMITS.free.checksPerMonth,
           updatedAt: new Date(),
         })
         .where(eq(organizations.id, orgId));
-      break;
-    }
-
-    case "subscription.canceled":
-    case "subscription.past_due": {
-      if (!orgId) break;
-
-      if (event.event_type === "subscription.canceled") {
-        // Downgrade to free at period end
-        const freeLimits = PLAN_LIMITS.free;
-        await db
-          .update(organizations)
-          .set({
-            plan: "free",
-            paddleSubscriptionStatus: "canceled",
-            monthlyScanQuota: freeLimits.scansPerMonth,
-            updatedAt: new Date(),
-          })
-          .where(eq(organizations.id, orgId));
-      } else {
-        await db
-          .update(organizations)
-          .set({
-            paddleSubscriptionStatus: "past_due",
-            updatedAt: new Date(),
-          })
-          .where(eq(organizations.id, orgId));
-      }
       break;
     }
   }
