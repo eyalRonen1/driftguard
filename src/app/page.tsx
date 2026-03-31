@@ -4,6 +4,8 @@ import { UseCases } from "@/components/marketing/use-cases";
 import { StatsCounter } from "@/components/marketing/stats-counter";
 import { Testimonials } from "@/components/marketing/testimonials";
 import { ComparisonTable } from "@/components/marketing/comparison";
+import { LiveUrlChecker } from "@/components/marketing/live-url-checker";
+import { NotificationPreview } from "@/components/marketing/notification-preview";
 
 export default function LandingPage() {
   return (
@@ -199,6 +201,28 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Try it live */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">Try it right now</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            Paste any URL and see if PageLifeguard can monitor it. No signup needed.
+          </p>
+          <LiveUrlChecker />
+        </div>
+      </section>
+
+      {/* Notification preview */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-4">Alerts that actually help</h2>
+          <p className="text-gray-500 text-center max-w-xl mx-auto mb-10">
+            Not just &quot;page changed.&quot; You get the full story — in Email or Slack.
+          </p>
+          <NotificationPreview />
         </div>
       </section>
 
