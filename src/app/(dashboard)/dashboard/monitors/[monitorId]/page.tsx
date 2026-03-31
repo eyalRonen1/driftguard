@@ -73,17 +73,17 @@ export default function MonitorDetailPage() {
   return (
     <div>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-        <Link href="/dashboard/monitors" className="hover:text-blue-600">Monitors</Link>
+      <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-4">
+        <Link href="/dashboard/monitors" className="hover:text-[var(--accent-jade)]">Monitors</Link>
         <span>/</span>
-        <span className="text-gray-900">{monitor.name}</span>
+        <span className="text-[var(--text-cream)]">{monitor.name}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{monitor.name}</h1>
-          <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+          <h1 className="text-2xl font-bold text-[var(--text-cream)]">{monitor.name}</h1>
+          <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--accent-jade)] hover:underline">
             {monitor.url}
           </a>
         </div>
@@ -91,7 +91,7 @@ export default function MonitorDetailPage() {
           <button
             onClick={handleCheck}
             disabled={checking}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 btn-primary transition disabled:opacity-50 flex items-center gap-2"
           >
             {checking ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
@@ -104,7 +104,7 @@ export default function MonitorDetailPage() {
           </button>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+            className="px-4 py-2 text-[var(--accent-ruby)] hover:bg-[var(--accent-ruby)]/10 rounded-lg transition"
           >
             Delete
           </button>
@@ -113,11 +113,11 @@ export default function MonitorDetailPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Health</p>
+        <div className="card-glass rounded-xl border border-white/8 p-4">
+          <p className="text-sm text-[var(--text-muted)]">Health</p>
           <div className="flex items-center gap-2 mt-1">
             <span className={`w-2.5 h-2.5 rounded-full ${
-              monitor.healthStatus === "error" ? "bg-red-500" :
+              monitor.healthStatus === "error" ? "bg-[var(--accent-ruby)]/100" :
               monitor.healthStatus === "unstable" ? "bg-yellow-500" :
               monitor.healthStatus === "blocked" ? "bg-orange-500" :
               "bg-green-500"
@@ -125,61 +125,61 @@ export default function MonitorDetailPage() {
             <span className="font-semibold capitalize">{monitor.healthStatus}</span>
           </div>
           {monitor.healthReason && (
-            <p className="text-xs text-gray-400 mt-1">{monitor.healthReason}</p>
+            <p className="text-xs text-[var(--text-dim)] mt-1">{monitor.healthReason}</p>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Frequency</p>
+        <div className="card-glass rounded-xl border border-white/8 p-4">
+          <p className="text-sm text-[var(--text-muted)]">Frequency</p>
           <p className="font-semibold mt-1 capitalize">{monitor.checkFrequency}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Last Checked</p>
+        <div className="card-glass rounded-xl border border-white/8 p-4">
+          <p className="text-sm text-[var(--text-muted)]">Last Checked</p>
           <p className="font-semibold mt-1">
             {monitor.lastCheckedAt ? new Date(monitor.lastCheckedAt).toLocaleString() : "Never"}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Changes Detected</p>
-          <p className="font-semibold mt-1 text-blue-600">{changes.length}</p>
+        <div className="card-glass rounded-xl border border-white/8 p-4">
+          <p className="text-sm text-[var(--text-muted)]">Changes Detected</p>
+          <p className="font-semibold mt-1 text-[var(--accent-jade)]">{changes.length}</p>
         </div>
       </div>
 
       {/* Error banner */}
       {monitor.lastError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-          <p className="text-sm text-red-800 font-medium">Last error: {monitor.lastError}</p>
-          <p className="text-xs text-red-600 mt-1">Consecutive errors: {monitor.consecutiveErrors}</p>
+        <div className="card-glass !border-[var(--accent-ruby)]/30 rounded-xl p-4 mb-6">
+          <p className="text-sm text-[var(--accent-ruby)] font-medium">Last error: {monitor.lastError}</p>
+          <p className="text-xs text-[var(--accent-ruby)] mt-1">Consecutive errors: {monitor.consecutiveErrors}</p>
         </div>
       )}
 
       {/* Changes timeline */}
       <h2 className="text-lg font-semibold mb-4">Change History</h2>
       {changes.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500">No changes detected yet. We&apos;ll alert you when something changes.</p>
+        <div className="card-glass rounded-xl border border-white/8 p-8 text-center">
+          <p className="text-[var(--text-muted)]">No changes detected yet. We&apos;ll alert you when something changes.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {changes.map((change) => (
-            <div key={change.id} className="bg-white rounded-xl border border-gray-200 p-4">
+            <div key={change.id} className="card-glass rounded-xl border border-white/8 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <p className="text-gray-900 font-medium">{change.summary}</p>
+                  <p className="text-[var(--text-cream)] font-medium">{change.summary}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      change.importanceScore >= 7 ? "bg-red-100 text-red-700" :
-                      change.importanceScore >= 4 ? "bg-yellow-100 text-yellow-700" :
-                      "bg-gray-100 text-gray-600"
+                      change.importanceScore >= 7 ? "bg-[var(--accent-ruby)]/15 text-[var(--accent-ruby)]" :
+                      change.importanceScore >= 4 ? "bg-[var(--accent-gold)]/15 text-[var(--accent-gold)]" :
+                      "bg-white/6 text-[var(--text-sage)]"
                     }`}>
                       {change.importanceScore}/10
                     </span>
-                    <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+                    <span className="text-xs px-2 py-0.5 bg-[var(--accent-jade)]/10 text-[var(--accent-jade)] rounded-full">
                       {change.changeType}
                     </span>
                     {change.diffPercentage && (
-                      <span className="text-xs text-gray-400">{parseFloat(change.diffPercentage).toFixed(1)}% changed</span>
+                      <span className="text-xs text-[var(--text-dim)]">{parseFloat(change.diffPercentage).toFixed(1)}% changed</span>
                     )}
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-[var(--text-dim)]">
                       {new Date(change.createdAt).toLocaleString()}
                     </span>
                   </div>

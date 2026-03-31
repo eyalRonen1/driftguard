@@ -1,11 +1,14 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Camo, CamoStripes, CamoEye, CamoPaw } from "@/components/brand/camo";
+import { FloatingLeaves } from "@/components/marketing/floating-leaves";
 
 export default function LandingPage() {
   return (
     <main className="bg-jungle-stage text-[var(--text-cream)]">
       <div className="canopy-vignette" />
       <div className="gold-shaft" />
+      <FloatingLeaves />
 
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 nav-glass">
@@ -63,6 +66,11 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Vine border */}
+      <div className="relative h-16 overflow-hidden opacity-30">
+        <Image src="/assets/vine-border.png" alt="" fill className="object-cover object-center" />
+      </div>
 
       {/* Use cases */}
       <section className="py-20 relative">

@@ -128,8 +128,8 @@ export default function NewMonitorPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Add a monitor</h1>
-      <p className="text-gray-500 mb-8">What do you want to keep an eye on?</p>
+      <h1 className="text-2xl font-bold text-[var(--text-cream)] mb-2">Add a monitor</h1>
+      <p className="text-[var(--text-muted)] mb-8">What do you want to keep an eye on?</p>
 
       {/* Step 1: Choose use case */}
       {step === "usecase" && (
@@ -138,11 +138,11 @@ export default function NewMonitorPage() {
             <button
               key={uc.id}
               onClick={() => handleSelectUseCase(uc.id)}
-              className="text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-400 hover:shadow-md transition group"
+              className="text-left card-glass rounded-xl border border-white/8 p-4 hover:border-[var(--accent-jade)]/30 hover:shadow-md transition group"
             >
               <span className="text-2xl mb-2 block">{uc.icon}</span>
-              <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">{uc.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{uc.description}</p>
+              <h3 className="font-semibold text-[var(--text-cream)] group-hover:text-[var(--accent-jade)]">{uc.title}</h3>
+              <p className="text-sm text-[var(--text-muted)] mt-1">{uc.description}</p>
             </button>
           ))}
         </div>
@@ -153,7 +153,7 @@ export default function NewMonitorPage() {
         <div className="space-y-6">
           <button
             onClick={() => { setStep("usecase"); setPreview(null); setError(""); }}
-            className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1"
+            className="text-sm text-[var(--text-muted)] hover:text-[var(--accent-jade)] flex items-center gap-1"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -165,13 +165,13 @@ export default function NewMonitorPage() {
             <span className="text-3xl">{preset.icon}</span>
             <div>
               <h2 className="font-semibold text-lg">{preset.title}</h2>
-              <p className="text-sm text-gray-500">{preset.description}</p>
+              <p className="text-sm text-[var(--text-muted)]">{preset.description}</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+          <div className="card-glass rounded-xl border border-white/8 p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL to monitor</label>
+              <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">URL to monitor</label>
               <div className="flex gap-2">
                 <input
                   type="url"
@@ -179,12 +179,12 @@ export default function NewMonitorPage() {
                   onChange={(e) => { setUrl(e.target.value); setPreview(null); }}
                   required
                   placeholder={preset.placeholder}
-                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2.5 border border-white/12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
                 />
                 <button
                   onClick={handlePreview}
                   disabled={!url || loading}
-                  className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 text-sm"
+                  className="px-4 py-2.5 bg-white/6 text-[var(--text-sage)] rounded-lg hover:bg-white/10 transition disabled:opacity-50 text-sm"
                 >
                   {loading ? "Checking..." : "Preview"}
                 </button>
@@ -193,32 +193,32 @@ export default function NewMonitorPage() {
 
             {/* Preview result */}
             {preview && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 animate-in fade-in duration-300">
+              <div className="card-glass !border-[var(--accent-jade)]/30 rounded-lg p-3 animate-in fade-in duration-300">
                 <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <svg className="w-4 h-4 text-[var(--accent-jade)]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                   </svg>
-                  <span className="text-sm text-green-700 font-medium">Page is monitorable!</span>
+                  <span className="text-sm text-[var(--accent-jade)] font-medium">Page is monitorable!</span>
                 </div>
-                <p className="text-xs text-gray-600 line-clamp-3">{preview}</p>
+                <p className="text-xs text-[var(--text-sage)] line-clamp-3">{preview}</p>
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="card-glass !border-[var(--accent-ruby)]/30 rounded-lg p-3">
+                <p className="text-sm text-[var(--accent-ruby)]">{error}</p>
               </div>
             )}
 
             {preview && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monitor name</label>
+                  <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">Monitor name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 border border-white/12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
                     placeholder="Competitor pricing page"
                   />
                 </div>
@@ -226,7 +226,7 @@ export default function NewMonitorPage() {
                 <button
                   onClick={handleCreate}
                   disabled={loading}
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium"
+                  className="w-full py-3 btn-primary transition disabled:opacity-50 font-medium"
                 >
                   {loading ? "Creating..." : "Start monitoring"}
                 </button>

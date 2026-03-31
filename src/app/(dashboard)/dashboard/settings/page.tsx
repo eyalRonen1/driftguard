@@ -51,40 +51,40 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-cream)] mb-6">Settings</h1>
 
       <div className="space-y-6 max-w-2xl">
         {/* Profile */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card-glass rounded-xl border border-white/8 p-6">
           <h2 className="text-lg font-semibold mb-4">Profile</h2>
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">Email</label>
               <input
                 type="email"
                 value={email}
                 disabled
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                className="w-full px-3 py-2 border border-white/8 rounded-lg bg-white/4 text-[var(--text-muted)]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+              <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">Full name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-white/12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
               />
             </div>
             {message && (
-              <p className={`text-sm ${message.includes("Failed") ? "text-red-600" : "text-green-600"}`}>
+              <p className={`text-sm ${message.includes("Failed") ? "text-[var(--accent-ruby)]" : "text-[var(--accent-jade)]"}`}>
                 {message}
               </p>
             )}
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="px-4 py-2 btn-primary transition disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save changes"}
             </button>
@@ -92,30 +92,30 @@ export default function SettingsPage() {
         </div>
 
         {/* Plan */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card-glass rounded-xl border border-white/8 p-6">
           <h2 className="text-lg font-semibold mb-4">Plan & Usage</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Current plan</p>
+              <p className="text-sm text-[var(--text-muted)]">Current plan</p>
               <p className="text-lg font-semibold capitalize">Free</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Scans this month</p>
+              <p className="text-sm text-[var(--text-muted)]">Scans this month</p>
               <p className="text-lg font-semibold">0 / 30</p>
             </div>
           </div>
-          <button className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+          <button className="mt-4 px-4 py-2 bg-white/6 text-[var(--text-sage)] rounded-lg hover:bg-white/10 transition">
             Upgrade plan
           </button>
         </div>
 
         {/* Danger zone */}
-        <div className="bg-white rounded-xl border border-red-200 p-6">
-          <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
-          <p className="text-sm text-gray-500 mb-4">
+        <div className="card-glass rounded-xl border border-[var(--accent-ruby)]/20 p-6">
+          <h2 className="text-lg font-semibold text-[var(--accent-ruby)] mb-2">Danger Zone</h2>
+          <p className="text-sm text-[var(--text-muted)] mb-4">
             Deleting your account will permanently remove all chatbots, test cases, and scan history.
           </p>
-          <button className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+          <button className="px-4 py-2 border border-[var(--accent-ruby)]/30 text-[var(--accent-ruby)] rounded-lg hover:bg-[var(--accent-ruby)]/10 transition">
             Delete account
           </button>
         </div>
