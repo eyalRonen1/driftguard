@@ -13,7 +13,11 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  await ensureUserAndOrg(user);
+  try {
+    await ensureUserAndOrg(user);
+  } catch (err) {
+    console.error("Failed to ensure user/org:", err);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

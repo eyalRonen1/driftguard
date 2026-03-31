@@ -10,61 +10,82 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { org } = await ensureUserAndOrg(user);
+  let org;
+  try {
+    const result = await ensureUserAndOrg(user);
+    org = result.org;
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-xl font-bold mb-2">Setting up your account...</h1>
+        <p className="text-gray-500 mb-4">Please refresh the page.</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+          Refresh
+        </button>
+      </div>
+    );
+  }
 
-  const allMonitors = await db
-    .select()
-    .from(monitors)
-    .where(eq(monitors.orgId, org.id))
-    .orderBy(desc(monitors.createdAt));
+  let allMonitors: any[] = [];
+  let recentChanges: any[] = [];
 
-  const recentChanges = await db
-    .select()
-    .from(changes)
-    .where(eq(changes.orgId, org.id))
-    .orderBy(desc(changes.createdAt))
-    .limit(10);
+  try {
+    allMonitors = await db
+      .select()
+      .from(monitors)
+      .where(eq(monitors.orgId, org.id))
+      .orderBy(desc(monitors.createdAt));
 
-  const activeCount = allMonitors.filter((m) => m.isActive && !m.isPaused).length;
+    recentChanges = await db
+      .select()
+      .from(changes)
+      .where(eq(changes.orgId, org.id))
+      .orderBy(desc(changes.createdAt))
+      .limit(10);
+  } catch (err) {
+    console.error("Dashboard query error:", err);
+  }
+
+  const activeCount = allMonitors.filter((m: any) => m.isActive && !m.isPaused).length;
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-500 mt-1">
-          Welcome back, {user.user_metadata?.full_name || user.email}
+          Welcome, {user.user_metadata?.full_name || user.email}
         </p>
       </div>
 
       {allMonitors.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+          <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-indigo-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </div>
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Start monitoring</h2>
-          <p className="text-gray-500 mb-6 max-w-md mx-auto">
-            Add a URL to monitor. We&apos;ll check it regularly and alert you when something changes — with an AI-powered summary of what&apos;s different.
+          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+            Add a URL to monitor. Get AI summaries when it changes.
           </p>
           <Link
-            href="/dashboard/monitors"
-            className="inline-flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            href="/dashboard/monitors/new"
+            className="inline-flex items-center px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
           >
             Add your first monitor
           </Link>
         </div>
       ) : (
         <>
-          {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <p className="text-sm text-gray-500 mb-1">Active Monitors</p>
+              <p className="text-sm text-gray-500 mb-1">Active monitors</p>
               <p className="text-3xl font-bold text-gray-900">{activeCount}</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <p className="text-sm text-gray-500 mb-1">Changes Detected</p>
-              <p className="text-3xl font-bold text-blue-600">{recentChanges.length}</p>
+              <p className="text-sm text-gray-500 mb-1">Changes detected</p>
+              <p className="text-3xl font-bold text-indigo-600">{recentChanges.length}</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <p className="text-sm text-gray-500 mb-1">Plan</p>
@@ -72,28 +93,24 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Recent changes */}
           {recentChanges.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-4">Recent Changes</h2>
+              <h2 className="text-lg font-semibold mb-4">Recent changes</h2>
               <div className="space-y-3">
-                {recentChanges.map((change) => (
+                {recentChanges.map((change: any) => (
                   <div key={change.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{change.summary}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                          <span className={`px-2 py-0.5 rounded-full font-medium ${
-                            change.importanceScore >= 7 ? "bg-red-100 text-red-700" :
-                            change.importanceScore >= 4 ? "bg-yellow-100 text-yellow-700" :
-                            "bg-gray-100 text-gray-600"
-                          }`}>
-                            {change.importanceScore >= 7 ? "Important" : change.importanceScore >= 4 ? "Notable" : "Minor"}
-                          </span>
-                          <span>{change.changeType}</span>
-                          <span>{new Date(change.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
+                    <p className="text-sm font-medium text-gray-900">{change.summary}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        change.importanceScore >= 7 ? "bg-red-100 text-red-700" :
+                        change.importanceScore >= 4 ? "bg-yellow-100 text-yellow-700" :
+                        "bg-gray-100 text-gray-600"
+                      }`}>
+                        {change.importanceScore}/10
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(change.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -101,32 +118,29 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          {/* Monitors list */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Your Monitors</h2>
-              <Link href="/dashboard/monitors" className="text-sm text-blue-600 hover:underline">
-                View all
+              <h2 className="text-lg font-semibold">Monitors</h2>
+              <Link href="/dashboard/monitors/new" className="text-sm text-indigo-600 hover:underline">
+                + Add monitor
               </Link>
             </div>
             <div className="space-y-3">
-              {allMonitors.slice(0, 5).map((monitor) => (
+              {allMonitors.map((monitor: any) => (
                 <Link
                   key={monitor.id}
                   href={`/dashboard/monitors/${monitor.id}`}
-                  className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 transition flex items-center justify-between block"
+                  className="bg-white rounded-xl border border-gray-200 p-4 hover:border-indigo-300 transition flex items-center justify-between block"
                 >
                   <div className="min-w-0">
                     <h3 className="font-medium text-gray-900">{monitor.name}</h3>
                     <p className="text-sm text-gray-400 truncate max-w-md">{monitor.url}</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400">{monitor.checkFrequency}</span>
-                    <span className={`w-2.5 h-2.5 rounded-full ${
-                      monitor.consecutiveErrors > 0 ? "bg-red-500" :
-                      monitor.isActive && !monitor.isPaused ? "bg-green-500" : "bg-gray-300"
-                    }`} />
-                  </div>
+                  <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                    monitor.healthStatus === "error" ? "bg-red-500" :
+                    monitor.healthStatus === "unstable" ? "bg-yellow-500" :
+                    monitor.isActive ? "bg-green-500" : "bg-gray-300"
+                  }`} />
                 </Link>
               ))}
             </div>
