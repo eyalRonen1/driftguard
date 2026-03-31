@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { LiveUrlChecker } from "@/components/marketing/live-url-checker";
 import { NotificationPreview } from "@/components/marketing/notification-preview";
 
@@ -9,9 +10,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200/50">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-xs">PL</span>
-            </div>
+            <Image src="/assets/logo-icon.png" alt="PageLifeguard" width={28} height={28} className="rounded-md" />
             <span className="font-semibold tracking-tight">PageLifeguard</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -43,6 +42,17 @@ export default function LandingPage() {
             <a href="#demo" className="px-5 py-2.5 text-gray-500 hover:text-gray-900 transition">
               See demo
             </a>
+          </div>
+          {/* Hero image */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <Image
+              src="/assets/hero-dashboard.png"
+              alt="PageLifeguard Dashboard"
+              width={1792}
+              height={1024}
+              className="rounded-xl shadow-2xl shadow-indigo-200/30 border border-gray-200/50"
+              priority
+            />
           </div>
         </div>
       </section>

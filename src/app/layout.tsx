@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     title: "PageLifeguard - Know when any webpage changes",
     description: "AI-powered website change monitoring. Get plain-English summaries, not raw diffs.",
     type: "website",
+    images: [{ url: "/assets/og-image.png", width: 1792, height: 1024 }],
   },
 };
 
