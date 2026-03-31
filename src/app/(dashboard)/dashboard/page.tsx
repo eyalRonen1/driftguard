@@ -63,7 +63,7 @@ export default async function DashboardPage() {
       ) : (
         <>
           {/* Stats cards */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <p className="text-sm text-gray-500 mb-1">Active Bots</p>
               <p className="text-3xl font-bold text-gray-900">{activeBots}</p>

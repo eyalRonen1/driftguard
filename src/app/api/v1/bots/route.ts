@@ -1,40 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { chatbots, organizations, users } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { chatbots } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { createChatbotSchema } from "@/lib/validators/chatbot";
 import { encrypt } from "@/lib/crypto";
+import { getAuthenticatedOrg } from "@/lib/db/get-org";
 
-async function getAuthenticatedOrg(supabaseAuthId: string) {
-  const result = await db
-    .select({ org: organizations })
-    .from(organizations)
-    .innerJoin(users, eq(organizations.ownerId, users.id))
-    .where(eq(users.supabaseAuthId, supabaseAuthId))
-    .limit(1);
-
-  return result[0]?.org ?? null;
-}
-
-// GET /api/v1/bots - List all chatbots for the authenticated user's org
+// GET /api/v1/bots - List all chatbots
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const org = await getAuthenticatedOrg(user.id);
-  if (!org) {
-    return NextResponse.json({ error: "No organization found" }, { status: 404 });
-  }
+  const auth = await getAuthenticatedOrg();
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const bots = await db
     .select()
     .from(chatbots)
-    .where(eq(chatbots.orgId, org.id))
+    .where(eq(chatbots.orgId, auth.org.id))
     .orderBy(chatbots.createdAt);
 
   return NextResponse.json({ bots });
@@ -42,21 +22,17 @@ export async function GET() {
 
 // POST /api/v1/bots - Create a new chatbot
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const auth = await getAuthenticatedOrg();
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const org = await getAuthenticatedOrg(user.id);
-  if (!org) {
-    return NextResponse.json({ error: "No organization found" }, { status: 404 });
-  }
-
-  const body = await request.json();
   const parsed = createChatbotSchema.safeParse(body);
-
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parsed.error.flatten() },
@@ -65,14 +41,12 @@ export async function POST(request: NextRequest) {
   }
 
   const data = parsed.data;
-
-  // Encrypt API key if provided
   const apiKeyEncrypted = data.apiKey ? encrypt(data.apiKey) : null;
 
   const [bot] = await db
     .insert(chatbots)
     .values({
-      orgId: org.id,
+      orgId: auth.org.id,
       name: data.name,
       connectionType: data.connectionType,
       endpointUrl: data.endpointUrl,

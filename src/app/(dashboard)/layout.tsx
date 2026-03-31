@@ -13,13 +13,14 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  // Ensure user has DB record + organization (auto-creates on first visit)
   await ensureUserAndOrg(user);
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar user={user} />
-      <main className="flex-1 p-6 overflow-auto">{children}</main>
+      <main className="lg:ml-64 pt-14 lg:pt-0 p-4 sm:p-6 min-h-screen">
+        {children}
+      </main>
     </div>
   );
 }
