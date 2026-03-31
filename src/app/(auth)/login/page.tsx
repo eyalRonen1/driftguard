@@ -44,8 +44,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border">
+        <div className="flex justify-center mb-6">
+          <a href="/" className="flex items-center gap-2 text-gray-400 hover:text-gray-900 transition">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            <span className="text-sm">Back to home</span>
+          </a>
+        </div>
         <h1 className="text-2xl font-bold text-center mb-2">Welcome back</h1>
-        <p className="text-gray-500 text-center mb-8">Sign in to DriftGuard</p>
+        <p className="text-gray-500 text-center mb-8">Sign in to PageLifeguard</p>
 
         <button
           onClick={handleGoogleLogin}
