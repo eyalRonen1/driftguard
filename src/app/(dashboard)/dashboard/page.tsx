@@ -49,6 +49,7 @@ export default async function DashboardPage() {
         changesCount={totalChanges}
         plan={org.plan}
         monitorNames={allMonitors.map((m: any) => m.name)}
+        recentChangeSummaries={recentChanges.map((c: any) => c.summary).filter(Boolean)}
       />
       {/* Welcome */}
       <div className="relative card-glass p-6 sm:p-8 mb-6 overflow-hidden !bg-gradient-to-r !from-[#1a3a1a] !to-[#2d4a2d]">

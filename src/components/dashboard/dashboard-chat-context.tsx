@@ -12,16 +12,19 @@ export function DashboardChatContext({
   changesCount,
   plan,
   monitorNames,
+  recentChangeSummaries = [],
 }: {
   monitorsCount: number;
   changesCount: number;
   plan: string;
   monitorNames: string[];
+  recentChangeSummaries?: string[];
 }) {
   const { setPageContext } = useChatContext();
 
-  // Serialize array to a stable string so useEffect doesn't fire on every render
+  // Serialize arrays to stable strings so useEffect doesn't fire on every render
   const monitorNamesKey = monitorNames.join(",");
+  const changesKey = recentChangeSummaries.join("|");
 
   useEffect(() => {
     setPageContext({
@@ -32,9 +35,12 @@ export function DashboardChatContext({
         `Total changes detected: ${changesCount}`,
         `Current plan: ${plan} (this is their ACTUAL plan, not the default)`,
         ...(monitorNamesKey ? [`Pages being monitored: ${monitorNamesKey}`] : []),
+        ...(recentChangeSummaries.length > 0
+          ? [`Recent changes detected:\n${recentChangeSummaries.slice(0, 5).map((s, i) => `${i + 1}. ${s}`).join("\n")}`]
+          : []),
       ],
     });
-  }, [monitorsCount, changesCount, plan, monitorNamesKey, setPageContext]);
+  }, [monitorsCount, changesCount, plan, monitorNamesKey, changesKey, setPageContext]);
 
   return null;
 }
