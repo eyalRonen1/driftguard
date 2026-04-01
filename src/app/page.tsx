@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Camo, CamoStripes, CamoEye, CamoPaw } from "@/components/brand/camo";
 import { FloatingLeaves } from "@/components/marketing/floating-leaves";
 import { AnimateIn, StaggerContainer, StaggerItem } from "@/components/shared/animate-in";
+import { UrlDemo } from "@/components/marketing/url-demo";
 
 export default function LandingPage() {
   return (
@@ -57,6 +58,19 @@ export default function LandingPage() {
                 <source src="/assets/hero-camo-video.mp4" type="video/mp4" />
               </video>
             </div>
+          </AnimateIn>
+        </div>
+      </section>
+
+      {/* Live Demo */}
+      <section className="pb-16 -mt-6 relative z-10">
+        <div className="max-w-3xl mx-auto px-6">
+          <AnimateIn delay={0.5}>
+            <div className="text-center mb-6">
+              <p className="text-sm font-medium text-[var(--accent-gold)] tracking-wider uppercase mb-2">Try it now</p>
+              <h2 className="text-xl font-bold">Paste a URL and see if Camo can watch it</h2>
+            </div>
+            <UrlDemo />
           </AnimateIn>
         </div>
       </section>
