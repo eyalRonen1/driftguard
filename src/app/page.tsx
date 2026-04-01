@@ -52,6 +52,22 @@ export default function LandingPage() {
               <a href="#how" className="btn-secondary text-base">How it works</a>
             </div>
           </AnimateIn>
+
+          {/* Hero video - shows the product in action */}
+          <AnimateIn delay={0.6}>
+            <div className="mt-12 max-w-2xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/30">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full"
+                poster="/assets/hero-diff-visual.png"
+              >
+                <source src="/assets/hero-video.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </AnimateIn>
         </div>
       </section>
 
