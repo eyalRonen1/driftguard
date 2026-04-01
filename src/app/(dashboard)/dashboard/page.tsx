@@ -63,17 +63,26 @@ export default async function DashboardPage() {
         <>
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="card-glass p-4 !bg-[var(--accent-lime)]/5 !border-[var(--accent-lime)]/20">
-              <p className="text-[10px] text-[var(--accent-lime)] font-semibold uppercase tracking-wider">Watching</p>
-              <p className="text-2xl font-bold text-[var(--accent-lime)] mt-1">{activeCount}</p>
+            <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-lime)]/5 !border-[var(--accent-lime)]/20 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-eye.png" alt="" fill className="object-cover" /></div>
+              <div className="relative z-10">
+                <p className="text-[10px] text-[var(--accent-lime)] font-semibold uppercase tracking-wider">Watching</p>
+                <p className="text-2xl font-bold text-[var(--accent-lime)] mt-1 count-pop">{activeCount}</p>
+              </div>
             </div>
-            <div className="card-glass p-4 !bg-[var(--accent-gold)]/5 !border-[var(--accent-gold)]/20">
-              <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Changes</p>
-              <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1">{recentChanges.length}</p>
+            <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-gold)]/5 !border-[var(--accent-gold)]/20 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
+              <div className="relative z-10">
+                <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Changes</p>
+                <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1 count-pop">{recentChanges.length}</p>
+              </div>
             </div>
-            <div className="card-glass p-4 !bg-[var(--accent-ember)]/5 !border-[var(--accent-ember)]/20">
-              <p className="text-[10px] text-[var(--accent-ember)] font-semibold uppercase tracking-wider">Plan</p>
-              <p className="text-2xl font-bold text-[var(--accent-ember)] mt-1 capitalize">{org.plan}</p>
+            <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-ember)]/5 !border-[var(--accent-ember)]/20 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-scales.png" alt="" fill className="object-cover" /></div>
+              <div className="relative z-10">
+                <p className="text-[10px] text-[var(--accent-ember)] font-semibold uppercase tracking-wider">Plan</p>
+                <p className="text-2xl font-bold text-[var(--accent-ember)] mt-1 capitalize count-pop">{org.plan}</p>
+              </div>
             </div>
           </div>
 
@@ -110,7 +119,7 @@ export default async function DashboardPage() {
             </div>
             <div className="space-y-2">
               {allMonitors.map((m: any) => (
-                <Link key={m.id} href={`/dashboard/monitors/${m.id}`} className="card-glass p-4 flex items-center justify-between block">
+                <Link key={m.id} href={`/dashboard/monitors/${m.id}`} className="card-glass card-lift card-enter p-4 flex items-center justify-between block">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-medium text-[var(--text-cream)] text-sm">{m.name}</h3>
                     <p className="text-xs text-[var(--text-muted)] truncate">{m.url}</p>

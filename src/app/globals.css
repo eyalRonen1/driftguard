@@ -377,6 +377,63 @@ body {
 
 .input-glass::placeholder { color: var(--text-dim); }
 
+/* ==========================================
+   MICRO-INTERACTIONS (Codex UX V2)
+   ========================================== */
+
+/* Staggered card entrance */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-enter {
+  animation: card-enter 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+.card-enter:nth-child(1) { animation-delay: 0ms; }
+.card-enter:nth-child(2) { animation-delay: 50ms; }
+.card-enter:nth-child(3) { animation-delay: 100ms; }
+.card-enter:nth-child(4) { animation-delay: 150ms; }
+.card-enter:nth-child(5) { animation-delay: 200ms; }
+.card-enter:nth-child(6) { animation-delay: 250ms; }
+
+/* Hover lift */
+.card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.card-lift:active {
+  transform: translateY(-1px);
+}
+
+/* Change pulse - brief glow for new changes */
+@keyframes change-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 203, 139, 0); }
+  50% { box-shadow: 0 0 16px 4px rgba(124, 203, 139, 0.15); }
+}
+
+.change-new {
+  animation: change-pulse 2s ease-in-out 1;
+}
+
+/* Count-up transition helper */
+@keyframes count-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.count-pop {
+  animation: count-pop 0.4s ease-out forwards;
+}
+
 /* Dark mode = same as light (our app is always dark jungle) */
 .dark {
   --background: #07130f;
