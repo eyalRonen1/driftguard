@@ -1,25 +1,38 @@
 /**
- * Simple in-memory rate limiter for MVP.
- * Upgrade to Upstash Redis when scaling.
+ * Rate limiter with Upstash Redis support.
+ * Uses Upstash when UPSTASH_REDIS_REST_URL is configured,
+ * falls back to in-memory for local development.
  */
+
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+// ── Upstash Redis rate limiter (production) ──────────────────────────
+
+const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+const upstashLimiter = hasUpstash
+  ? new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(60, "1 h"),
+      prefix: "zikit:ratelimit",
+    })
+  : null;
+
+// ── In-memory fallback (development / no Redis) ─────────────────────
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
-// Clean up expired entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitMap) {
-    if (value.resetAt < now) {
-      rateLimitMap.delete(key);
+if (typeof globalThis !== "undefined" && !hasUpstash) {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of rateLimitMap) {
+      if (value.resetAt < now) rateLimitMap.delete(key);
     }
-  }
-}, 5 * 60 * 1000);
+  }, 5 * 60 * 1000);
+}
 
-export function rateLimit(
-  key: string,
-  maxRequests: number,
-  windowMs: number
-): { allowed: boolean; remaining: number } {
+function inMemoryLimit(key: string, maxRequests: number, windowMs: number): { allowed: boolean; remaining: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(key);
 
@@ -34,4 +47,24 @@ export function rateLimit(
 
   entry.count++;
   return { allowed: true, remaining: maxRequests - entry.count };
+}
+
+// ── Unified rate limit function ──────────────────────────────────────
+
+export async function rateLimit(
+  key: string,
+  maxRequests: number,
+  windowMs: number
+): Promise<{ allowed: boolean; remaining: number }> {
+  if (upstashLimiter) {
+    try {
+      const result = await upstashLimiter.limit(key);
+      return { allowed: result.success, remaining: result.remaining };
+    } catch {
+      // Fallback to in-memory if Redis is unreachable
+      return inMemoryLimit(key, maxRequests, windowMs);
+    }
+  }
+
+  return inMemoryLimit(key, maxRequests, windowMs);
 }

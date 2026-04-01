@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   const rateLimitKey = auth ? `chat:${auth.user.id}` : `chat:ip:${ip}`;
   const rateLimitMax = auth ? 60 : 10; // Authenticated: 60/hr, Anonymous: 10/hr
 
-  const { allowed } = rateLimit(rateLimitKey, rateLimitMax, 3600000);
+  const { allowed } = await rateLimit(rateLimitKey, rateLimitMax, 3600000);
   if (!allowed) return NextResponse.json({ reply: "Camo needs a break! Try again in a bit." }, { status: 429 });
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
           ...messages.slice(-10),
         ],
         temperature: 0.7,
-        max_tokens: 300,
+        max_tokens: 500,
       }),
     });
 

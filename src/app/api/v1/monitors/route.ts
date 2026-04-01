@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Rate limit: 20 monitor creations per hour
-  const { allowed } = rateLimit(`create:${auth.user.id}`, 20, 3600000);
+  const { allowed } = await rateLimit(`create:${auth.user.id}`, 20, 3600000);
   if (!allowed) return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
 
   // Enforce plan-based monitor limits

@@ -16,7 +16,7 @@ export async function POST(
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Rate limit: 10 manual checks per hour per user
-  const { allowed } = rateLimit(`check:${auth.user.id}`, 10, 3600000);
+  const { allowed } = await rateLimit(`check:${auth.user.id}`, 10, 3600000);
   if (!allowed) return NextResponse.json({ error: "Too many checks. Try again later." }, { status: 429 });
 
   // Verify ownership

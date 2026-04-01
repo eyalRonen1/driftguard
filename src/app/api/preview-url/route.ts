@@ -9,7 +9,7 @@ import { validateUrl } from "@/lib/scan-engine/fetcher";
 export async function POST(request: NextRequest) {
   // Rate limit: 5 previews per minute per IP
   const ip = request.headers.get("x-forwarded-for") || "unknown";
-  const { allowed } = rateLimit(`preview:${ip}`, 5, 60000);
+  const { allowed } = await rateLimit(`preview:${ip}`, 5, 60000);
   if (!allowed) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
   let body;
