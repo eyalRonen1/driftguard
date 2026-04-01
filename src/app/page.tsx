@@ -71,11 +71,11 @@ export default function LandingPage() {
                 <Image src="/assets/pat-chameleon.png" alt="" fill className="object-cover" />
               </div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <Image src="/assets/demo-camo-detective.png" alt="" width={56} height={56} className="rounded-xl" />
+                <div className="flex items-center justify-center gap-3 mb-5">
+                  <Image src="/assets/demo-camo-detective.png" alt="" width={40} height={40} className="rounded-lg" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--accent-gold)] tracking-wider uppercase">Live demo</p>
-                    <h2 className="text-lg sm:text-xl font-bold">Can Camo watch your page?</h2>
+                    <p className="text-[10px] font-medium text-[var(--accent-gold)] tracking-wider uppercase">Live demo</p>
+                    <h2 className="text-base sm:text-lg font-bold">Can Camo watch your page?</h2>
                   </div>
                 </div>
                 <UrlDemo />
