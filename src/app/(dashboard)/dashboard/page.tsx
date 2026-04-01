@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { StatusBar } from "@/components/dashboard/status-bar";
 import { MonitorCard } from "@/components/dashboard/monitor-card";
+import { ActivityFeed } from "@/components/dashboard/activity-feed";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -96,30 +97,24 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Changes */}
-          {recentChanges.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-sm font-semibold text-[var(--text-cream)] mb-3 flex items-center gap-2">
-                <Image src="/assets/camo-watch.png" alt="" width={22} height={22} />
-                Recent changes
+          {/* Activity Feed */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <Image src="/assets/camo-watch.png" alt="" width={20} height={20} />
+                Activity
               </h2>
-              <div className="space-y-2">
-                {recentChanges.map((c: any) => (
-                  <div key={c.id} className="card-glass p-4">
-                    <p className="text-sm font-medium text-[var(--text-cream)] line-clamp-2">{c.summary}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                        c.importanceScore >= 7 ? "bg-[var(--accent-ruby)]/20 text-[var(--accent-ruby)]" :
-                        c.importanceScore >= 4 ? "bg-[var(--accent-gold)]/20 text-[var(--accent-gold)]" :
-                        "bg-[var(--bg-ink-3)] text-[var(--text-muted)]"
-                      }`}>{c.importanceScore}/10</span>
-                      <span className="text-[10px] text-[var(--text-muted)]">{new Date(c.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
-          )}
+            <div className="card-glass p-2 rounded-xl">
+              <ActivityFeed activities={recentChanges.map((c: any) => ({
+                id: c.id,
+                type: c.importanceScore >= 7 ? "alert" as const : "change" as const,
+                message: c.summary,
+                timestamp: c.createdAt,
+                importance: c.importanceScore,
+              }))} />
+            </div>
+          </div>
 
           {/* Monitors */}
           <div>
