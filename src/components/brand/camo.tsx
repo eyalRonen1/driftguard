@@ -16,10 +16,10 @@ export function Camo({
   className?: string;
 }) {
   const src = state === "sleep"
-    ? "/assets/camo-sleep.png"
+    ? "/assets/camo-sleep.webp"
     : state === "alert"
-    ? "/assets/camo-watch.png"
-    : "/assets/camo-happy.png";
+    ? "/assets/camo-watch.webp"
+    : "/assets/camo-happy.webp";
 
   return (
     <Image

@@ -30,7 +30,7 @@ export function ChangeTimeline({ changes }: { changes: Change[] }) {
     return (
       <Card className="border-border/50">
         <CardContent className="p-8 text-center">
-          <Image src="/assets/camo-sleep.png" alt="" width={72} height={72} className="mx-auto mb-3" />
+          <Image src="/assets/camo-sleep.webp" alt="" width={72} height={72} className="mx-auto mb-3" />
           <p className="text-muted-foreground text-sm">No changes yet. Camo is watching.</p>
         </CardContent>
       </Card>
@@ -97,7 +97,7 @@ function ChangeCard({ change, isFirst }: { change: Change; isFirst: boolean }) {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {isFirst && (
-                    <Image src="/assets/camo-watch.png" alt="" width={24} height={24} className="opacity-60" />
+                    <Image src="/assets/camo-watch.webp" alt="" width={24} height={24} className="opacity-60" />
                   )}
                   <svg
                     className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}

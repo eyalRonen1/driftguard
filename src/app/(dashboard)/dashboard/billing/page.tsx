@@ -55,7 +55,7 @@ export default async function BillingPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Image src="/assets/camo-happy.png" alt="" width={32} height={32} />
+        <Image src="/assets/camo-happy.webp" alt="" width={32} height={32} />
         <div>
           <h1 className="text-xl font-bold">Plans & Billing</h1>
           <p className="text-sm text-muted-foreground">Choose the right plan for your needs</p>

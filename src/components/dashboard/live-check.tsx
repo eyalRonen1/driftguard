@@ -97,7 +97,7 @@ export function LiveCheckButton({
           <div className="flex items-center gap-4">
             <div className="relative">
               <Image
-                src="/assets/camo-watch.png"
+                src="/assets/camo-watch.webp"
                 alt=""
                 width={48}
                 height={48}
@@ -142,7 +142,7 @@ export function LiveCheckButton({
         }`}>
           <div className="flex items-center gap-3">
             <Image
-              src={result.changed ? "/assets/camo-watch.png" : "/assets/camo-happy.png"}
+              src={result.changed ? "/assets/camo-watch.webp" : "/assets/camo-happy.webp"}
               alt=""
               width={36}
               height={36}

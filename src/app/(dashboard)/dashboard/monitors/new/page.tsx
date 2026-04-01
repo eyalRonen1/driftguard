@@ -60,6 +60,7 @@ export default function NewMonitorPage() {
   const [selectedUseCase, setSelectedUseCase] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
+  const [frequency, setFrequency] = useState("daily");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -70,7 +71,10 @@ export default function NewMonitorPage() {
     setSelectedUseCase(id);
     setStep("url");
     const p = USE_CASE_PRESETS.find((u) => u.id === id);
-    if (p) setUrl("");
+    if (p) {
+      setUrl("");
+      setFrequency(p.frequency);
+    }
   }
 
   async function handlePreview() {
@@ -112,7 +116,7 @@ export default function NewMonitorPage() {
         body: JSON.stringify({
           name: name || new URL(url).hostname,
           url,
-          checkFrequency: preset?.frequency || "daily",
+          checkFrequency: frequency,
           useCase: selectedUseCase,
         }),
       });
@@ -226,6 +230,35 @@ export default function NewMonitorPage() {
                     className="w-full px-3 py-2.5 border border-white/12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
                     placeholder="Competitor pricing page"
                   />
+                </div>
+
+                {/* Frequency selector */}
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-cream)] mb-2">Check frequency</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { value: "daily", label: "Daily", desc: "Once a day" },
+                      { value: "weekly", label: "Weekly", desc: "Once a week" },
+                      { value: "every_6h", label: "Every 6h", desc: "4× per day", pro: true },
+                      { value: "hourly", label: "Hourly", desc: "Every hour", pro: true },
+                      { value: "15min", label: "Every 15m", desc: "Real-time", pro: true },
+                    ].map((f) => (
+                      <button
+                        key={f.value}
+                        type="button"
+                        onClick={() => setFrequency(f.value)}
+                        className={`p-3 rounded-xl border text-left transition ${
+                          frequency === f.value
+                            ? "border-[var(--accent-jade)] bg-[var(--accent-jade)]/10"
+                            : "border-white/10 hover:border-white/20"
+                        }`}
+                      >
+                        <p className="text-sm font-medium">{f.label}</p>
+                        <p className="text-[10px] text-[var(--text-muted)]">{f.desc}</p>
+                        {f.pro && <span className="text-[8px] text-[var(--accent-gold)] font-medium">PRO</span>}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <button

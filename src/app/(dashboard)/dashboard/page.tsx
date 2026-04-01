@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   } catch {
     return (
       <div className="p-8 text-center">
-        <Image src="/assets/camo-sleep.png" alt="" width={100} height={100} className="mx-auto mb-4" />
+        <Image src="/assets/camo-sleep.webp" alt="" width={100} height={100} className="mx-auto mb-4" />
         <p className="text-[var(--text-muted)]">Setting up... refresh in a moment.</p>
       </div>
     );
@@ -41,6 +41,19 @@ export default async function DashboardPage() {
   const activeCount = allMonitors.filter((m: any) => m.isActive && !m.isPaused).length;
   const firstName = (user.user_metadata?.full_name || user.email || "").split(/[\s@]/)[0];
 
+  // Calculate dynamic welcome
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const recentCount = recentChanges.filter((c: any) => new Date(c.createdAt) > oneDayAgo).length;
+  const errorCount = allMonitors.filter((m: any) => m.healthStatus === "error").length;
+
+  let welcomeSubtext = "All your pages look good right now.";
+  if (errorCount > 0) {
+    welcomeSubtext = `${errorCount} page${errorCount > 1 ? "s" : ""} need${errorCount === 1 ? "s" : ""} attention.`;
+  } else if (recentCount > 0) {
+    welcomeSubtext = `${recentCount} change${recentCount > 1 ? "s" : ""} detected today. Camo's on it.`;
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Set chat context with real dashboard data */}
@@ -54,11 +67,11 @@ export default async function DashboardPage() {
       {/* Welcome */}
       <div className="relative card-glass p-6 sm:p-8 mb-6 overflow-hidden !bg-gradient-to-r !from-[#1a3a1a] !to-[#2d4a2d]">
         <div className="absolute right-2 bottom-0 opacity-30 hidden sm:block">
-          <Image src="/assets/camo-happy.png" alt="" width={120} height={120} />
+          <Image src="/assets/camo-happy.webp" alt="" width={120} height={120} />
         </div>
         <div className="relative z-10">
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-cream)]">Hey {firstName}!</h1>
-          <p className="text-[var(--text-muted)] mt-1 text-sm">All your pages look good right now.</p>
+          <p className="text-[var(--text-muted)] mt-1 text-sm">{welcomeSubtext}</p>
         </div>
       </div>
 
@@ -73,7 +86,7 @@ export default async function DashboardPage() {
       {allMonitors.length === 0 ? (
         <div className="space-y-4">
           <div className="card-glass p-8 text-center">
-            <Image src="/assets/empty-hammock.png" alt="" width={150} height={150} className="mx-auto mb-4 rounded-xl" />
+            <Image src="/assets/empty-hammock.webp" alt="" width={150} height={150} className="mx-auto mb-4 rounded-xl" />
             <h2 className="text-lg font-bold text-[var(--text-cream)] mb-2">Let&apos;s get Camo watching!</h2>
             <p className="text-[var(--text-muted)] mb-6 max-w-xs mx-auto text-sm">Add a page and see changes detected in real-time.</p>
             <Link href="/dashboard/monitors/new" className="btn-primary inline-flex items-center gap-2">
@@ -116,39 +129,40 @@ export default async function DashboardPage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-lime)]/5 !border-[var(--accent-lime)]/20 relative overflow-hidden">
-              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-eye.png" alt="" fill className="object-cover" /></div>
+              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-eye.webp" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
                 <p className="text-[10px] text-[var(--accent-lime)] font-semibold uppercase tracking-wider">Pages tracked</p>
                 <p className="text-2xl font-bold text-[var(--accent-lime)] mt-1 count-pop">{activeCount}</p>
               </div>
             </div>
             <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-gold)]/5 !border-[var(--accent-gold)]/20 relative overflow-hidden">
-              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
+              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-spiral.webp" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
                 <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Updates found</p>
                 <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1 count-pop">{totalChanges}</p>
               </div>
             </div>
-            <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-ember)]/5 !border-[var(--accent-ember)]/20 relative overflow-hidden">
-              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-scales.png" alt="" fill className="object-cover" /></div>
+            <Link href="/dashboard/billing" className="card-glass card-lift card-enter p-4 !bg-[var(--accent-ember)]/5 !border-[var(--accent-ember)]/20 relative overflow-hidden block hover:!border-[var(--accent-ember)]/40 transition">
+              <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-scales.webp" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
                 <p className="text-[10px] text-[var(--accent-ember)] font-semibold uppercase tracking-wider">Plan</p>
                 <p className="text-2xl font-bold text-[var(--accent-ember)] mt-1 capitalize count-pop">{org.plan}</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Activity Feed */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Image src="/assets/camo-watch.png" alt="" width={20} height={20} />
+                <Image src="/assets/camo-watch.webp" alt="" width={20} height={20} />
                 Activity
               </h2>
             </div>
             <div className="card-glass p-2 rounded-xl">
               <ActivityFeed activities={recentChanges.map((c: any) => ({
                 id: c.id,
+                monitorId: c.monitorId,
                 type: c.importanceScore >= 7 ? "alert" as const : "change" as const,
                 message: c.summary,
                 timestamp: c.createdAt,

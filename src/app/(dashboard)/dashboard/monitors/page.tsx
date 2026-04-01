@@ -174,7 +174,7 @@ export default function MonitorsPage() {
         <div className="text-center py-12">
           {monitors.length === 0 ? (
             <>
-              <Image src="/assets/empty-hammock.png" alt="" width={150} height={150} className="mx-auto mb-4" />
+              <Image src="/assets/empty-hammock.webp" alt="" width={150} height={150} className="mx-auto mb-4" />
               <h2 className="text-lg font-semibold mb-2">No monitors yet</h2>
               <p className="text-sm text-muted-foreground mb-4">Give Camo a page to watch.</p>
               <Button onClick={() => router.push("/dashboard/monitors/new")}>
@@ -183,7 +183,7 @@ export default function MonitorsPage() {
             </>
           ) : (
             <>
-              <Image src="/assets/camo-happy.png" alt="" width={60} height={60} className="mx-auto mb-3 opacity-50" />
+              <Image src="/assets/camo-happy.webp" alt="" width={60} height={60} className="mx-auto mb-3 opacity-50" />
               <p className="text-sm text-muted-foreground">No monitors match your search.</p>
             </>
           )}

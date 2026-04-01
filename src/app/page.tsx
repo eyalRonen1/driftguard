@@ -29,7 +29,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="pt-32 pb-20 sm:pt-40 sm:pb-28 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]">
-          <Image src="/assets/pat-eye.png" alt="" fill className="object-cover" />
+          <Image src="/assets/pat-eye.webp" alt="" fill className="object-cover" />
         </div>
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <AnimateIn>
@@ -54,7 +54,7 @@ export default function LandingPage() {
           {/* Hero video - Camo catches a change! */}
           <AnimateIn delay={0.4}>
             <div className="mt-10 max-w-lg mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
-              <video autoPlay loop muted playsInline className="w-full" poster="/assets/hero-camo-alarm.png">
+              <video autoPlay loop muted playsInline className="w-full" poster="/assets/hero-camo-alarm.webp">
                 <source src="/assets/hero-camo-video.mp4" type="video/mp4" />
               </video>
             </div>
@@ -68,11 +68,11 @@ export default function LandingPage() {
           <AnimateIn delay={0.5}>
             <div className="card-glass rounded-2xl p-6 sm:p-8 relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.04]">
-                <Image src="/assets/pat-chameleon.png" alt="" fill className="object-cover" />
+                <Image src="/assets/pat-chameleon.webp" alt="" fill className="object-cover" />
               </div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center gap-3 mb-5">
-                  <Image src="/assets/camo-watch.png" alt="" width={40} height={40} className="rounded-lg" />
+                  <Image src="/assets/camo-watch.webp" alt="" width={40} height={40} className="rounded-lg" />
                   <div>
                     <p className="text-[10px] font-medium text-[var(--accent-gold)] tracking-wider uppercase">Live demo</p>
                     <h2 className="text-base sm:text-lg font-bold">Can Camo watch your page?</h2>
@@ -95,9 +95,9 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <StaggerContainer className="grid sm:grid-cols-3 gap-6">
             {[
-              { t: "Feed Camo a URL", img: "/assets/step1-eat-url.png", video: "/assets/step1-eat-url-video.mp4", pat: "/assets/pat-eye.png" },
-              { t: "Camo watches", img: "/assets/step2-scan.png", video: null, pat: "/assets/pat-chameleon.png" },
-              { t: "Camo rings the bell!", img: "/assets/step3-bell.png", video: "/assets/step3-bell-video.mp4", pat: "/assets/pat-swirl.png" },
+              { t: "Feed Camo a URL", img: "/assets/step1-eat-url.webp", video: "/assets/step1-eat-url-video.mp4", pat: "/assets/pat-eye.webp" },
+              { t: "Camo watches", img: "/assets/step2-scan.webp", video: null, pat: "/assets/pat-chameleon.webp" },
+              { t: "Camo rings the bell!", img: "/assets/step3-bell.webp", video: "/assets/step3-bell-video.mp4", pat: "/assets/pat-swirl.webp" },
             ].map((s, i) => (
               <StaggerItem key={i} className="card-glass card-lift p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.06]">
@@ -129,12 +129,12 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">What teams watch</h2>
           <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { t: "Competitor pricing", img: "/assets/uc-big-pricing.png" },
-              { t: "Regulations", img: "/assets/uc-big-legal.png" },
-              { t: "Supplier costs", img: "/assets/uc-big-shopping.png" },
-              { t: "Job postings", img: "/assets/uc-big-jobs.png" },
-              { t: "Documentation", img: "/assets/uc-big-docs.png" },
-              { t: "SEO changes", img: "/assets/uc-big-seo.png" },
+              { t: "Competitor pricing", img: "/assets/uc-big-pricing.webp" },
+              { t: "Regulations", img: "/assets/uc-big-legal.webp" },
+              { t: "Supplier costs", img: "/assets/uc-big-shopping.webp" },
+              { t: "Job postings", img: "/assets/uc-big-jobs.webp" },
+              { t: "Documentation", img: "/assets/uc-big-docs.webp" },
+              { t: "SEO changes", img: "/assets/uc-big-seo.webp" },
             ].map((u, i) => (
               <StaggerItem key={i} className="card-glass card-lift overflow-hidden rounded-2xl">
                 <div className="aspect-[16/10] relative">
@@ -157,13 +157,13 @@ export default function LandingPage() {
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Pricing</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">Simple and transparent</h2>
           <AnimateIn>
-            <Image src="/assets/pricing-gameshow.png" alt="" width={400} height={225} className="mx-auto mb-8 rounded-xl" />
+            <Image src="/assets/pricing-gameshow.webp" alt="" width={400} height={225} className="mx-auto mb-8 rounded-xl" />
           </AnimateIn>
           <StaggerContainer className="grid sm:grid-cols-3 gap-4">
             {[
-              { name: "Free", price: "$0", per: "", desc: "14-day free trial", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"], pop: false, pattern: "/assets/pat-leaves.png" },
-              { name: "Pro", price: "$19", per: "/mo", desc: "For professionals", features: ["20 monitors", "Hourly checks", "Slack + Email alerts", "CSS selectors", "90-day history", "Golden Set Generator", "Noise filtering"], pop: true, pattern: "/assets/pat-scales.png" },
-              { name: "Business", price: "$49", per: "/mo", desc: "For teams", features: ["100 monitors", "15-min checks", "API access", "Team members (5)", "365-day history", "Priority support", "Custom webhooks", "Export reports"], pop: false, pattern: "/assets/pat-spiral.png" },
+              { name: "Free", price: "$0", per: "", desc: "14-day free trial", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"], pop: false, pattern: "/assets/pat-leaves.webp" },
+              { name: "Pro", price: "$19", per: "/mo", desc: "For professionals", features: ["20 monitors", "Hourly checks", "Slack + Email alerts", "CSS selectors", "90-day history", "Golden Set Generator", "Noise filtering"], pop: true, pattern: "/assets/pat-scales.webp" },
+              { name: "Business", price: "$49", per: "/mo", desc: "For teams", features: ["100 monitors", "15-min checks", "API access", "Team members (5)", "365-day history", "Priority support", "Custom webhooks", "Export reports"], pop: false, pattern: "/assets/pat-spiral.webp" },
             ].map((p) => (
               <StaggerItem key={p.name} className={`relative overflow-hidden card-lift ${p.pop ? "card-glass-featured p-6" : "card-glass p-6"}`}>
                 <div className="absolute inset-0 opacity-[0.06]">
@@ -197,10 +197,10 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]">
-          <Image src="/assets/pat-camo2.png" alt="" fill className="object-cover" />
+          <Image src="/assets/pat-camo2.webp" alt="" fill className="object-cover" />
         </div>
         <div className="max-w-2xl mx-auto px-6 text-center relative z-10">
-          <Image src="/assets/cta-rocket.png" alt="" width={120} height={120} className="mx-auto mb-6 rounded-xl" />
+          <Image src="/assets/cta-rocket.webp" alt="" width={120} height={120} className="mx-auto mb-6 rounded-xl" />
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Ready to launch?</h2>
           <p className="text-[var(--text-muted)] mb-8">Free forever. 3 monitors. 30 seconds setup.</p>
           <Link href="/signup" className="btn-primary text-lg">Get started free</Link>

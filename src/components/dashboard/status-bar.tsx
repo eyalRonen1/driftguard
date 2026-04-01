@@ -34,7 +34,7 @@ export function StatusBar({
   };
 
   const msg = messages[mood][Math.floor(Date.now() / 60000) % messages[mood].length];
-  const camoImg = mood === "happy" ? "/assets/camo-happy.png" : "/assets/camo-watch.png";
+  const camoImg = mood === "happy" ? "/assets/camo-happy.webp" : "/assets/camo-watch.webp";
 
   return (
     <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl mb-4 text-sm transition-colors ${

@@ -26,6 +26,37 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  // Global keyboard shortcuts: G then D/M/B/S to navigate
+  useEffect(() => {
+    let gPressed = false;
+    let gTimer: NodeJS.Timeout;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      // Don't trigger when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === "g" && !gPressed) {
+        gPressed = true;
+        gTimer = setTimeout(() => { gPressed = false; }, 1000); // 1s to press second key
+        return;
+      }
+
+      if (gPressed) {
+        gPressed = false;
+        clearTimeout(gTimer);
+        switch (e.key) {
+          case "d": router.push("/dashboard"); break;
+          case "m": router.push("/dashboard/monitors"); break;
+          case "b": router.push("/dashboard/billing"); break;
+          case "s": router.push("/dashboard/settings"); break;
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
+
   function navigate(path: string) {
     setOpen(false);
     router.push(path);
@@ -55,7 +86,7 @@ export function CommandPalette() {
 
           <Command.List className="max-h-[300px] overflow-y-auto p-2">
             <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
-              <Image src="/assets/camo-happy.png" alt="" width={32} height={32} className="mx-auto mb-2 opacity-50" />
+              <Image src="/assets/camo-happy.webp" alt="" width={32} height={32} className="mx-auto mb-2 opacity-50" />
               No results found.
             </Command.Empty>
 

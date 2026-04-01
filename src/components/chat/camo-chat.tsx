@@ -116,7 +116,7 @@ export function CamoChatWidget() {
           onClick={() => setOpen(true)}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg shadow-primary/30 hover:scale-110 transition-transform overflow-hidden"
         >
-          <Image src="/assets/camo-chat-bubble.png" alt="Chat with Camo" width={56} height={56} className="w-full h-full object-cover" />
+          <Image src="/assets/camo-chat-bubble.webp" alt="Chat with Camo" width={56} height={56} className="w-full h-full object-cover" />
         </button>
       )}
 
@@ -125,7 +125,7 @@ export function CamoChatWidget() {
         <div className="fixed bottom-6 right-6 z-50 w-[340px] sm:w-[380px] h-[500px] rounded-2xl overflow-hidden shadow-2xl shadow-black/30 border border-border/50 flex flex-col bg-card">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30 bg-primary/10">
-            <Image src="/assets/camo-happy.png" alt="" width={32} height={32} />
+            <Image src="/assets/camo-happy.webp" alt="" width={32} height={32} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">Camo</p>
               {pageContext.monitorName ? (
@@ -147,7 +147,7 @@ export function CamoChatWidget() {
             {messages.length === 0 && (
               <div className="space-y-3">
                 <div className="flex items-start gap-2">
-                  <Image src="/assets/camo-happy.png" alt="" width={24} height={24} className="mt-1 flex-shrink-0" />
+                  <Image src="/assets/camo-happy.webp" alt="" width={24} height={24} className="mt-1 flex-shrink-0" />
                   <div className="bg-muted/50 rounded-2xl rounded-bl-sm px-3 py-2 text-sm">
                     {WELCOME.content}
                   </div>
@@ -169,7 +169,7 @@ export function CamoChatWidget() {
             {messages.map((msg) => (
               <div key={msg.id} className={`flex items-start gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
                 {msg.role === "assistant" && (
-                  <Image src="/assets/camo-happy.png" alt="" width={24} height={24} className="mt-1 flex-shrink-0" />
+                  <Image src="/assets/camo-happy.webp" alt="" width={24} height={24} className="mt-1 flex-shrink-0" />
                 )}
                 <div dir="auto" className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                   msg.role === "user"
@@ -183,7 +183,7 @@ export function CamoChatWidget() {
 
             {loading && (
               <div className="flex items-start gap-2">
-                <Image src="/assets/camo-watch.png" alt="" width={24} height={24} className="mt-1 flex-shrink-0 animate-pulse" />
+                <Image src="/assets/camo-watch.webp" alt="" width={24} height={24} className="mt-1 flex-shrink-0 animate-pulse" />
                 <div className="bg-muted/50 rounded-2xl rounded-bl-sm px-3 py-2.5">
                   <span className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]" />

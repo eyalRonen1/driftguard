@@ -45,7 +45,7 @@ export function ScanLiveLog({ entries }: { entries: LogEntry[] }) {
           <div className="w-2 h-2 rounded-full bg-primary/60" />
         </div>
         <span className="text-[10px] text-muted-foreground font-mono">scan.log</span>
-        <Image src="/assets/camo-watch.png" alt="" width={16} height={16} className="ml-auto animate-pulse" />
+        <Image src="/assets/camo-watch.webp" alt="" width={16} height={16} className="ml-auto animate-pulse" />
       </div>
       <div ref={scrollRef} className="p-3 max-h-[200px] overflow-y-auto font-mono text-xs space-y-0.5">
         {entries.map((entry, i) => (

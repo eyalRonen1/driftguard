@@ -132,7 +132,7 @@ export default function MonitorDetailPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <div className="card-glass p-4 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-scales.png" alt="" fill className="object-cover" /></div>
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-scales.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
             <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Page health</p>
             <div className="flex items-center gap-2 mt-2">
@@ -149,21 +149,21 @@ export default function MonitorDetailPage() {
           </div>
         </div>
         <div className="card-glass p-4 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-rings.png" alt="" fill className="object-cover" /></div>
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-rings.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
             <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Check schedule</p>
             <p className="font-bold mt-2 capitalize">{monitor.checkFrequency}</p>
           </div>
         </div>
         <div className="card-glass p-4 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-eye.png" alt="" fill className="object-cover" /></div>
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-eye.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
             <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Last checked</p>
             <p className="font-bold text-sm mt-2">{monitor.lastCheckedAt ? new Date(monitor.lastCheckedAt).toLocaleString() : "Never"}</p>
           </div>
         </div>
         <div className="card-glass p-4 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
+          <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-spiral.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
             <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Updates found</p>
             <p className="font-bold text-lg mt-2 text-[var(--accent-gold)]">{changes.length}</p>
@@ -191,14 +191,14 @@ export default function MonitorDetailPage() {
 
       {/* Changes timeline */}
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Image src="/assets/camo-watch.png" alt="" width={24} height={24} />
+        <Image src="/assets/camo-watch.webp" alt="" width={24} height={24} />
         What changed
       </h2>
       {changes.length > 0 ? (
         <ChangeTimeline changes={changes} />
       ) : (
         <div className="card-glass p-6 text-center">
-          <Image src="/assets/camo-rest.png" alt="" width={64} height={64} className="mx-auto mb-3 opacity-60" />
+          <Image src="/assets/camo-rest.webp" alt="" width={64} height={64} className="mx-auto mb-3 opacity-60" />
           <p className="text-sm text-[var(--text-muted)]">No changes detected yet. Camo is watching!</p>
         </div>
       )}

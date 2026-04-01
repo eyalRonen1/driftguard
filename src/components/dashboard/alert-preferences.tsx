@@ -133,7 +133,7 @@ export function AlertPreferences({
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Image src="/assets/camo-happy.png" alt="" width={20} height={20} />
+          <Image src="/assets/camo-happy.webp" alt="" width={20} height={20} />
           Alert preferences for {monitorName}
         </CardTitle>
       </CardHeader>

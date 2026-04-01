@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 interface Activity {
   id: string;
+  monitorId?: string;
   type: "change" | "check" | "error" | "alert";
   message: string;
   timestamp: string;
@@ -29,7 +31,7 @@ export function ActivityFeed({ activities }: { activities: Activity[] }) {
   if (activities.length === 0) {
     return (
       <div className="text-center py-6">
-        <Image src="/assets/camo-happy.png" alt="" width={40} height={40} className="mx-auto mb-2 opacity-50" />
+        <Image src="/assets/camo-happy.webp" alt="" width={40} height={40} className="mx-auto mb-2 opacity-50" />
         <p className="text-xs text-muted-foreground">No activity yet</p>
       </div>
     );
@@ -39,8 +41,8 @@ export function ActivityFeed({ activities }: { activities: Activity[] }) {
     <div className="space-y-1">
       {activities.slice(0, 8).map((a) => {
         const icon = ICONS[a.type];
-        return (
-          <div key={a.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted/30 transition group">
+        const content = (
+          <>
             <span className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] flex-shrink-0 ${icon.color}`}>
               {icon.emoji}
             </span>
@@ -48,6 +50,20 @@ export function ActivityFeed({ activities }: { activities: Activity[] }) {
               {a.message}
             </p>
             <span className="text-[9px] text-muted-foreground flex-shrink-0">{timeAgo(a.timestamp)}</span>
+          </>
+        );
+
+        if (a.monitorId) {
+          return (
+            <Link key={a.id} href={`/dashboard/monitors/${a.monitorId}`} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted/30 transition group">
+              {content}
+            </Link>
+          );
+        }
+
+        return (
+          <div key={a.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted/30 transition group">
+            {content}
           </div>
         );
       })}

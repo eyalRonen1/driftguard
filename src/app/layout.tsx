@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: "Zikit - Know when any webpage changes",
     description: "AI-powered website change monitoring. Get plain-English summaries, not raw diffs.",
     type: "website",
-    images: [{ url: "/assets/og-image.png", width: 1792, height: 1024 }],
+    images: [{ url: "/assets/og-image.webp", width: 1200, height: 685 }],
   },
 };
 

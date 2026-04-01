@@ -30,7 +30,7 @@ export function FirstMonitorCard({
     <Card className="border-primary/20 bg-primary/5 mb-6">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <Image src="/assets/camo-happy.png" alt="" width={48} height={48} className="flex-shrink-0" />
+          <Image src="/assets/camo-happy.webp" alt="" width={48} height={48} className="flex-shrink-0" />
           <div className="flex-1 space-y-3">
             <div>
               <h3 className="font-semibold text-sm">Camo is now watching this page!</h3>
