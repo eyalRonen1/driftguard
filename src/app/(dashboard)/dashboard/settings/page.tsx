@@ -1,124 +1,85 @@
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import { ensureUserAndOrg } from "@/lib/db/ensure-user";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { SettingsForm } from "@/components/dashboard/settings-form";
 
-import { useState, useEffect } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+export default async function SettingsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
 
-interface OrgData {
-  plan: string;
-  monthlyScanQuota: number;
-  monthlyScansUsed: number;
-}
-
-export default function SettingsPage() {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [org, setOrg] = useState<OrgData | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setEmail(user.email || "");
-        setName(user.user_metadata?.full_name || "");
-      }
-    }
-    load();
-  }, []);
-
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setMessage("");
-
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: name },
-    });
-
-    if (error) {
-      setMessage("Failed to update profile");
-    } else {
-      setMessage("Profile updated");
-    }
-    setSaving(false);
+  let org;
+  try {
+    const result = await ensureUserAndOrg(user);
+    org = result.org;
+  } catch {
+    return <p className="text-muted-foreground p-8 text-center">Loading...</p>;
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-[var(--text-cream)] mb-6">Settings</h1>
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-xl font-bold mb-6">Settings</h1>
 
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6">
         {/* Profile */}
-        <div className="card-glass rounded-xl border border-white/8 p-6">
-          <h2 className="text-lg font-semibold mb-4">Profile</h2>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                disabled
-                className="w-full px-3 py-2 border border-white/8 rounded-lg bg-white/4 text-[var(--text-muted)]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">Full name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-white/12 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
-              />
-            </div>
-            {message && (
-              <p className={`text-sm ${message.includes("Failed") ? "text-[var(--accent-ruby)]" : "text-[var(--accent-jade)]"}`}>
-                {message}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 btn-primary transition disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save changes"}
-            </button>
-          </form>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SettingsForm
+              email={user.email || ""}
+              name={user.user_metadata?.full_name || ""}
+            />
+          </CardContent>
+        </Card>
 
-        {/* Plan */}
-        <div className="card-glass rounded-xl border border-white/8 p-6">
-          <h2 className="text-lg font-semibold mb-4">Plan & Usage</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-[var(--text-muted)]">Current plan</p>
-              <p className="text-lg font-semibold capitalize">Free</p>
+        {/* Plan - DYNAMIC from DB */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Plan & Usage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Current plan</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-lg font-bold capitalize">{org.plan}</p>
+                  <Badge variant={org.plan === "business" ? "default" : org.plan === "pro" ? "secondary" : "outline"} className="text-[10px]">
+                    {org.plan === "free" ? "Free" : org.plan === "pro" ? "Pro" : "Business"}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Checks this month</p>
+                <p className="text-lg font-bold mt-1">{org.monthlyChecksUsed} / {org.monthlyCheckQuota}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-[var(--text-muted)]">Scans this month</p>
-              <p className="text-lg font-semibold">0 / 30</p>
-            </div>
-          </div>
-          <button className="mt-4 px-4 py-2 bg-white/6 text-[var(--text-sage)] rounded-lg hover:bg-white/10 transition">
-            Upgrade plan
-          </button>
-        </div>
+            <Link href="/dashboard/billing">
+              <Button variant="secondary" size="sm">
+                {org.plan === "free" ? "Upgrade plan" : "Manage plan"}
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
 
-        {/* Danger zone */}
-        <div className="card-glass rounded-xl border border-[var(--accent-ruby)]/20 p-6">
-          <h2 className="text-lg font-semibold text-[var(--accent-ruby)] mb-2">Danger Zone</h2>
-          <p className="text-sm text-[var(--text-muted)] mb-4">
-            Deleting your account will permanently remove all chatbots, test cases, and scan history.
-          </p>
-          <button className="px-4 py-2 border border-[var(--accent-ruby)]/30 text-[var(--accent-ruby)] rounded-lg hover:bg-[var(--accent-ruby)]/10 transition">
-            Delete account
-          </button>
-        </div>
+        {/* Danger */}
+        <Card className="border-destructive/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              Deleting your account removes all monitors and history permanently.
+            </p>
+            <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10">
+              Delete account
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
