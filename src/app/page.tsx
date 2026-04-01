@@ -105,21 +105,18 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">What teams watch</h2>
           <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { t: "Competitor pricing", d: "Know the moment they change plans.", img: "/assets/uc-pricing.png", pat: "/assets/pat-stripes.png" },
-              { t: "Regulations", d: "Track compliance and legal pages.", img: "/assets/uc-regulate.png", pat: "/assets/pat-scales.png" },
-              { t: "Supplier costs", d: "Catch price increases early.", img: "/assets/uc-supplier.png", pat: "/assets/pat-rings.png" },
-              { t: "Job postings", d: "See new openings from targets.", img: "/assets/uc-jobs.png", pat: "/assets/pat-tail.png" },
-              { t: "Documentation", d: "Watch API docs and changelogs.", img: "/assets/uc-docs.png", pat: "/assets/pat-vines.png" },
-              { t: "SEO changes", d: "Track content and meta updates.", img: "/assets/uc-search.png", pat: "/assets/pat-mandala.png" },
+              { t: "Competitor pricing", img: "/assets/uc-big-pricing.png" },
+              { t: "Regulations", img: "/assets/uc-big-legal.png" },
+              { t: "Supplier costs", img: "/assets/uc-big-shopping.png" },
+              { t: "Job postings", img: "/assets/uc-big-jobs.png" },
+              { t: "Documentation", img: "/assets/uc-big-docs.png" },
+              { t: "SEO changes", img: "/assets/uc-big-seo.png" },
             ].map((u, i) => (
-              <StaggerItem key={i} className="card-glass card-lift p-5 flex items-start gap-3 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.05]">
-                  <Image src={u.pat} alt="" fill className="object-cover" />
-                </div>
-                <Image src={u.img} alt="" width={48} height={48} className="rounded-lg flex-shrink-0 relative z-10" />
-                <div className="relative z-10">
-                  <h3 className="font-semibold text-sm">{u.t}</h3>
-                  <p className="text-sm text-[var(--text-muted)] mt-0.5">{u.d}</p>
+              <StaggerItem key={i} className="card-glass card-lift overflow-hidden rounded-2xl">
+                <div className="aspect-[16/10] relative">
+                  <Image src={u.img} alt={u.t} fill className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <h3 className="absolute bottom-3 left-4 font-semibold text-sm text-white drop-shadow-lg">{u.t}</h3>
                 </div>
               </StaggerItem>
             ))}
