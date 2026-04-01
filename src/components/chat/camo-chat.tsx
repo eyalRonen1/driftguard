@@ -114,9 +114,9 @@ export function CamoChatWidget() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-110 transition-transform"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg shadow-primary/30 hover:scale-110 transition-transform overflow-hidden"
         >
-          <Image src="/assets/camo-happy.png" alt="Chat with Camo" width={36} height={36} />
+          <Image src="/assets/camo-chat-bubble.png" alt="Chat with Camo" width={56} height={56} className="w-full h-full object-cover" />
         </button>
       )}
 
