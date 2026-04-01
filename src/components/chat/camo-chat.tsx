@@ -115,9 +115,13 @@ export function CamoChatWidget() {
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30 bg-primary/10">
             <Image src="/assets/camo-happy.png" alt="" width={32} height={32} />
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">Camo</p>
-              <p className="text-[10px] text-muted-foreground">Your monitoring assistant</p>
+              {pageContext.monitorName ? (
+                <p className="text-[10px] text-primary truncate">Watching: {pageContext.monitorName}</p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">Your monitoring assistant</p>
+              )}
             </div>
             <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition p-1">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -156,7 +160,7 @@ export function CamoChatWidget() {
                 {msg.role === "assistant" && (
                   <Image src="/assets/camo-happy.png" alt="" width={24} height={24} className="mt-1 flex-shrink-0" />
                 )}
-                <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
+                <div dir="auto" className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground rounded-br-sm"
                     : "bg-muted/50 rounded-bl-sm"
