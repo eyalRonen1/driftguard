@@ -123,12 +123,24 @@ export default function MonitorsPage() {
           <h1 className="text-xl font-bold">Monitors</h1>
           <p className="text-sm text-muted-foreground">{monitors.length} total</p>
         </div>
-        <Button onClick={() => router.push("/dashboard/monitors/new")}>
-          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Add monitor
-        </Button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/api/v1/changes/export"
+            download
+            className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border/50 rounded-lg hover:bg-muted/50 transition inline-flex items-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export all changes
+          </a>
+          <Button onClick={() => router.push("/dashboard/monitors/new")}>
+            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add monitor
+          </Button>
+        </div>
       </div>
 
       {/* Search + Filters */}

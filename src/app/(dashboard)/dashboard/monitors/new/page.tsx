@@ -61,6 +61,8 @@ export default function NewMonitorPage() {
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
   const [frequency, setFrequency] = useState("daily");
+  const [keywords, setKeywords] = useState("");
+  const [keywordMode, setKeywordMode] = useState("any");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -118,6 +120,8 @@ export default function NewMonitorPage() {
           url,
           checkFrequency: frequency,
           useCase: selectedUseCase,
+          watchKeywords: keywords || undefined,
+          keywordMode: keywords ? keywordMode : undefined,
         }),
       });
 
@@ -259,6 +263,32 @@ export default function NewMonitorPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Keyword monitoring (optional) */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[var(--text-cream)]">
+                    Keyword alerts <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={keywords}
+                    onChange={(e) => setKeywords(e.target.value)}
+                    placeholder="price, sale, discount (comma separated)"
+                    className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-[var(--text-cream)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
+                  />
+                  {keywords && (
+                    <select
+                      value={keywordMode}
+                      onChange={(e) => setKeywordMode(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-[var(--text-cream)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
+                    >
+                      <option value="any">Alert when any keyword is in changed content</option>
+                      <option value="appear">Alert only when keyword appears (new)</option>
+                      <option value="disappear">Alert only when keyword disappears</option>
+                    </select>
+                  )}
+                  <p className="text-[10px] text-[var(--text-muted)]">Only get alerts when these keywords appear or disappear on the page</p>
                 </div>
 
                 <button

@@ -101,6 +101,8 @@ export async function POST(request: NextRequest) {
       description: data.description ?? null,
       tags: data.tags ?? null,
       useCase: data.useCase ?? null,
+      watchKeywords: data.watchKeywords ?? null,
+      keywordMode: data.keywordMode ?? "any",
       lastContentHash: preflight.hash,
       lastContentText: preflight.text,
       lastCheckedAt: new Date(),

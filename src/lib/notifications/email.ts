@@ -140,6 +140,116 @@ export async function sendSlackChangeAlert(
   }
 }
 
+/**
+ * Send a generic webhook notification
+ */
+export async function sendWebhookAlert(
+  webhookUrl: string,
+  monitorName: string,
+  monitorUrl: string,
+  summary: string,
+  importance: number,
+  changeType: string,
+): Promise<boolean> {
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "change_detected",
+        monitor: { name: monitorName, url: monitorUrl },
+        change: { summary, importance, changeType },
+        timestamp: new Date().toISOString(),
+        source: "zikit.ai",
+      }),
+    });
+    return response.ok;
+  } catch (err) {
+    console.error("Webhook alert failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Send a Discord alert via webhook
+ */
+export async function sendDiscordAlert(
+  webhookUrl: string,
+  monitorName: string,
+  monitorUrl: string,
+  summary: string,
+  importance: number,
+): Promise<boolean> {
+  const color = importance >= 7 ? 0xFF4444 : importance >= 4 ? 0xFFAA00 : 0x44CC88;
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        embeds: [{
+          title: `Change detected: ${monitorName}`,
+          description: summary,
+          url: monitorUrl,
+          color,
+          fields: [
+            { name: "Importance", value: `${importance}/10`, inline: true },
+            { name: "Page", value: monitorUrl, inline: true },
+          ],
+          footer: { text: "Zikit - Website Change Monitoring" },
+          timestamp: new Date().toISOString(),
+        }],
+      }),
+    });
+    return response.ok;
+  } catch (err) {
+    console.error("Discord alert failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Send a Telegram alert via Bot API
+ * @param botTokenAndChatId format: "botTOKEN:chatID"
+ */
+export async function sendTelegramAlert(
+  botTokenAndChatId: string,
+  monitorName: string,
+  monitorUrl: string,
+  summary: string,
+  importance: number,
+): Promise<boolean> {
+  // Format: "botTOKEN:chatID" — split on first colon after "bot" prefix isn't safe
+  // because bot tokens themselves contain a colon. Format is actually "TOKEN:CHATID"
+  // where TOKEN = "123456:ABC-DEF" and CHATID = "987654"
+  // So we split on the LAST colon.
+  const lastColon = botTokenAndChatId.lastIndexOf(":");
+  if (lastColon <= 0) return false;
+
+  const botToken = botTokenAndChatId.slice(0, lastColon);
+  const chatId = botTokenAndChatId.slice(lastColon + 1);
+  if (!botToken || !chatId) return false;
+
+  const emoji = importance >= 7 ? "!!!" : importance >= 4 ? "!" : "";
+  const text = `${emoji} *${monitorName}*\n\n${summary}\n\nPage: ${monitorUrl}\nImportance: ${importance}/10`;
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+      }),
+    });
+    return response.ok;
+  } catch (err) {
+    console.error("Telegram alert failed:", err);
+    return false;
+  }
+}
+
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

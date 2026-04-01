@@ -20,7 +20,7 @@ import { summarizeChange } from "./summarizer";
 import { filterNoise, calculateSignalScore } from "./noise-filter";
 import { extractStructuredContent } from "./structured-extractor";
 import { semanticGate } from "./semantic-gate";
-import { sendChangeAlert, sendSlackChangeAlert } from "@/lib/notifications/email";
+import { sendChangeAlert, sendSlackChangeAlert, sendWebhookAlert, sendDiscordAlert, sendTelegramAlert } from "@/lib/notifications/email";
 
 /** Increment monthly usage counter for the org */
 async function incrementUsage(orgId: string) {
@@ -167,6 +167,45 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: null };
   }
 
+  // ── Keyword monitoring ──
+  let keywordMatch = true; // default: alert on any change
+  if (monitor.watchKeywords) {
+    const keywords = monitor.watchKeywords.split(",").map(k => k.trim().toLowerCase()).filter(Boolean);
+    const mode = monitor.keywordMode || "any";
+    const beforeLower = previousRaw.toLowerCase();
+    const afterLower = result.text.toLowerCase();
+
+    if (mode === "appear") {
+      // Alert only if a keyword appears in new content that wasn't in old
+      keywordMatch = keywords.some(k => afterLower.includes(k) && !beforeLower.includes(k));
+    } else if (mode === "disappear") {
+      // Alert only if a keyword disappears from content
+      keywordMatch = keywords.some(k => beforeLower.includes(k) && !afterLower.includes(k));
+    } else {
+      // "any" mode: alert if any keyword is mentioned in the change
+      keywordMatch = keywords.some(k => afterLower.includes(k) || beforeLower.includes(k));
+    }
+  }
+
+  // If keyword monitoring is configured and no match, skip storing the change
+  if (monitor.watchKeywords && !keywordMatch) {
+    // Still update the monitor content, just don't alert
+    await db.update(monitors).set({
+      lastContentHash: result.hash,
+      lastContentText: result.text,
+      lastCheckedAt: now,
+      consecutiveErrors: 0,
+      lastError: null,
+      healthStatus: "healthy",
+      healthReason: null,
+      healthCheckedAt: now,
+      lastHealthyAt: now,
+      updatedAt: now,
+    }).where(eq(monitors.id, monitorId));
+    await incrementUsage(monitor.orgId);
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: null };
+  }
+
   // ── Stage 2: Structured extraction ──
   const structuredAfter = extractStructuredContent(result.html);
   const pageType = structuredAfter.pageType;
@@ -302,12 +341,20 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       };
 
       const notificationPromises = activeConfigs.map((config) => {
-        if (config.channel === "email") {
-          return sendChangeAlert({ ...alertData, to: config.destination });
-        } else if (config.channel === "slack") {
-          return sendSlackChangeAlert(config.destination, { ...alertData, to: config.destination });
+        switch (config.channel) {
+          case "email":
+            return sendChangeAlert({ ...alertData, to: config.destination });
+          case "slack":
+            return sendSlackChangeAlert(config.destination, { ...alertData, to: config.destination });
+          case "webhook":
+            return sendWebhookAlert(config.destination, monitor.name, monitor.url, enrichedSummary, finalImportance, summaryResult.changeType);
+          case "discord":
+            return sendDiscordAlert(config.destination, monitor.name, monitor.url, enrichedSummary, finalImportance);
+          case "telegram":
+            return sendTelegramAlert(config.destination, monitor.name, monitor.url, enrichedSummary, finalImportance);
+          default:
+            return Promise.resolve(false);
         }
-        return Promise.resolve(false);
       });
 
       // Fire-and-forget: don't block the check on notification delivery

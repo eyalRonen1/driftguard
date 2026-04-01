@@ -88,6 +88,10 @@ export const monitors = pgTable(
     healthCheckedAt: timestamp("health_checked_at", { withTimezone: true }),
     lastHealthyAt: timestamp("last_healthy_at", { withTimezone: true }),
 
+    // Keyword monitoring
+    watchKeywords: text("watch_keywords"), // comma-separated keywords to watch for
+    keywordMode: varchar("keyword_mode", { length: 20 }).default("any"), // "any" (alert on any match), "appear" (alert when keyword appears), "disappear" (alert when keyword disappears)
+
     // Use case metadata
     useCase: varchar("use_case", { length: 30 }), // competitor, regulatory, ecommerce, jobs, content, custom
 

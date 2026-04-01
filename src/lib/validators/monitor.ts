@@ -19,6 +19,8 @@ export const createMonitorSchema = z.object({
   description: z.string().max(1000).optional(),
   tags: z.string().max(500).optional(),
   useCase: z.enum(["competitor", "regulatory", "ecommerce", "jobs", "content", "custom"]).optional(),
+  watchKeywords: z.string().max(500).optional(),
+  keywordMode: z.enum(["any", "appear", "disappear"]).optional(),
 });
 
 export const updateMonitorSchema = createMonitorSchema.partial().extend({

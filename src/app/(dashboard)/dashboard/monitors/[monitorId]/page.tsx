@@ -111,6 +111,16 @@ export default function MonitorDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           <LiveCheckButton monitorId={monitorId} onComplete={fetchData} />
+          <a
+            href={`/api/v1/monitors/${monitorId}/export`}
+            download
+            className="px-4 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-cream)] border border-white/10 rounded-lg hover:bg-white/5 transition inline-flex items-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export CSV
+          </a>
           <button
             onClick={handleDelete}
             className="px-4 py-2 text-destructive hover:bg-destructive/10 rounded-lg transition text-sm"

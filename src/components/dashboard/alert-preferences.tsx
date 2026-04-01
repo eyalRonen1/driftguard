@@ -37,6 +37,12 @@ export function AlertPreferences({
   const [email, setEmail] = useState(emailEnabled);
   const [slack, setSlack] = useState(slackEnabled);
   const [slackWebhookUrl, setSlackWebhookUrl] = useState("");
+  const [webhook, setWebhook] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [discord, setDiscord] = useState(false);
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
+  const [telegram, setTelegram] = useState(false);
+  const [telegramConfig, setTelegramConfig] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +58,9 @@ export function AlertPreferences({
 
       const emailConfig = configs.find((c: { channel: string }) => c.channel === "email");
       const slackConfig = configs.find((c: { channel: string }) => c.channel === "slack");
+      const webhookConfig = configs.find((c: { channel: string }) => c.channel === "webhook");
+      const discordConfig = configs.find((c: { channel: string }) => c.channel === "discord");
+      const telegramConfig = configs.find((c: { channel: string }) => c.channel === "telegram");
 
       if (emailConfig) {
         setEmail(emailConfig.isActive);
@@ -65,6 +74,27 @@ export function AlertPreferences({
         if (slackConfig.destination) setSlackWebhookUrl(slackConfig.destination);
       } else {
         setSlack(false);
+      }
+
+      if (webhookConfig) {
+        setWebhook(webhookConfig.isActive);
+        if (webhookConfig.destination) setWebhookUrl(webhookConfig.destination);
+      } else {
+        setWebhook(false);
+      }
+
+      if (discordConfig) {
+        setDiscord(discordConfig.isActive);
+        if (discordConfig.destination) setDiscordWebhookUrl(discordConfig.destination);
+      } else {
+        setDiscord(false);
+      }
+
+      if (telegramConfig) {
+        setTelegram(telegramConfig.isActive);
+        if (telegramConfig.destination) setTelegramConfig(telegramConfig.destination);
+      } else {
+        setTelegram(false);
       }
     } catch {
       // Silently fail on load — defaults are fine
@@ -100,23 +130,32 @@ export function AlertPreferences({
         throw new Error(data.error || "Failed to save email config");
       }
 
-      // Only save slack config if enabled AND webhook URL is provided
-      if (slack && slackWebhookUrl.trim()) {
-        const slackRes = await fetch("/api/v1/alert-configs", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            monitorId,
-            channel: "slack",
-            destination: slackWebhookUrl.trim(),
-            minImportance: threshold,
-            isActive: true,
-          }),
-        });
+      // Save each optional channel if enabled AND destination is provided
+      const optionalChannels = [
+        { enabled: slack, channel: "slack", destination: slackWebhookUrl.trim() },
+        { enabled: webhook, channel: "webhook", destination: webhookUrl.trim() },
+        { enabled: discord, channel: "discord", destination: discordWebhookUrl.trim() },
+        { enabled: telegram, channel: "telegram", destination: telegramConfig.trim() },
+      ];
 
-        if (!slackRes.ok) {
-          const data = await slackRes.json();
-          throw new Error(data.error || "Failed to save Slack config");
+      for (const ch of optionalChannels) {
+        if (ch.enabled && ch.destination) {
+          const res = await fetch("/api/v1/alert-configs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              monitorId,
+              channel: ch.channel,
+              destination: ch.destination,
+              minImportance: threshold,
+              isActive: true,
+            }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || `Failed to save ${ch.channel} config`);
+          }
         }
       }
 
@@ -205,6 +244,87 @@ export function AlertPreferences({
                       className="w-full px-2.5 py-1.5 text-xs border border-border/30 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">Enter your Slack incoming webhook URL</p>
+                  </div>
+                )}
+
+                {/* Webhook */}
+                <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🔗</span>
+                    <span className="text-xs">Webhook</span>
+                    <Badge variant="outline" className="text-[8px] px-1 py-0">Pro</Badge>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={webhook}
+                    onChange={(e) => setWebhook(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                </label>
+                {webhook && (
+                  <div className="pl-7">
+                    <input
+                      type="url"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="https://your-server.com/webhook"
+                      className="w-full px-2.5 py-1.5 text-xs border border-border/30 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">POST JSON payload to this URL on every change</p>
+                  </div>
+                )}
+
+                {/* Discord */}
+                <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🎮</span>
+                    <span className="text-xs">Discord</span>
+                    <Badge variant="outline" className="text-[8px] px-1 py-0">Pro</Badge>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={discord}
+                    onChange={(e) => setDiscord(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                </label>
+                {discord && (
+                  <div className="pl-7">
+                    <input
+                      type="url"
+                      value={discordWebhookUrl}
+                      onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+                      placeholder="https://discord.com/api/webhooks/..."
+                      className="w-full px-2.5 py-1.5 text-xs border border-border/30 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">Server Settings → Integrations → Webhooks → Copy URL</p>
+                  </div>
+                )}
+
+                {/* Telegram */}
+                <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">✈️</span>
+                    <span className="text-xs">Telegram</span>
+                    <Badge variant="outline" className="text-[8px] px-1 py-0">Pro</Badge>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={telegram}
+                    onChange={(e) => setTelegram(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                </label>
+                {telegram && (
+                  <div className="pl-7">
+                    <input
+                      type="text"
+                      value={telegramConfig}
+                      onChange={(e) => setTelegramConfig(e.target.value)}
+                      placeholder="123456:ABC-DEF:987654321"
+                      className="w-full px-2.5 py-1.5 text-xs border border-border/30 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">Format: BOT_TOKEN:CHAT_ID — get token from @BotFather, chat ID from @userinfobot</p>
                   </div>
                 )}
               </div>
