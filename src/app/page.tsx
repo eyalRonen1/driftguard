@@ -189,16 +189,45 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/6 py-8 relative z-10">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[var(--text-muted)]">
-          <div className="flex items-center gap-2">
-            <Camo size={18} />
-            <span>&copy; {new Date().getFullYear()} PageLifeguard</span>
+      <footer className="border-t border-white/6 py-10 relative z-10">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
+            <div>
+              <p className="text-xs font-semibold text-foreground mb-3">Product</p>
+              <div className="space-y-2 text-xs text-[var(--text-muted)]">
+                <Link href="/signup" className="block hover:text-[var(--accent-jade)] transition">Get started</Link>
+                <a href="#pricing" className="block hover:text-[var(--accent-jade)] transition">Pricing</a>
+                <a href="#how" className="block hover:text-[var(--accent-jade)] transition">How it works</a>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-foreground mb-3">Legal</p>
+              <div className="space-y-2 text-xs text-[var(--text-muted)]">
+                <Link href="/terms" className="block hover:text-[var(--accent-jade)] transition">Terms & Conditions</Link>
+                <Link href="/privacy" className="block hover:text-[var(--accent-jade)] transition">Privacy Policy</Link>
+                <Link href="/refund" className="block hover:text-[var(--accent-jade)] transition">Refund Policy</Link>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-foreground mb-3">Support</p>
+              <div className="space-y-2 text-xs text-[var(--text-muted)]">
+                <a href="mailto:support@pagelifeguard.com" className="block hover:text-[var(--accent-jade)] transition">support@pagelifeguard.com</a>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-foreground mb-3">Account</p>
+              <div className="space-y-2 text-xs text-[var(--text-muted)]">
+                <Link href="/login" className="block hover:text-[var(--accent-jade)] transition">Sign in</Link>
+                <Link href="/signup" className="block hover:text-[var(--accent-jade)] transition">Sign up</Link>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-6">
-            <Link href="/login" className="hover:text-[var(--accent-jade)] transition">Sign in</Link>
-            <Link href="/signup" className="hover:text-[var(--accent-jade)] transition">Sign up</Link>
-            <a href="#pricing" className="hover:text-[var(--accent-jade)] transition">Pricing</a>
+          <div className="border-t border-white/6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-[var(--text-muted)]">
+            <div className="flex items-center gap-2">
+              <Camo size={16} />
+              <span>&copy; {new Date().getFullYear()} PageLifeguard. All rights reserved.</span>
+            </div>
+            <span>Payments processed by <a href="https://paddle.com" className="text-[var(--accent-jade)] hover:underline">Paddle</a></span>
           </div>
         </div>
       </footer>

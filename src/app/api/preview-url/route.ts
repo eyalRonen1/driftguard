@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Public API endpoint - previews a URL for the landing page live checker.
- * No auth required. Rate limited by simple check.
+ * Rate limited + SSRF protection.
  */
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 previews per minute per IP
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const { allowed } = rateLimit(`preview:${ip}`, 5, 60000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   let body;
   try {
     body = await request.json();
@@ -18,7 +24,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    new URL(url);
+    const parsed = new URL(url);
+    // SSRF protection: block private/internal URLs
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0" ||
+        hostname.startsWith("10.") || hostname.startsWith("172.") || hostname.startsWith("192.168.") ||
+        hostname.endsWith(".internal") || hostname.endsWith(".local") ||
+        parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return NextResponse.json({ error: "URL not allowed" }, { status: 400 });
+    }
   } catch {
     return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
   }
