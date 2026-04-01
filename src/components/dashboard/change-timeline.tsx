@@ -81,7 +81,7 @@ function ChangeCard({ change, isFirst }: { change: Change; isFirst: boolean }) {
             <CardContent className="p-4 cursor-pointer text-left w-full">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${open ? "" : "line-clamp-2"}`}>
+                  <p className="text-sm font-medium line-clamp-2">
                     {change.summary}
                   </p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
@@ -112,41 +112,32 @@ function ChangeCard({ change, isFirst }: { change: Change; isFirst: boolean }) {
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <div className="px-4 pb-4 space-y-3">
-              {/* Full summary */}
-              <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Full Summary</p>
-                <p className="text-sm leading-relaxed">{change.summary}</p>
-              </div>
-
-              {/* Visual diff if available */}
-              {(change.addedText || change.removedText) && (
+            <div className="px-4 pb-4 space-y-3 border-t border-border/30 mt-0 pt-3">
+              {/* Visual diff */}
+              {(change.addedText || change.removedText) ? (
                 <div className="rounded-lg border border-border/50 overflow-hidden">
-                  <div className="px-3 py-1.5 bg-muted/30 border-b border-border/50">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Changes</span>
-                  </div>
                   <div className="p-3 space-y-1.5 font-mono text-xs">
                     {change.removedText && (
-                      <div className="px-2 py-1 rounded bg-destructive/10 border-l-2 border-destructive/40">
+                      <div className="px-2 py-1.5 rounded bg-destructive/10 border-l-2 border-destructive/40">
                         <span className="text-destructive font-bold mr-2">−</span>
-                        <span className="text-destructive/80 line-through">{change.removedText.slice(0, 200)}</span>
+                        <span className="text-destructive/70 line-through">{change.removedText.slice(0, 300)}</span>
                       </div>
                     )}
                     {change.addedText && (
-                      <div className="px-2 py-1 rounded bg-primary/10 border-l-2 border-primary/40">
+                      <div className="px-2 py-1.5 rounded bg-primary/10 border-l-2 border-primary/40">
                         <span className="text-primary font-bold mr-2">+</span>
-                        <span className="text-primary">{change.addedText.slice(0, 200)}</span>
+                        <span className="text-primary/90">{change.addedText.slice(0, 300)}</span>
                       </div>
                     )}
                   </div>
                 </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Detailed diff not available for this change.</p>
               )}
 
-              {/* Meta info */}
-              <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
-                <span>Detected: {new Date(change.createdAt).toLocaleString()}</span>
-                <span>Type: {change.changeType}</span>
-                <span>Importance: {change.importanceScore}/10</span>
+              {/* Meta */}
+              <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                <span>{new Date(change.createdAt).toLocaleString()}</span>
               </div>
             </div>
           </CollapsibleContent>
