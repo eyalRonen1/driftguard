@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ChangeTimeline } from "@/components/dashboard/change-timeline";
+import { LiveCheckButton } from "@/components/dashboard/live-check";
 
 interface Monitor {
   id: string;
@@ -38,7 +39,6 @@ export default function MonitorDetailPage() {
   const [monitor, setMonitor] = useState<Monitor | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
   const [loading, setLoading] = useState(true);
-  const [checking, setChecking] = useState(false);
 
   useEffect(() => { fetchData(); }, [monitorId]);
 
@@ -49,13 +49,6 @@ export default function MonitorDetailPage() {
     setMonitor(data.monitor);
     setChanges(data.changes || []);
     setLoading(false);
-  }
-
-  async function handleCheck() {
-    setChecking(true);
-    const res = await fetch(`/api/v1/monitors/${monitorId}/check`, { method: "POST" });
-    if (res.ok) await fetchData();
-    setChecking(false);
   }
 
   async function handleDelete() {
@@ -92,23 +85,10 @@ export default function MonitorDetailPage() {
           </a>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleCheck}
-            disabled={checking}
-            className="px-4 py-2 btn-primary transition disabled:opacity-50 flex items-center gap-2"
-          >
-            {checking ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-              </svg>
-            )}
-            {checking ? "Checking..." : "Check now"}
-          </button>
+          <LiveCheckButton monitorId={monitorId} onComplete={fetchData} />
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-[var(--accent-ruby)] hover:bg-[var(--accent-ruby)]/10 rounded-lg transition"
+            className="px-4 py-2 text-destructive hover:bg-destructive/10 rounded-lg transition text-sm"
           >
             Delete
           </button>

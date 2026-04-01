@@ -5,6 +5,7 @@ import { monitors, changes } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
+import { StatusBar } from "@/components/dashboard/status-bar";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -46,6 +47,14 @@ export default async function DashboardPage() {
           <p className="text-[var(--text-muted)] mt-1 text-sm">Your chameleon is watching. All good.</p>
         </div>
       </div>
+
+      {allMonitors.length > 0 && (
+        <StatusBar
+          activeMonitors={activeCount}
+          recentChanges={recentChanges.length}
+          hasErrors={allMonitors.some((m: any) => m.healthStatus === "error")}
+        />
+      )}
 
       {allMonitors.length === 0 ? (
         <div className="card-glass p-10 text-center">
