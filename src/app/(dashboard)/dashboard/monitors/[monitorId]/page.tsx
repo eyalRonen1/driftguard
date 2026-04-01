@@ -27,6 +27,8 @@ interface Change {
   changeType: string;
   importanceScore: number;
   diffPercentage: string | null;
+  addedText: string | null;
+  removedText: string | null;
   createdAt: string;
 }
 
