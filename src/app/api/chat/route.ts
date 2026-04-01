@@ -42,8 +42,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ reply: "Hmm, I didn't catch that. Try again?" });
   }
 
-  const messages = body.messages || [];
+  const rawMessages = body.messages || [];
   const pageContext = body.pageContext;
+
+  // Security: validate input types
+  if (!Array.isArray(rawMessages)) {
+    return NextResponse.json({ reply: "Invalid message format." }, { status: 400 });
+  }
+
+  // Security: sanitize HTML from all messages
+  const sanitize = (s: string) => s.replace(/[<>]/g, "").trim();
+  const messages = rawMessages.map((m: any) => ({
+    role: m.role === "assistant" ? "assistant" : "user",
+    content: typeof m.content === "string" ? sanitize(m.content) : "",
+  }));
 
   // Security: limit message count (prevent context stuffing)
   if (messages.length > 20) {
