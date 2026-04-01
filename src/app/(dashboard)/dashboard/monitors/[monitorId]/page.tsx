@@ -158,7 +158,7 @@ export default function MonitorDetailPage() {
       {/* Changes timeline */}
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Image src="/assets/camo-watch.png" alt="" width={24} height={24} />
-        What changed<
+        What changed
       </h2>
       <ChangeTimeline changes={changes} />
     </div>
