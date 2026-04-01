@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Camo, CamoStripes, CamoEye, CamoPaw } from "@/components/brand/camo";
 import { FloatingLeaves } from "@/components/marketing/floating-leaves";
+import { AnimateIn, StaggerContainer, StaggerItem } from "@/components/shared/animate-in";
 
 export default function LandingPage() {
   return (
@@ -30,19 +31,27 @@ export default function LandingPage() {
           <Image src="/assets/pat-eye.png" alt="" fill className="object-cover" />
         </div>
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-          <Camo size={96} className="mx-auto mb-8 animate-sway" />
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-            Your pages change.
-            <br />
-            <span className="text-[var(--accent-jade)]">Camo catches it.</span>
-          </h1>
-          <p className="text-[var(--text-sage)] mt-6 text-lg max-w-md mx-auto leading-relaxed">
-            AI-powered website monitoring. Summaries, not diffs.
-          </p>
-          <div className="flex items-center justify-center gap-3 mt-10">
-            <Link href="/signup" className="btn-primary text-base">Start free</Link>
-            <a href="#how" className="btn-secondary text-base">How it works</a>
-          </div>
+          <AnimateIn>
+            <Camo size={96} className="mx-auto mb-8 animate-sway" />
+          </AnimateIn>
+          <AnimateIn delay={0.15}>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+              Your pages change.
+              <br />
+              <span className="text-[var(--accent-jade)]">Camo catches it.</span>
+            </h1>
+          </AnimateIn>
+          <AnimateIn delay={0.3}>
+            <p className="text-[var(--text-sage)] mt-6 text-lg max-w-md mx-auto leading-relaxed">
+              AI-powered website monitoring. Summaries, not diffs.
+            </p>
+          </AnimateIn>
+          <AnimateIn delay={0.45}>
+            <div className="flex items-center justify-center gap-3 mt-10">
+              <Link href="/signup" className="btn-primary text-base">Start free</Link>
+              <a href="#how" className="btn-secondary text-base">How it works</a>
+            </div>
+          </AnimateIn>
         </div>
       </section>
 
@@ -54,13 +63,13 @@ export default function LandingPage() {
           <div className="flex justify-center mb-3"><CamoPaw size={20} /></div>
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">How it works</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
-          <div className="grid sm:grid-cols-3 gap-6">
+          <StaggerContainer className="grid sm:grid-cols-3 gap-6">
             {[
               { t: "Paste a URL", d: "Any page — pricing, docs, jobs, regulations.", img: "/assets/step-url.png", pat: "/assets/pat-eye.png" },
               { t: "Camo watches", d: "We check hourly, daily, or every 15 minutes.", img: "/assets/step-watch.png", pat: "/assets/pat-chameleon.png" },
               { t: "Get a summary", d: "AI explains what changed in plain English.", img: "/assets/step-alert.png", pat: "/assets/pat-swirl.png" },
             ].map((s, i) => (
-              <div key={i} className="card-glass p-6 text-center relative overflow-hidden">
+              <StaggerItem key={i} className="card-glass card-lift p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.06]">
                   <Image src={s.pat} alt="" fill className="object-cover" />
                 </div>
@@ -69,9 +78,9 @@ export default function LandingPage() {
                 <h3 className="font-semibold mb-1">{s.t}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{s.d}</p>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -86,7 +95,7 @@ export default function LandingPage() {
           <div className="flex justify-center mb-3"><CamoEye size={22} /></div>
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Use cases</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">What teams watch</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { t: "Competitor pricing", d: "Know the moment they change plans.", img: "/assets/uc-pricing.png", pat: "/assets/pat-stripes.png" },
               { t: "Regulations", d: "Track compliance and legal pages.", img: "/assets/uc-regulate.png", pat: "/assets/pat-scales.png" },
@@ -95,7 +104,7 @@ export default function LandingPage() {
               { t: "Documentation", d: "Watch API docs and changelogs.", img: "/assets/uc-docs.png", pat: "/assets/pat-vines.png" },
               { t: "SEO changes", d: "Track content and meta updates.", img: "/assets/uc-search.png", pat: "/assets/pat-mandala.png" },
             ].map((u, i) => (
-              <div key={i} className="card-glass p-5 flex items-start gap-3 relative overflow-hidden">
+              <StaggerItem key={i} className="card-glass card-lift p-5 flex items-start gap-3 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.05]">
                   <Image src={u.pat} alt="" fill className="object-cover" />
                 </div>
@@ -104,9 +113,9 @@ export default function LandingPage() {
                   <h3 className="font-semibold text-sm">{u.t}</h3>
                   <p className="text-sm text-[var(--text-muted)] mt-0.5">{u.d}</p>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -118,13 +127,13 @@ export default function LandingPage() {
           <CamoStripes className="max-w-xs mx-auto mb-4" />
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Pricing</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Simple and transparent</h2>
-          <div className="grid sm:grid-cols-3 gap-4">
+          <StaggerContainer className="grid sm:grid-cols-3 gap-4">
             {[
               { name: "Free", price: "$0", per: "", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts"], pop: false, pattern: "/assets/pat-leaves.png" },
               { name: "Pro", price: "$19", per: "/mo", features: ["20 monitors", "Hourly checks", "Slack alerts", "CSS selectors", "History"], pop: true, pattern: "/assets/pat-scales.png" },
               { name: "Business", price: "$49", per: "/mo", features: ["100 monitors", "15-min checks", "API access", "Team members", "Priority"], pop: false, pattern: "/assets/pat-spiral.png" },
             ].map((p) => (
-              <div key={p.name} className={`relative overflow-hidden ${p.pop ? "card-glass-featured p-6" : "card-glass p-6"}`}>
+              <StaggerItem key={p.name} className={`relative overflow-hidden card-lift ${p.pop ? "card-glass-featured p-6" : "card-glass p-6"}`}>
                 <div className="absolute inset-0 opacity-[0.06]">
                   <Image src={p.pattern} alt="" fill className="object-cover" />
                 </div>
@@ -146,9 +155,9 @@ export default function LandingPage() {
                   {p.name === "Free" ? "Start free" : "Try free"}
                 </Link>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
