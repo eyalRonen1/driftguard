@@ -8,6 +8,7 @@ import { ChangeTimeline } from "@/components/dashboard/change-timeline";
 import { LiveCheckButton } from "@/components/dashboard/live-check";
 import { HealthSparkline, UptimeBar } from "@/components/dashboard/health-sparkline";
 import { useChatContext } from "@/components/chat/chat-context";
+import { AlertPreferences } from "@/components/dashboard/alert-preferences";
 
 interface Monitor {
   id: string;
@@ -170,6 +171,11 @@ export default function MonitorDetailPage() {
         What changed
       </h2>
       <ChangeTimeline changes={changes} />
+
+      {/* Alert preferences */}
+      <div className="mt-8">
+        <AlertPreferences monitorId={monitorId} monitorName={monitor.name} />
+      </div>
     </div>
   );
 }
