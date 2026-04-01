@@ -33,7 +33,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup");
   const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
-  const isApi = request.nextUrl.pathname.startsWith("/api");
+  // Note: API routes handle their own auth per-route (e.g. chat, cron, webhooks)
 
   // Redirect unauthenticated users away from dashboard
   if (!user && isDashboard) {

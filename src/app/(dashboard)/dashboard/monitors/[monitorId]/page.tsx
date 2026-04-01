@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { createBrowserClient } from "@supabase/ssr";
 import { ChangeTimeline } from "@/components/dashboard/change-timeline";
 import { LiveCheckButton } from "@/components/dashboard/live-check";
 import { HealthSparkline, UptimeBar } from "@/components/dashboard/health-sparkline";
 import { useChatContext } from "@/components/chat/chat-context";
 import { AlertPreferences } from "@/components/dashboard/alert-preferences";
+import { FirstMonitorCard } from "@/components/dashboard/first-monitor-card";
 
 interface Monitor {
   id: string;
@@ -42,7 +44,19 @@ export default function MonitorDetailPage() {
   const [monitor, setMonitor] = useState<Monitor | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
   const { setPageContext } = useChatContext();
+
+  // Get the authenticated user's email for alert preferences
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setUserEmail(data.user.email);
+    });
+  }, []);
 
   useEffect(() => { fetchData(); }, [monitorId]);
 
@@ -71,7 +85,7 @@ export default function MonitorDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-jade)]" />
       </div>
     );
   }
@@ -165,16 +179,33 @@ export default function MonitorDetailPage() {
         </div>
       )}
 
+      {/* First monitor activation card (no changes yet) */}
+      {changes.length === 0 && (
+        <FirstMonitorCard
+          monitorName={monitor.name}
+          monitorUrl={monitor.url}
+          checkFrequency={monitor.checkFrequency}
+          lastCheckedAt={monitor.lastCheckedAt}
+        />
+      )}
+
       {/* Changes timeline */}
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Image src="/assets/camo-watch.png" alt="" width={24} height={24} />
         What changed
       </h2>
-      <ChangeTimeline changes={changes} />
+      {changes.length > 0 ? (
+        <ChangeTimeline changes={changes} />
+      ) : (
+        <div className="card-glass p-6 text-center">
+          <Image src="/assets/camo-rest.png" alt="" width={64} height={64} className="mx-auto mb-3 opacity-60" />
+          <p className="text-sm text-[var(--text-muted)]">No changes detected yet. Camo is watching!</p>
+        </div>
+      )}
 
       {/* Alert preferences */}
       <div className="mt-8">
-        <AlertPreferences monitorId={monitorId} monitorName={monitor.name} />
+        <AlertPreferences monitorId={monitorId} monitorName={monitor.name} userEmail={userEmail} />
       </div>
     </div>
   );

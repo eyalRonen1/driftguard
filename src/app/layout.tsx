@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pagelifeguard.com"),
   title: "PageLifeguard - Website Change Monitoring with AI Summaries",
   description:
     "Monitor any web page for changes and get AI-powered summaries of what changed. Not raw diffs — plain English insights like 'Competitor dropped prices by 15%.'",

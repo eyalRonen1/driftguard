@@ -20,6 +20,9 @@ export function DashboardChatContext({
 }) {
   const { setPageContext } = useChatContext();
 
+  // Serialize array to a stable string so useEffect doesn't fire on every render
+  const monitorNamesKey = monitorNames.join(",");
+
   useEffect(() => {
     setPageContext({
       monitorName: undefined,
@@ -28,10 +31,10 @@ export function DashboardChatContext({
         `This user is tracking EXACTLY ${monitorsCount} pages (not 3, not a guess - exactly ${monitorsCount})`,
         `Total changes detected: ${changesCount}`,
         `Current plan: ${plan} (this is their ACTUAL plan, not the default)`,
-        ...(monitorNames.length > 0 ? [`Pages being monitored: ${monitorNames.join(", ")}`] : []),
+        ...(monitorNamesKey ? [`Pages being monitored: ${monitorNamesKey}`] : []),
       ],
     });
-  }, [monitorsCount, changesCount, plan, monitorNames, setPageContext]);
+  }, [monitorsCount, changesCount, plan, monitorNamesKey, setPageContext]);
 
   return null;
 }

@@ -114,15 +114,12 @@ export function UptimeBar({
     return "error";
   });
 
-  // Shuffle errors to random positions for realism
-  const shuffled = [...bars].sort(() => Math.random() - 0.5);
-
   const uptime = ((healthyCount / checks) * 100).toFixed(1);
 
   return (
     <div>
       <div className="flex gap-[2px] items-end h-5">
-        {shuffled.map((status, i) => (
+        {bars.map((status, i) => (
           <div
             key={i}
             className={`flex-1 rounded-[1px] transition-all hover:opacity-80 ${

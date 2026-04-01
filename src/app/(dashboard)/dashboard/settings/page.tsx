@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SettingsForm } from "@/components/dashboard/settings-form";
+import { DeleteAccountButton } from "@/components/dashboard/delete-account-button";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -75,9 +76,7 @@ export default async function SettingsPage() {
             <p className="text-xs text-muted-foreground mb-3">
               Deleting your account removes all monitors and history permanently.
             </p>
-            <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10">
-              Delete account
-            </Button>
+            <DeleteAccountButton />
           </CardContent>
         </Card>
       </div>

@@ -8,6 +8,13 @@
       "when": 1774978212889,
       "tag": "0000_strange_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775061338824,
+      "tag": "0001_absurd_network",
+      "breakpoints": true
     }
   ]
 }

@@ -14,23 +14,28 @@ export async function GET(
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [monitor] = await db
-    .select()
-    .from(monitors)
-    .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
-    .limit(1);
+  try {
+    const [monitor] = await db
+      .select()
+      .from(monitors)
+      .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
+      .limit(1);
 
-  if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
+    if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
 
-  // Get recent changes (scoped to org for tenant isolation)
-  const recentChanges = await db
-    .select()
-    .from(changes)
-    .where(and(eq(changes.monitorId, monitorId), eq(changes.orgId, auth.org.id)))
-    .orderBy(desc(changes.createdAt))
-    .limit(20);
+    // Get recent changes (scoped to org for tenant isolation)
+    const recentChanges = await db
+      .select()
+      .from(changes)
+      .where(and(eq(changes.monitorId, monitorId), eq(changes.orgId, auth.org.id)))
+      .orderBy(desc(changes.createdAt))
+      .limit(20);
 
-  return NextResponse.json({ monitor, changes: recentChanges });
+    return NextResponse.json({ monitor, changes: recentChanges });
+  } catch (err) {
+    console.error("Failed to fetch monitor:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 // PATCH /api/v1/monitors/[monitorId]
@@ -52,14 +57,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Validation failed", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const [monitor] = await db
-    .update(monitors)
-    .set({ ...parsed.data, updatedAt: new Date() })
-    .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
-    .returning();
+  try {
+    const [monitor] = await db
+      .update(monitors)
+      .set({ ...parsed.data, updatedAt: new Date() })
+      .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
+      .returning();
 
-  if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
-  return NextResponse.json({ monitor });
+    if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
+    return NextResponse.json({ monitor });
+  } catch (err) {
+    console.error("Failed to update monitor:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 // DELETE /api/v1/monitors/[monitorId]
@@ -71,11 +81,16 @@ export async function DELETE(
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [monitor] = await db
-    .delete(monitors)
-    .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
-    .returning();
+  try {
+    const [monitor] = await db
+      .delete(monitors)
+      .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
+      .returning();
 
-  if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
-  return NextResponse.json({ success: true });
+    if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete monitor:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

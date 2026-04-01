@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,18 +29,56 @@ const FILTERS = [
 ];
 
 export default function MonitorsPage() {
+  const router = useRouter();
   const [monitors, setMonitors] = useState<Monitor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => { fetchMonitors(); }, []);
 
   async function fetchMonitors() {
-    const res = await fetch("/api/v1/monitors");
-    const data = await res.json();
-    setMonitors(data.monitors || []);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/v1/monitors");
+      if (!res.ok) throw new Error(`Failed to fetch monitors (${res.status})`);
+      const data = await res.json();
+      setMonitors(data.monitors || []);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load monitors");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCheck(monitorId: string) {
+    await fetch(`/api/v1/monitors/${monitorId}/check`, { method: "POST" });
+    fetchMonitors();
+  }
+
+  async function handlePause(monitorId: string) {
+    await fetch(`/api/v1/monitors/${monitorId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isPaused: true }),
+    });
+    fetchMonitors();
+  }
+
+  async function handleResume(monitorId: string) {
+    await fetch(`/api/v1/monitors/${monitorId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isPaused: false }),
+    });
+    fetchMonitors();
+  }
+
+  async function handleDelete(monitorId: string) {
+    if (!confirm("Delete this monitor and all its history?")) return;
+    await fetch(`/api/v1/monitors/${monitorId}`, { method: "DELETE" });
+    fetchMonitors();
   }
 
   // Client-side filtering
@@ -65,6 +104,17 @@ export default function MonitorsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <p className="text-sm text-destructive">{error}</p>
+        <Button variant="outline" onClick={() => { setLoading(true); fetchMonitors(); }}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
@@ -73,7 +123,7 @@ export default function MonitorsPage() {
           <h1 className="text-xl font-bold">Monitors</h1>
           <p className="text-sm text-muted-foreground">{monitors.length} total</p>
         </div>
-        <Button onClick={() => window.location.href = "/dashboard/monitors/new"}>
+        <Button onClick={() => router.push("/dashboard/monitors/new")}>
           <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
@@ -127,7 +177,7 @@ export default function MonitorsPage() {
               <Image src="/assets/empty-hammock.png" alt="" width={150} height={150} className="mx-auto mb-4" />
               <h2 className="text-lg font-semibold mb-2">No monitors yet</h2>
               <p className="text-sm text-muted-foreground mb-4">Give Camo a page to watch.</p>
-              <Button onClick={() => window.location.href = "/dashboard/monitors/new"}>
+              <Button onClick={() => router.push("/dashboard/monitors/new")}>
                 Add first monitor
               </Button>
             </>
@@ -150,6 +200,10 @@ export default function MonitorsPage() {
               healthStatus={m.healthStatus || "healthy"}
               isActive={m.isActive && !m.isPaused}
               lastCheckedAt={m.lastCheckedAt}
+              onCheck={() => handleCheck(m.id)}
+              onPause={() => handlePause(m.id)}
+              onResume={() => handleResume(m.id)}
+              onDelete={() => handleDelete(m.id)}
             />
           ))}
         </div>

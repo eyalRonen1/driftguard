@@ -1,0 +1,135 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { alertConfigs, monitors } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { z } from "zod";
+
+const alertConfigSchema = z.object({
+  monitorId: z.string().uuid(),
+  channel: z.enum(["email", "slack"]),
+  destination: z.string().min(1).max(500),
+  minImportance: z.number().int().min(1).max(10).default(3),
+  isActive: z.boolean().default(true),
+});
+
+// GET /api/v1/alert-configs?monitorId=...
+export async function GET(request: NextRequest) {
+  const auth = await getAuthenticatedOrg();
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const monitorId = request.nextUrl.searchParams.get("monitorId");
+
+  try {
+    let configs;
+    if (monitorId) {
+      // Verify monitor belongs to this org
+      const [monitor] = await db.select().from(monitors)
+        .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
+        .limit(1);
+      if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
+
+      configs = await db.select().from(alertConfigs)
+        .where(and(eq(alertConfigs.monitorId, monitorId), eq(alertConfigs.orgId, auth.org.id)));
+    } else {
+      configs = await db.select().from(alertConfigs)
+        .where(eq(alertConfigs.orgId, auth.org.id));
+    }
+
+    return NextResponse.json({ configs });
+  } catch (err) {
+    console.error("Failed to fetch alert configs:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// POST /api/v1/alert-configs - Create or update an alert config
+export async function POST(request: NextRequest) {
+  const auth = await getAuthenticatedOrg();
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const parsed = alertConfigSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const data = parsed.data;
+
+  try {
+    // Verify monitor belongs to this org
+    const [monitor] = await db.select().from(monitors)
+      .where(and(eq(monitors.id, data.monitorId), eq(monitors.orgId, auth.org.id)))
+      .limit(1);
+    if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
+
+    // Upsert: check if config exists for this monitor+channel
+    const [existing] = await db.select().from(alertConfigs)
+      .where(
+        and(
+          eq(alertConfigs.monitorId, data.monitorId),
+          eq(alertConfigs.channel, data.channel),
+          eq(alertConfigs.orgId, auth.org.id),
+        )
+      )
+      .limit(1);
+
+    let config;
+    if (existing) {
+      [config] = await db.update(alertConfigs)
+        .set({
+          destination: data.destination,
+          minImportance: data.minImportance,
+          isActive: data.isActive,
+        })
+        .where(eq(alertConfigs.id, existing.id))
+        .returning();
+    } else {
+      [config] = await db.insert(alertConfigs)
+        .values({
+          monitorId: data.monitorId,
+          orgId: auth.org.id,
+          channel: data.channel,
+          destination: data.destination,
+          minImportance: data.minImportance,
+          isActive: data.isActive,
+        })
+        .returning();
+    }
+
+    return NextResponse.json({ config }, { status: existing ? 200 : 201 });
+  } catch (err) {
+    console.error("Failed to save alert config:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// DELETE /api/v1/alert-configs?id=...
+export async function DELETE(request: NextRequest) {
+  const auth = await getAuthenticatedOrg();
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const configId = request.nextUrl.searchParams.get("id");
+  if (!configId) return NextResponse.json({ error: "Missing config id" }, { status: 400 });
+
+  try {
+    const [deleted] = await db.delete(alertConfigs)
+      .where(and(eq(alertConfigs.id, configId), eq(alertConfigs.orgId, auth.org.id)))
+      .returning();
+
+    if (!deleted) return NextResponse.json({ error: "Config not found" }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete alert config:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

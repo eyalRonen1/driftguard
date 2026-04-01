@@ -4,6 +4,8 @@
  * This enables section-level change detection (60-90% LLM cost savings).
  */
 
+import { createHash } from "crypto";
+
 export interface ContentSection {
   type: "heading" | "paragraph" | "list" | "table" | "price" | "link" | "code" | "meta";
   tag: string;
@@ -150,19 +152,28 @@ export function diffSections(
   const beforeHashes = new Set(before.sections.map((s) => s.hash));
   const afterHashes = new Set(after.sections.map((s) => s.hash));
 
-  const added = after.sections.filter((s) => !beforeHashes.has(s.hash));
-  const removed = before.sections.filter((s) => !afterHashes.has(s.hash));
+  const addedRaw = after.sections.filter((s) => !beforeHashes.has(s.hash));
+  const removedRaw = before.sections.filter((s) => !afterHashes.has(s.hash));
 
   // Find modified sections (same type+depth, different hash)
   const modified: Array<{ before: ContentSection; after: ContentSection }> = [];
-  for (const beforeSec of removed) {
-    const match = added.find(
-      (a) => a.type === beforeSec.type && a.depth === beforeSec.depth && a.text !== beforeSec.text
+  const matchedAddedHashes = new Set<string>();
+  const matchedRemovedHashes = new Set<string>();
+
+  for (const beforeSec of removedRaw) {
+    const match = addedRaw.find(
+      (a) => a.type === beforeSec.type && a.depth === beforeSec.depth && a.text !== beforeSec.text && !matchedAddedHashes.has(a.hash)
     );
     if (match) {
       modified.push({ before: beforeSec, after: match });
+      matchedAddedHashes.add(match.hash);
+      matchedRemovedHashes.add(beforeSec.hash);
     }
   }
+
+  // Filter modified items OUT of added and removed arrays
+  const added = addedRaw.filter((s) => !matchedAddedHashes.has(s.hash));
+  const removed = removedRaw.filter((s) => !matchedRemovedHashes.has(s.hash));
 
   return { added, removed, modified };
 }
@@ -201,12 +212,5 @@ function stripTags(html: string): string {
 }
 
 function simpleHash(text: string): string {
-  let hash = 0;
-  const str = text.toLowerCase().trim();
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return hash.toString(36);
+  return createHash("sha256").update(text.toLowerCase().trim()).digest("hex").slice(0, 12);
 }

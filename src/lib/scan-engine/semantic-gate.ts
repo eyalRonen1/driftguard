@@ -14,6 +14,9 @@ async function getEmbedding(text: string): Promise<number[] | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
   try {
     const res = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
@@ -25,6 +28,7 @@ async function getEmbedding(text: string): Promise<number[] | null> {
         model: "text-embedding-3-small",
         input: text.slice(0, 8000), // model limit
       }),
+      signal: controller.signal,
     });
 
     if (!res.ok) return null;
@@ -32,6 +36,8 @@ async function getEmbedding(text: string): Promise<number[] | null> {
     return data.data?.[0]?.embedding || null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -46,7 +52,9 @@ function cosineSimilarity(a: number[], b: number[]): number {
     normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+  if (denominator === 0) return 0;
+  return dot / denominator;
 }
 
 export interface SemanticGateResult {

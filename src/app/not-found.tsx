@@ -1,18 +1,14 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-gray-200 mb-4">404</h1>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Page not found</h2>
-        <p className="text-gray-500 mb-6">The page you&apos;re looking for doesn&apos;t exist.</p>
-        <Link
-          href="/"
-          className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Go home
-        </Link>
+    <div className="min-h-screen flex items-center justify-center p-8">
+      <div className="text-center max-w-md">
+        <Image src="/assets/camo-sleep.png" alt="" width={120} height={120} className="mx-auto mb-6" />
+        <h2 className="text-2xl font-bold text-[var(--text-cream)] mb-2">Page not found</h2>
+        <p className="text-[var(--text-muted)] mb-6">Camo looked everywhere but couldn&apos;t find this page.</p>
+        <Link href="/" className="btn-primary inline-block">Back to home</Link>
       </div>
     </div>
   );

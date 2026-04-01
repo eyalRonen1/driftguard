@@ -70,7 +70,18 @@ export function CommandPalette() {
 
             <Command.Group heading="Actions" className="text-[10px] text-muted-foreground uppercase tracking-wider px-2 py-1">
               <CommandItem icon="➕" label="Add new monitor" onSelect={() => navigate("/dashboard/monitors/new")} />
-              <CommandItem icon="🔄" label="Check all monitors" onSelect={() => { setOpen(false); }} />
+              <CommandItem icon="🔄" label="Check all monitors" onSelect={async () => {
+                setOpen(false);
+                try {
+                  const res = await fetch("/api/v1/monitors");
+                  const data = await res.json();
+                  const monitorsList = data.monitors || [];
+                  await Promise.allSettled(
+                    monitorsList.map((m: any) => fetch(`/api/v1/monitors/${m.id}/check`, { method: "POST" }))
+                  );
+                  window.location.reload();
+                } catch {}
+              }} />
               <CommandItem icon="🔔" label="Notification settings" onSelect={() => navigate("/dashboard/settings")} />
             </Command.Group>
 

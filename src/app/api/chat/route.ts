@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { getAuthenticatedOrg } from "@/lib/db/get-org";
 
 const SYSTEM_PROMPT = `You are Camo, the friendly chameleon AI assistant for PageLifeguard - a website change monitoring tool.
 
@@ -25,10 +26,14 @@ Rules:
 - Never make up data about the user's actual monitored pages`;
 
 export async function POST(request: NextRequest) {
-  // Rate limit: 30 messages per hour per IP
+  // Try to authenticate — allow anonymous but with stricter rate limits
   const ip = request.headers.get("x-forwarded-for") || "unknown";
-  const { allowed } = rateLimit(`chat:${ip}`, 30, 3600000);
-  if (!allowed) return NextResponse.json({ reply: "Camo needs a break! Try again in a few minutes." });
+  const auth = await getAuthenticatedOrg();
+  const rateLimitKey = auth ? `chat:${auth.user.id}` : `chat:ip:${ip}`;
+  const rateLimitMax = auth ? 60 : 10; // Authenticated: 60/hr, Anonymous: 10/hr
+
+  const { allowed } = rateLimit(rateLimitKey, rateLimitMax, 3600000);
+  if (!allowed) return NextResponse.json({ reply: "Camo needs a break! Try again in a bit." }, { status: 429 });
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -89,13 +94,13 @@ export async function POST(request: NextRequest) {
   if (pageContext?.recentChanges?.length || pageContext?.monitorName || pageContext?.monitorUrl) {
     contextPrompt += `\n\n=== LIVE USER DATA (TRUST THIS, NOT YOUR GENERAL KNOWLEDGE) ===`;
     if (pageContext.monitorName) {
-      contextPrompt += `\nUser is viewing monitor: "${pageContext.monitorName}"`;
+      contextPrompt += `\nUser is viewing monitor: "${sanitize(pageContext.monitorName)}"`;
     }
     if (pageContext.monitorUrl) {
-      contextPrompt += `\nURL: ${pageContext.monitorUrl}`;
+      contextPrompt += `\nURL: ${sanitize(pageContext.monitorUrl)}`;
     }
     if (pageContext.recentChanges?.length) {
-      contextPrompt += `\nFACTS about this user's account:\n${pageContext.recentChanges.map((c: string, i: number) => `- ${c}`).join("\n")}`;
+      contextPrompt += `\nFACTS about this user's account:\n${pageContext.recentChanges.map((c: string, i: number) => `- ${sanitize(c)}`).join("\n")}`;
     }
     contextPrompt += `\n\nIMPORTANT: When the user asks about their account, monitors, or changes, use ONLY the data above. Do NOT guess or use default plan limits. The data above is the truth.`;
   }

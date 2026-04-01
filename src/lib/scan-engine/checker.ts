@@ -1,14 +1,26 @@
 /**
  * Page Checker - Orchestrates the full check cycle for a monitor.
- * Fetch → Compare → Summarize → Store → Alert
+ * Fetch → Structured Extract → Noise Filter → Semantic Gate → Compare → Summarize → Store → Alert
+ *
+ * Advanced pipeline:
+ * 1. Fetch page (HTML + text)
+ * 2. Extract structured content (sections, prices, page type)
+ * 3. Filter noise (timestamps, tokens, counters)
+ * 4. Semantic gate (embeddings check — skip LLM if change is cosmetic)
+ * 5. Confidence scorer (composite importance from all signals)
+ * 6. LLM summarizer (only when semantic gate says run_llm)
+ * 7. Store change + update monitor
  */
 
 import { db } from "@/lib/db";
-import { monitors, snapshots, changes, organizations } from "@/lib/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { monitors, snapshots, changes, organizations, alertConfigs } from "@/lib/db/schema";
+import { eq, or, isNull, sql, desc } from "drizzle-orm";
 import { fetchPage } from "./fetcher";
 import { summarizeChange } from "./summarizer";
-import { filterNoise, calculateSignalScore, shouldAlert } from "./noise-filter";
+import { filterNoise, calculateSignalScore } from "./noise-filter";
+import { extractStructuredContent } from "./structured-extractor";
+import { semanticGate } from "./semantic-gate";
+import { sendChangeAlert, sendSlackChangeAlert } from "@/lib/notifications/email";
 
 /** Increment monthly usage counter for the org */
 async function incrementUsage(orgId: string) {
@@ -17,7 +29,7 @@ async function incrementUsage(orgId: string) {
       .update(organizations)
       .set({ monthlyChecksUsed: sql`${organizations.monthlyChecksUsed} + 1` })
       .where(eq(organizations.id, orgId));
-  } catch {}
+  } catch (err) { console.error("Failed to increment usage:", err); }
 }
 
 export interface CheckResult {
@@ -25,6 +37,7 @@ export interface CheckResult {
   changed: boolean;
   summary: string | null;
   importanceScore: number | null;
+  confidenceScore: number | null;
   error: string | null;
 }
 
@@ -40,7 +53,39 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     .limit(1);
 
   if (!monitor) {
-    return { monitorId, changed: false, summary: null, importanceScore: null, error: "Monitor not found" };
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: "Monitor not found" };
+  }
+
+  // Quota enforcement: check org hasn't exceeded monthly limit
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, monitor.orgId))
+    .limit(1);
+
+  if (org) {
+    const now = new Date();
+    // Reset quota if the reset date has passed
+    if (org.quotaResetAt <= now) {
+      const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1); // First of next month
+      await db
+        .update(organizations)
+        .set({ monthlyChecksUsed: 0, quotaResetAt: nextReset })
+        .where(eq(organizations.id, org.id));
+      org.monthlyChecksUsed = 0;
+      org.quotaResetAt = nextReset;
+    }
+
+    if (org.monthlyChecksUsed >= org.monthlyCheckQuota) {
+      return {
+        monitorId,
+        changed: false,
+        summary: null,
+        importanceScore: null,
+        confidenceScore: null,
+        error: "Monthly check quota exceeded",
+      };
+    }
   }
 
   // Fetch the page
@@ -75,7 +120,7 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       })
       .where(eq(monitors.id, monitorId));
 
-    return { monitorId, changed: false, summary: null, importanceScore: null, error: result.error };
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: result.error };
   }
 
   // Store snapshot
@@ -91,17 +136,17 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     })
     .returning();
 
-  // Compare with previous content using noise filtering
+  // ── Stage 1: Noise filtering ──
   const previousRaw = monitor.lastContentText || "";
   const filteredBefore = filterNoise(previousRaw);
   const filteredAfter = filterNoise(result.text);
   const signalScore = calculateSignalScore(previousRaw, result.text, filteredBefore, filteredAfter);
 
   // Only count as changed if content hash changed AND signal is meaningful
-  const hasChanged = monitor.lastContentHash !== null && monitor.lastContentHash !== result.hash && signalScore > 0;
+  const hashChanged = monitor.lastContentHash !== null && monitor.lastContentHash !== result.hash;
+  const hasChanged = hashChanged && signalScore > 0;
 
   if (!hasChanged) {
-    // No change - just update the monitor
     await db
       .update(monitors)
       .set({
@@ -119,27 +164,84 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       .where(eq(monitors.id, monitorId));
 
     await incrementUsage(monitor.orgId);
-    return { monitorId, changed: false, summary: null, importanceScore: null, error: null };
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: null };
   }
 
-  // Change detected! Generate AI summary
+  // ── Stage 2: Structured extraction ──
+  const structuredAfter = extractStructuredContent(result.html);
+  const pageType = structuredAfter.pageType;
+
+  // ── Stage 3: Semantic gate (embeddings — 200x cheaper than LLM) ──
+  const semanticResult = await semanticGate(previousRaw, result.text, pageType);
+
+  // If semantic gate says skip: record as low-importance noise change without LLM
+  if (semanticResult.recommendation === "skip_llm") {
+    await db
+      .update(monitors)
+      .set({
+        lastContentHash: result.hash,
+        lastContentText: result.text,
+        lastCheckedAt: now,
+        consecutiveErrors: 0,
+        lastError: null,
+        healthStatus: "healthy",
+        healthReason: null,
+        healthCheckedAt: now,
+        lastHealthyAt: now,
+        updatedAt: now,
+      })
+      .where(eq(monitors.id, monitorId));
+
+    await incrementUsage(monitor.orgId);
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: null };
+  }
+
+  // ── Stage 4: Confidence scoring ──
+  // We don't store previous HTML in snapshots, so structural diff is unavailable
+  // Use simplified scoring based on semantic gate + signal score only
+  const confidence = {
+    overall: Math.round((1 - semanticResult.similarity) * 70 + (signalScore / 100) * 30),
+    structural: 0,
+    semantic: Math.round((1 - semanticResult.similarity) * 100),
+    noiseAdjusted: signalScore,
+    breakdown: { headingsChanged: 0, pricesChanged: 0, contentChanged: 0, linksChanged: 0 },
+  };
+
+  // ── Stage 5: LLM summarization ──
+  const isLowPriority = semanticResult.recommendation === "low_priority_llm";
   const previousText = monitor.lastContentText || "";
   const summaryResult = await summarizeChange(previousText, result.text, monitor.url);
 
-  // Find the previous snapshot for reference
+  // Adjust importance using confidence score — blend LLM score with composite
+  const adjustedImportance = isLowPriority
+    ? Math.round(summaryResult.importanceScore * 0.4 + (confidence.overall / 10) * 0.3 + 1) // dampen for low priority
+    : Math.round(summaryResult.importanceScore * 0.6 + (confidence.overall / 10) * 0.4);
+  const finalImportance = Math.max(1, Math.min(10, adjustedImportance));
+
+  // Find the previous snapshot for reference (descending: index 0 = current, index 1 = previous)
   const previousSnapshots = await db
     .select()
     .from(snapshots)
     .where(eq(snapshots.monitorId, monitorId))
-    .orderBy(snapshots.capturedAt)
+    .orderBy(desc(snapshots.capturedAt))
     .limit(2);
 
-  const beforeSnapshotId = previousSnapshots.length > 1 ? previousSnapshots[previousSnapshots.length - 2].id : null;
+  const beforeSnapshotId = previousSnapshots[1]?.id || null;
 
-  // Calculate diff percentage
+  // Calculate diff as percentage of changed characters
+  let diffPercentage: string;
   const maxLen = Math.max(previousText.length, result.text.length);
-  const diffChars = Math.abs(previousText.length - result.text.length);
-  const diffPercentage = maxLen > 0 ? ((diffChars / maxLen) * 100).toFixed(2) : "0";
+  if (maxLen === 0) {
+    diffPercentage = "0";
+  } else {
+    // Count character positions that differ
+    let diffCount = Math.abs(previousText.length - result.text.length);
+    const minLen = Math.min(previousText.length, result.text.length);
+    for (let i = 0; i < minLen; i++) {
+      if (previousText[i] !== result.text[i]) diffCount++;
+    }
+    diffPercentage = ((diffCount / maxLen) * 100).toFixed(2);
+  }
 
   // Compute simple text diff (what was added/removed)
   const beforeSentences = new Set(previousText.split(/[.!?]\s+/).map(s => s.trim().toLowerCase()).filter(Boolean));
@@ -151,20 +253,77 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   const addedText = added.slice(0, 5).join(". ").slice(0, 500) || null;
   const removedText = removed.slice(0, 5).join(". ").slice(0, 500) || null;
 
+  // Enrich summary with page type context
+  const enrichedSummary = pageType !== "general"
+    ? `[${pageType}] ${summaryResult.summary}`
+    : summaryResult.summary;
+
   // Store the change
-  await db.insert(changes).values({
+  const [changeRecord] = await db.insert(changes).values({
     monitorId,
     orgId: monitor.orgId,
     snapshotBeforeId: beforeSnapshotId,
     snapshotAfterId: snapshot.id,
-    summary: summaryResult.summary,
+    summary: enrichedSummary,
     summaryModel: summaryResult.model,
     changeType: summaryResult.changeType,
-    importanceScore: summaryResult.importanceScore,
+    importanceScore: finalImportance,
     addedText,
     removedText,
     diffPercentage,
-  });
+  }).returning();
+
+  // ── Stage 6: Notifications (fire-and-forget) ──
+  try {
+    const configs = await db.select().from(alertConfigs)
+      .where(
+        or(
+          eq(alertConfigs.monitorId, monitorId),
+          isNull(alertConfigs.monitorId),
+        )
+      )
+      .limit(10);
+
+    const activeConfigs = configs.filter(
+      (c) => c.isActive && finalImportance >= c.minImportance && c.orgId === monitor.orgId
+    );
+
+    if (activeConfigs.length > 0) {
+      const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pagelifeguard.com";
+      const alertData = {
+        monitorName: monitor.name,
+        monitorUrl: monitor.url,
+        summary: enrichedSummary,
+        importanceScore: finalImportance,
+        changeType: summaryResult.changeType,
+        addedText,
+        removedText,
+        dashboardUrl: `${dashboardUrl}/dashboard/monitors/${monitorId}`,
+      };
+
+      const notificationPromises = activeConfigs.map((config) => {
+        if (config.channel === "email") {
+          return sendChangeAlert({ ...alertData, to: config.destination });
+        } else if (config.channel === "slack") {
+          return sendSlackChangeAlert(config.destination, { ...alertData, to: config.destination });
+        }
+        return Promise.resolve(false);
+      });
+
+      // Fire-and-forget: don't block the check on notification delivery
+      Promise.allSettled(notificationPromises).then(async () => {
+        try {
+          await db.update(changes)
+            .set({ notified: true, notifiedAt: new Date() })
+            .where(eq(changes.id, changeRecord.id));
+        } catch (err) {
+          console.error("Failed to update notified status:", err);
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Notification dispatch failed (non-blocking):", err);
+  }
 
   // Update monitor
   await db
@@ -188,8 +347,9 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   return {
     monitorId,
     changed: true,
-    summary: summaryResult.summary,
-    importanceScore: summaryResult.importanceScore,
+    summary: enrichedSummary,
+    importanceScore: finalImportance,
+    confidenceScore: confidence.overall,
     error: null,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,12 +21,14 @@ const IMPORTANCE_LEVELS = [
 export function AlertPreferences({
   monitorId,
   monitorName,
+  userEmail,
   currentThreshold = 3,
   emailEnabled = true,
   slackEnabled = false,
 }: {
   monitorId: string;
   monitorName: string;
+  userEmail: string;
   currentThreshold?: number;
   emailEnabled?: boolean;
   slackEnabled?: boolean;
@@ -34,12 +36,97 @@ export function AlertPreferences({
   const [threshold, setThreshold] = useState(currentThreshold);
   const [email, setEmail] = useState(emailEnabled);
   const [slack, setSlack] = useState(slackEnabled);
+  const [slackWebhookUrl, setSlackWebhookUrl] = useState("");
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch existing configs on mount
+  const loadConfigs = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/v1/alert-configs?monitorId=${monitorId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const configs = data.configs || [];
+
+      const emailConfig = configs.find((c: { channel: string }) => c.channel === "email");
+      const slackConfig = configs.find((c: { channel: string }) => c.channel === "slack");
+
+      if (emailConfig) {
+        setEmail(emailConfig.isActive);
+        setThreshold(emailConfig.minImportance);
+      } else {
+        setEmail(false);
+      }
+
+      if (slackConfig) {
+        setSlack(slackConfig.isActive);
+        if (slackConfig.destination) setSlackWebhookUrl(slackConfig.destination);
+      } else {
+        setSlack(false);
+      }
+    } catch {
+      // Silently fail on load — defaults are fine
+    } finally {
+      setLoading(false);
+    }
+  }, [monitorId]);
+
+  useEffect(() => {
+    loadConfigs();
+  }, [loadConfigs]);
 
   async function handleSave() {
-    // TODO: Save to DB via API
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaving(true);
+    setError(null);
+
+    try {
+      // Save email config
+      const emailRes = await fetch("/api/v1/alert-configs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          monitorId,
+          channel: "email",
+          destination: userEmail,
+          minImportance: threshold,
+          isActive: email,
+        }),
+      });
+
+      if (!emailRes.ok) {
+        const data = await emailRes.json();
+        throw new Error(data.error || "Failed to save email config");
+      }
+
+      // Only save slack config if enabled AND webhook URL is provided
+      if (slack && slackWebhookUrl.trim()) {
+        const slackRes = await fetch("/api/v1/alert-configs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            monitorId,
+            channel: "slack",
+            destination: slackWebhookUrl.trim(),
+            minImportance: threshold,
+            isActive: true,
+          }),
+        });
+
+        if (!slackRes.ok) {
+          const data = await slackRes.json();
+          throw new Error(data.error || "Failed to save Slack config");
+        }
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -51,65 +138,87 @@ export function AlertPreferences({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Importance threshold */}
-        <div>
-          <p className="text-xs text-muted-foreground mb-2">Minimum importance to alert</p>
-          <div className="grid grid-cols-2 gap-2">
-            {IMPORTANCE_LEVELS.map((level) => (
-              <button
-                key={level.value}
-                onClick={() => setThreshold(level.value)}
-                className={`p-2.5 rounded-lg border text-left transition-all ${
-                  threshold === level.value
-                    ? "border-primary bg-primary/10"
-                    : "border-border/30 hover:border-border/60"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${level.color}`} />
-                  <span className="text-xs font-medium">{level.label}</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{level.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Channels */}
-        <div>
-          <p className="text-xs text-muted-foreground mb-2">Alert channels</p>
-          <div className="space-y-2">
-            <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">📧</span>
-                <span className="text-xs">Email</span>
+        {loading ? (
+          <p className="text-xs text-muted-foreground">Loading preferences...</p>
+        ) : (
+          <>
+            {/* Importance threshold */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Minimum importance to alert</p>
+              <div className="grid grid-cols-2 gap-2">
+                {IMPORTANCE_LEVELS.map((level) => (
+                  <button
+                    key={level.value}
+                    onClick={() => setThreshold(level.value)}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      threshold === level.value
+                        ? "border-primary bg-primary/10"
+                        : "border-border/30 hover:border-border/60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${level.color}`} />
+                      <span className="text-xs font-medium">{level.label}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{level.desc}</p>
+                  </button>
+                ))}
               </div>
-              <input
-                type="checkbox"
-                checked={email}
-                onChange={(e) => setEmail(e.target.checked)}
-                className="rounded border-border"
-              />
-            </label>
-            <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">💬</span>
-                <span className="text-xs">Slack</span>
-                <Badge variant="outline" className="text-[8px] px-1 py-0">Pro</Badge>
-              </div>
-              <input
-                type="checkbox"
-                checked={slack}
-                onChange={(e) => setSlack(e.target.checked)}
-                className="rounded border-border"
-              />
-            </label>
-          </div>
-        </div>
+            </div>
 
-        <Button size="sm" onClick={handleSave} className="w-full">
-          {saved ? "✓ Saved!" : "Save preferences"}
-        </Button>
+            {/* Channels */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Alert channels</p>
+              <div className="space-y-2">
+                <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📧</span>
+                    <span className="text-xs">Email</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={email}
+                    onChange={(e) => setEmail(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                </label>
+                <label className="flex items-center justify-between p-2.5 rounded-lg border border-border/30 cursor-pointer hover:border-border/60 transition">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">💬</span>
+                    <span className="text-xs">Slack</span>
+                    <Badge variant="outline" className="text-[8px] px-1 py-0">Pro</Badge>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={slack}
+                    onChange={(e) => setSlack(e.target.checked)}
+                    className="rounded border-border"
+                  />
+                </label>
+                {slack && (
+                  <div className="pl-7">
+                    <input
+                      type="url"
+                      value={slackWebhookUrl}
+                      onChange={(e) => setSlackWebhookUrl(e.target.value)}
+                      placeholder="https://hooks.slack.com/services/..."
+                      className="w-full px-2.5 py-1.5 text-xs border border-border/30 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">Enter your Slack incoming webhook URL</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-xs text-destructive">{error}</p>
+            )}
+
+            <Button size="sm" onClick={handleSave} disabled={saving} className="w-full">
+              {saved ? "Saved!" : saving ? "Saving..." : "Save preferences"}
+            </Button>
+          </>
+        )}
       </CardContent>
     </Card>
   );

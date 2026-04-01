@@ -30,21 +30,27 @@ export const users = pgTable("users", {
 // ORGANIZATIONS (kept from DriftGuard)
 // ==========================================
 
-export const organizations = pgTable("organizations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 100 }).notNull().unique(),
-  ownerId: uuid("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  plan: varchar("plan", { length: 20 }).notNull().default("free"),
-  paddleCustomerId: varchar("paddle_customer_id", { length: 255 }),
-  paddleSubscriptionId: varchar("paddle_subscription_id", { length: 255 }),
-  paddleSubscriptionStatus: varchar("paddle_subscription_status", { length: 50 }).default("none"),
-  monthlyCheckQuota: integer("monthly_check_quota").notNull().default(100),
-  monthlyChecksUsed: integer("monthly_checks_used").notNull().default(0),
-  quotaResetAt: timestamp("quota_reset_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const organizations = pgTable(
+  "organizations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    slug: varchar("slug", { length: 100 }).notNull().unique(),
+    ownerId: uuid("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    plan: varchar("plan", { length: 20 }).notNull().default("free"),
+    paddleCustomerId: varchar("paddle_customer_id", { length: 255 }),
+    paddleSubscriptionId: varchar("paddle_subscription_id", { length: 255 }),
+    paddleSubscriptionStatus: varchar("paddle_subscription_status", { length: 50 }).default("none"),
+    monthlyCheckQuota: integer("monthly_check_quota").notNull().default(100),
+    monthlyChecksUsed: integer("monthly_checks_used").notNull().default(0),
+    quotaResetAt: timestamp("quota_reset_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_organizations_owner").on(table.ownerId),
+  ]
+);
 
 // ==========================================
 // MONITORS - URLs being tracked
@@ -95,6 +101,7 @@ export const monitors = pgTable(
   (table) => [
     index("idx_monitors_org").on(table.orgId),
     index("idx_monitors_next_check").on(table.nextCheckAt),
+    index("idx_monitors_active_schedule").on(table.isActive, table.isPaused, table.nextCheckAt),
   ]
 );
 
@@ -116,6 +123,7 @@ export const snapshots = pgTable(
   },
   (table) => [
     index("idx_snapshots_monitor").on(table.monitorId),
+    index("idx_snapshots_monitor_captured").on(table.monitorId, table.capturedAt),
   ]
 );
 
@@ -154,6 +162,7 @@ export const changes = pgTable(
   (table) => [
     index("idx_changes_monitor").on(table.monitorId),
     index("idx_changes_org").on(table.orgId),
+    index("idx_changes_org_created").on(table.orgId, table.createdAt),
   ]
 );
 
@@ -161,16 +170,23 @@ export const changes = pgTable(
 // ALERT CONFIGS
 // ==========================================
 
-export const alertConfigs = pgTable("alert_configs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  monitorId: uuid("monitor_id").references(() => monitors.id, { onDelete: "cascade" }),
-  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  channel: varchar("channel", { length: 20 }).notNull(), // email, slack
-  destination: text("destination").notNull(), // email address or webhook URL
-  minImportance: integer("min_importance").notNull().default(3), // only alert on changes >= this score
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const alertConfigs = pgTable(
+  "alert_configs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    monitorId: uuid("monitor_id").references(() => monitors.id, { onDelete: "cascade" }),
+    orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    channel: varchar("channel", { length: 20 }).notNull(), // email, slack
+    destination: text("destination").notNull(), // email address or webhook URL
+    minImportance: integer("min_importance").notNull().default(3), // only alert on changes >= this score
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_alert_configs_org").on(table.orgId),
+    index("idx_alert_configs_monitor").on(table.monitorId),
+  ]
+);
 
 // ==========================================
 // RELATIONS

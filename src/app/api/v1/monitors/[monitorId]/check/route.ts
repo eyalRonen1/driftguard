@@ -28,7 +28,11 @@ export async function POST(
 
   if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
 
-  const result = await checkMonitor(monitorId);
-
-  return NextResponse.json({ result }, { status: 200 });
+  try {
+    const result = await checkMonitor(monitorId);
+    return NextResponse.json({ result }, { status: 200 });
+  } catch (err) {
+    console.error("Failed to check monitor:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

@@ -3,8 +3,8 @@ import { ensureUserAndOrg } from "@/lib/db/ensure-user";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { CamoPaw } from "@/components/brand/camo";
+import { UpgradeButton } from "@/components/dashboard/upgrade-button";
 
 const PLANS = [
   {
@@ -128,13 +128,12 @@ export default async function BillingPage() {
                   ))}
                 </ul>
 
-                <Button
-                  variant={isCurrent ? "outline" : plan.popular ? "default" : "secondary"}
-                  className="w-full"
-                  disabled={isCurrent}
-                >
-                  {isCurrent ? "Current plan" : plan.price > currentPlan.price ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
-                </Button>
+                <UpgradeButton
+                  plan={plan.name}
+                  label={plan.price > currentPlan.price ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
+                  variant={plan.popular ? "default" : "secondary"}
+                  isCurrent={isCurrent}
+                />
               </CardContent>
             </Card>
           );

@@ -63,6 +63,9 @@ export async function summarizeChange(
   const before = beforeText.slice(0, 4000);
   const after = afterText.slice(0, 4000);
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -90,6 +93,7 @@ Summarize what changed.`,
         temperature: 0.2,
         max_tokens: 300,
       }),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -124,11 +128,21 @@ Summarize what changed.`,
       };
     }
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return {
+        summary: "Change detected (AI summary unavailable)",
+        changeType: "content",
+        importanceScore: 5,
+        model: "timeout",
+      };
+    }
     return {
       summary: "Page content has changed. Summary generation failed.",
       changeType: "content",
       importanceScore: 5,
       model: "error",
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }

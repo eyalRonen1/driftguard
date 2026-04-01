@@ -105,25 +105,30 @@ export default function NewMonitorPage() {
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/v1/monitors", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name || new URL(url).hostname,
-        url,
-        checkFrequency: preset?.frequency || "daily",
-      }),
-    });
+    try {
+      const res = await fetch("/api/v1/monitors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name || new URL(url).hostname,
+          url,
+          checkFrequency: preset?.frequency || "daily",
+          useCase: selectedUseCase,
+        }),
+      });
 
-    if (!res.ok) {
       const data = await res.json();
-      setError(data.error || "Failed to create monitor");
-      setLoading(false);
-      return;
-    }
+      if (!res.ok) {
+        setError(data.error || "Failed to create monitor");
+        return;
+      }
 
-    const data = await res.json();
-    router.push(`/dashboard/monitors/${data.monitor.id}`);
+      router.push(`/dashboard/monitors/${data.monitor.id}`);
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

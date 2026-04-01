@@ -1,27 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePaddleWebhook } from "@/lib/billing/paddle";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 /**
- * Verify Paddle webhook signature
+ * Verify Paddle Billing v2 webhook signature.
+ *
+ * Paddle-Signature header format: ts=<timestamp>;h1=<hex-hmac>
+ * Signed payload: "${ts}:${rawBody}"
  */
-function verifySignature(rawBody: string, signature: string | null): boolean {
+function verifySignature(rawBody: string, signatureHeader: string | null): boolean {
   const secret = process.env.PADDLE_WEBHOOK_SECRET;
-  if (!secret) return true; // Skip verification in dev if no secret set
 
-  if (!signature) return false;
+  // Fail closed: if no secret is configured, reject the request
+  if (!secret) return false;
 
-  const computed = createHmac("sha256", secret).update(rawBody).digest("hex");
-  return computed === signature;
+  if (!signatureHeader) return false;
+
+  // Parse ts=...;h1=... from the Paddle-Signature header
+  const parts = Object.fromEntries(
+    signatureHeader.split(";").map((part) => {
+      const [key, ...rest] = part.split("=");
+      return [key.trim(), rest.join("=")];
+    })
+  );
+
+  const ts = parts["ts"];
+  const h1 = parts["h1"];
+  if (!ts || !h1) return false;
+
+  // Construct the signed payload per Paddle v2 spec
+  const signedPayload = `${ts}:${rawBody}`;
+  const computed = createHmac("sha256", secret)
+    .update(signedPayload)
+    .digest("hex");
+
+  // Constant-time comparison to prevent timing attacks
+  if (computed.length !== h1.length) return false;
+  return timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(h1, "hex"));
+}
+
+/**
+ * Extract the `ts` value from a Paddle-Signature header string.
+ * Header format: ts=<timestamp>;h1=<hex-hmac>
+ */
+function extractTimestamp(signatureHeader: string | null): string | null {
+  if (!signatureHeader) return null;
+  const match = signatureHeader.match(/(?:^|;)\s*ts=(\d+)/);
+  return match ? match[1] : null;
 }
 
 // POST /api/webhooks/paddle - Handle Paddle webhook events
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
-  const signature = request.headers.get("paddle-signature");
+  const signatureHeader = request.headers.get("Paddle-Signature");
 
-  if (!verifySignature(rawBody, signature)) {
+  if (!verifySignature(rawBody, signatureHeader)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
+  // Replay protection: reject webhooks older than 5 minutes
+  const ts = extractTimestamp(signatureHeader);
+  if (ts) {
+    const signatureAge = Math.floor(Date.now() / 1000) - parseInt(ts);
+    if (signatureAge > 300) { // 5 minutes
+      return NextResponse.json({ error: "Webhook too old" }, { status: 400 });
+    }
   }
 
   try {
@@ -29,7 +72,8 @@ export async function POST(request: NextRequest) {
     await handlePaddleWebhook(event);
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error("Paddle webhook error:", err);
-    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+    console.error("Paddle webhook processing error:", err);
+    // Return 200 to prevent Paddle retry storms -- handle errors asynchronously
+    return NextResponse.json({ received: true, processed: false }, { status: 200 });
   }
 }
