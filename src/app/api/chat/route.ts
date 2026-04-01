@@ -46,16 +46,18 @@ export async function POST(request: NextRequest) {
   const pageContext = body.pageContext;
 
   let contextPrompt = SYSTEM_PROMPT;
-  if (pageContext?.monitorName || pageContext?.monitorUrl) {
-    contextPrompt += `\n\nCURRENT PAGE CONTEXT:
-The user is viewing the monitor for: "${pageContext.monitorName || "Unknown"}"
-URL: ${pageContext.monitorUrl || "Unknown"}`;
-    if (pageContext.recentChanges?.length) {
-      contextPrompt += `\nRecent changes on this page:\n${pageContext.recentChanges.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")}`;
-      contextPrompt += `\nRefer to these SPECIFIC changes when the user asks.`;
-    } else {
-      contextPrompt += `\nNo changes detected yet on this page.`;
+  if (pageContext?.recentChanges?.length || pageContext?.monitorName || pageContext?.monitorUrl) {
+    contextPrompt += `\n\n=== LIVE USER DATA (TRUST THIS, NOT YOUR GENERAL KNOWLEDGE) ===`;
+    if (pageContext.monitorName) {
+      contextPrompt += `\nUser is viewing monitor: "${pageContext.monitorName}"`;
     }
+    if (pageContext.monitorUrl) {
+      contextPrompt += `\nURL: ${pageContext.monitorUrl}`;
+    }
+    if (pageContext.recentChanges?.length) {
+      contextPrompt += `\nFACTS about this user's account:\n${pageContext.recentChanges.map((c: string, i: number) => `- ${c}`).join("\n")}`;
+    }
+    contextPrompt += `\n\nIMPORTANT: When the user asks about their account, monitors, or changes, use ONLY the data above. Do NOT guess or use default plan limits. The data above is the truth.`;
   }
 
   try {

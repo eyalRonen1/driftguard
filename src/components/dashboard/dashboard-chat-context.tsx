@@ -25,10 +25,10 @@ export function DashboardChatContext({
       monitorName: undefined,
       monitorUrl: undefined,
       recentChanges: [
-        `User has ${monitorsCount} monitored pages`,
-        `${changesCount} changes detected total`,
-        `Current plan: ${plan}`,
-        ...(monitorNames.length > 0 ? [`Monitoring: ${monitorNames.join(", ")}`] : []),
+        `This user is tracking EXACTLY ${monitorsCount} pages (not 3, not a guess - exactly ${monitorsCount})`,
+        `Total changes detected: ${changesCount}`,
+        `Current plan: ${plan} (this is their ACTUAL plan, not the default)`,
+        ...(monitorNames.length > 0 ? [`Pages being monitored: ${monitorNames.join(", ")}`] : []),
       ],
     });
   }, [monitorsCount, changesCount, plan, monitorNames, setPageContext]);
