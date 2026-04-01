@@ -97,10 +97,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Vine border */}
-      <div className="relative h-16 overflow-hidden opacity-30">
-        <Image src="/assets/vine-border.png" alt="" fill className="object-cover object-center" />
-      </div>
+      {/* Demo video - the "aha moment" */}
+      <section className="py-12 relative">
+        <div className="max-w-3xl mx-auto px-6">
+          <AnimateIn>
+            <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">See the magic</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">The &quot;aha!&quot; moment</h2>
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
+              <video autoPlay loop muted playsInline className="w-full" poster="/assets/demo-aha-moment.png">
+                <source src="/assets/demo-aha-video.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <p className="text-center text-xs text-[var(--text-muted)] mt-4">A competitor changed their price. Camo caught it instantly.</p>
+          </AnimateIn>
+        </div>
+      </section>
 
       {/* Use cases */}
       <section className="py-20 relative">
