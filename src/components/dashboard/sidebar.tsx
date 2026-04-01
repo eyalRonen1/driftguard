@@ -37,7 +37,7 @@ export function Sidebar({ user }: { user: User }) {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 nav-glass px-4 py-3 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2">
           <Image src="/assets/camo-happy.png" alt="" width={28} height={28} />
-          <span className="font-semibold text-[var(--text-cream)]">PageLifeguard</span>
+          <span className="font-semibold text-[var(--text-cream)]">Zikit</span>
         </Link>
         <button
           onClick={() => setOpen(!open)}
@@ -75,7 +75,7 @@ export function Sidebar({ user }: { user: User }) {
         <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
           <Link href="/dashboard" className="flex items-center gap-2">
             <Image src="/assets/camo-happy.png" alt="" width={32} height={32} className="animate-sway" />
-            <span className="font-semibold text-lg text-[var(--text-cream)]">PageLifeguard</span>
+            <span className="font-semibold text-lg text-[var(--text-cream)]">Zikit</span>
           </Link>
         </div>
 

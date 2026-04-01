@@ -36,12 +36,12 @@ export function UpgradeButton({
           className="w-full"
           onClick={() =>
             window.open(
-              `mailto:support@pagelifeguard.com?subject=Upgrade to ${plan}&body=I'd like to upgrade my account to the ${plan} plan.`,
+              `mailto:support@zikit.ai?subject=Upgrade to ${plan}&body=I'd like to upgrade my account to the ${plan} plan.`,
               "_blank"
             )
           }
         >
-          Email support@pagelifeguard.com
+          Email support@zikit.ai
         </Button>
       </div>
     );

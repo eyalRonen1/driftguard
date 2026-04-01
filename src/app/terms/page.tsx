@@ -8,10 +8,10 @@ export default function TermsPage() {
         <h1 className="text-3xl font-bold mb-8">Terms & Conditions</h1>
         <div className="prose prose-invert prose-sm max-w-none space-y-4 text-muted-foreground">
           <p><strong>Last updated:</strong> April 1, 2026</p>
-          <p>These Terms & Conditions govern your use of PageLifeguard (&quot;the Service&quot;), operated by PageLifeguard (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;).</p>
+          <p>These Terms & Conditions govern your use of Zikit (&quot;the Service&quot;), operated by Zikit (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;).</p>
 
           <h2 className="text-lg font-semibold text-foreground mt-6">1. Service Description</h2>
-          <p>PageLifeguard is a website change monitoring service that checks web pages on a schedule and provides AI-powered summaries of detected changes.</p>
+          <p>Zikit is a website change monitoring service that checks web pages on a schedule and provides AI-powered summaries of detected changes.</p>
 
           <h2 className="text-lg font-semibold text-foreground mt-6">2. Payment & Billing</h2>
           <p>Payments are processed by our merchant of record, Paddle.com Market Limited, who also acts as the reseller of the Service. Paddle handles all billing, invoicing, sales tax, and payment processing on our behalf. By purchasing a subscription, you agree to Paddle&apos;s <a href="https://www.paddle.com/legal/terms" className="text-primary hover:underline">Terms of Service</a>.</p>
@@ -29,7 +29,7 @@ export default function TermsPage() {
           <p>The Service is provided &quot;as is&quot;. We are not liable for missed changes, delayed alerts, or any decisions made based on our monitoring results.</p>
 
           <h2 className="text-lg font-semibold text-foreground mt-6">7. Contact</h2>
-          <p>Email: <a href="mailto:support@pagelifeguard.com" className="text-primary">support@pagelifeguard.com</a></p>
+          <p>Email: <a href="mailto:support@zikit.ai" className="text-primary">support@zikit.ai</a></p>
         </div>
       </div>
     </main>

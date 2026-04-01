@@ -89,7 +89,7 @@ export function CommandPalette() {
 
             <Command.Group heading="Help" className="text-[10px] text-muted-foreground uppercase tracking-wider px-2 py-1">
               <CommandItem icon="❓" label="Keyboard shortcuts" onSelect={() => { setOpen(false); }} />
-              <CommandItem icon="📖" label="Documentation" onSelect={() => window.open("https://pagelifeguard.com", "_blank")} />
+              <CommandItem icon="📖" label="Documentation" onSelect={() => window.open("https://zikit.ai", "_blank")} />
               <CommandItem icon="🦎" label="About Camo" onSelect={() => { setOpen(false); }} />
             </Command.Group>
           </Command.List>

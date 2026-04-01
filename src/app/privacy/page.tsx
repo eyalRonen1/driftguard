@@ -22,10 +22,10 @@ export default function PrivacyPage() {
           <p>We use: Supabase (database), Vercel (hosting), OpenAI (AI summaries), Paddle (payments), Resend (email). These services process data only as needed to provide their functionality.</p>
 
           <h2 className="text-lg font-semibold text-foreground mt-6">Your rights</h2>
-          <p>You can export or delete your data at any time from your dashboard settings. To request full data deletion, email support@pagelifeguard.com.</p>
+          <p>You can export or delete your data at any time from your dashboard settings. To request full data deletion, email support@zikit.ai.</p>
 
           <h2 className="text-lg font-semibold text-foreground mt-6">Contact</h2>
-          <p>Email: <a href="mailto:support@pagelifeguard.com" className="text-primary">support@pagelifeguard.com</a></p>
+          <p>Email: <a href="mailto:support@zikit.ai" className="text-primary">support@zikit.ai</a></p>
         </div>
       </div>
     </main>

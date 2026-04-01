@@ -16,7 +16,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <Camo size={28} className="animate-sway" />
-            <span className="font-semibold tracking-tight">PageLifeguard</span>
+            <span className="font-semibold tracking-tight">Zikit</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-[var(--text-sage)] hover:text-[var(--text-cream)] transition hidden sm:block">Sign in</Link>
@@ -206,7 +206,7 @@ export default function LandingPage() {
             <div>
               <p className="text-xs font-semibold text-foreground mb-3">Support</p>
               <div className="space-y-2 text-xs text-[var(--text-muted)]">
-                <a href="mailto:support@pagelifeguard.com" className="block hover:text-[var(--accent-jade)] transition">support@pagelifeguard.com</a>
+                <a href="mailto:support@zikit.ai" className="block hover:text-[var(--accent-jade)] transition">support@zikit.ai</a>
               </div>
             </div>
             <div>
@@ -220,7 +220,7 @@ export default function LandingPage() {
           <div className="border-t border-white/6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-[var(--text-muted)]">
             <div className="flex items-center gap-2">
               <Camo size={16} />
-              <span>&copy; {new Date().getFullYear()} PageLifeguard. All rights reserved.</span>
+              <span>&copy; {new Date().getFullYear()} Zikit. All rights reserved.</span>
             </div>
             <span>Payments processed by <a href="https://paddle.com" className="text-[var(--accent-jade)] hover:underline">Paddle</a></span>
           </div>

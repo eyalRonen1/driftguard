@@ -143,7 +143,7 @@ export async function fetchPage(
     for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
       response = await fetch(currentUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; PageLifeguard/1.0; +https://pagelifeguard.com)",
+          "User-Agent": "Mozilla/5.0 (compatible; Zikit/1.0; +https://zikit.ai)",
           Accept: "text/html,application/xhtml+xml",
           "Accept-Language": "en-US,en;q=0.9",
           ...(options?.headers || {}),

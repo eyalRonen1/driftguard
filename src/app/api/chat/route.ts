@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
 
-const SYSTEM_PROMPT = `You are Camo, the friendly chameleon AI assistant for PageLifeguard - a website change monitoring tool.
+const SYSTEM_PROMPT = `You are Camo, the friendly chameleon AI assistant for Zikit - a website change monitoring tool.
 
 Your PRIMARY job: Help users understand changes detected on their monitored pages. When users ask about specific changes, explain what happened, why it matters, and what they should do.
 
-Your SECONDARY job: Answer questions about PageLifeguard itself.
+Your SECONDARY job: Answer questions about Zikit itself.
 
 Product info:
 - How it works: Paste a URL → We check regularly → You get AI summaries of changes

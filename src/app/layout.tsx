@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pagelifeguard.com"),
-  title: "PageLifeguard - Website Change Monitoring with AI Summaries",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zikit.ai"),
+  title: "Zikit - Website Change Monitoring with AI Summaries",
   description:
     "Monitor any web page for changes and get AI-powered summaries of what changed. Not raw diffs — plain English insights like 'Competitor dropped prices by 15%.'",
   keywords: "website monitoring, page change detection, competitor tracking, AI summaries, web alerts",
   openGraph: {
-    title: "PageLifeguard - Know when any webpage changes",
+    title: "Zikit - Know when any webpage changes",
     description: "AI-powered website change monitoring. Get plain-English summaries, not raw diffs.",
     type: "website",
     images: [{ url: "/assets/og-image.png", width: 1792, height: 1024 }],

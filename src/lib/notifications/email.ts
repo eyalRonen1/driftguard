@@ -68,7 +68,7 @@ export async function sendChangeAlert(data: ChangeAlertData): Promise<boolean> {
 
         <!-- Footer -->
         <p style="margin: 20px 0 0; padding-top: 16px; border-top: 1px solid #E5E7EB; font-size: 11px; color: #9CA3AF;">
-          Sent by <a href="https://pagelifeguard.com" style="color: #6B7280;">PageLifeguard</a> ·
+          Sent by <a href="https://zikit.ai" style="color: #6B7280;">Zikit</a> ·
           <a href="${data.dashboardUrl}/settings" style="color: #6B7280;">Manage alerts</a>
         </p>
       </div>
@@ -82,7 +82,7 @@ export async function sendChangeAlert(data: ChangeAlertData): Promise<boolean> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "PageLifeguard <alerts@pagelifeguard.com>",
+        from: "Zikit <alerts@zikit.ai>",
         to: data.to,
         subject: `${emoji} ${data.monitorName}: ${data.summary.slice(0, 80)}`,
         html,

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i <= maxRedirects; i++) {
       response = await fetch(currentUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; PageLifeguard/1.0; +https://pagelifeguard.com)",
+          "User-Agent": "Mozilla/5.0 (compatible; Zikit/1.0; +https://zikit.ai)",
           Accept: "text/html",
         },
         signal: controller.signal,

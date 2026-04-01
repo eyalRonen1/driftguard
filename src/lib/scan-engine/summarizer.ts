@@ -1,7 +1,7 @@
 /**
  * AI Change Summarizer - Generates plain-English summaries of page changes.
  * Uses GPT-4o-mini for cost efficiency.
- * This is the CORE differentiator of PageLifeguard.
+ * This is the CORE differentiator of Zikit.
  */
 
 export interface SummaryResult {

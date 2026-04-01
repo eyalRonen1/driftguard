@@ -1,5 +1,5 @@
 /**
- * Paddle billing integration for PageLifeguard.
+ * Paddle billing integration for Zikit.
  */
 
 import { db } from "@/lib/db";

@@ -289,7 +289,7 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     );
 
     if (activeConfigs.length > 0) {
-      const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pagelifeguard.com";
+      const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://zikit.ai";
       const alertData = {
         monitorName: monitor.name,
         monitorUrl: monitor.url,

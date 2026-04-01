@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useChatContext } from "./chat-context";
 
 /**
- * Camo Chat Widget - AI assistant for PageLifeguard.
+ * Camo Chat Widget - AI assistant for Zikit.
  * Floating chat bubble in bottom-right corner.
  * Uses OpenAI API for responses about the product.
  */
@@ -20,7 +20,7 @@ interface Message {
 }
 
 const WELCOME = {
-  content: "Hey! I'm Camo, your monitoring assistant. Ask me anything about PageLifeguard!",
+  content: "Hey! I'm Camo, your monitoring assistant. Ask me anything about Zikit!",
   actions: ["How does it work?", "What can I monitor?", "Show me pricing"],
 };
 

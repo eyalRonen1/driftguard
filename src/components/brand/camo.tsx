@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 /**
- * Camo - The PageLifeguard mascot.
+ * Camo - The Zikit mascot.
  * Uses consistent DALL-E generated images from a single character sheet.
  */
 export function Camo({

@@ -13,7 +13,7 @@ import {
 import { relations } from "drizzle-orm";
 
 // ==========================================
-// USERS (kept from DriftGuard)
+// USERS
 // ==========================================
 
 export const users = pgTable("users", {
@@ -27,7 +27,7 @@ export const users = pgTable("users", {
 });
 
 // ==========================================
-// ORGANIZATIONS (kept from DriftGuard)
+// ORGANIZATIONS
 // ==========================================
 
 export const organizations = pgTable(

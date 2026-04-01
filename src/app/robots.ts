@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard/", "/api/"],
     },
-    sitemap: "https://driftguard-theta.vercel.app/sitemap.xml",
+    sitemap: "https://zikit.ai/sitemap.xml",
   };
 }

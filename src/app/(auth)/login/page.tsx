@@ -84,7 +84,7 @@ function LoginForm() {
           </a>
         </div>
         <h1 className="text-2xl font-bold text-center mb-2 text-[var(--text-cream)]">Welcome back</h1>
-        <p className="text-[var(--text-muted)] text-center mb-8">Sign in to PageLifeguard</p>
+        <p className="text-[var(--text-muted)] text-center mb-8">Sign in to Zikit</p>
 
         {authError && (
           <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
