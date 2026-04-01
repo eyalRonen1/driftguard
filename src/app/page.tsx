@@ -142,7 +142,7 @@ export default function LandingPage() {
           </AnimateIn>
           <StaggerContainer className="grid sm:grid-cols-3 gap-4">
             {[
-              { name: "Free", price: "$0", per: "", desc: "For trying it out", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"], pop: false, pattern: "/assets/pat-leaves.png" },
+              { name: "Free", price: "$0", per: "", desc: "14-day free trial", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"], pop: false, pattern: "/assets/pat-leaves.png" },
               { name: "Pro", price: "$19", per: "/mo", desc: "For professionals", features: ["20 monitors", "Hourly checks", "Slack + Email alerts", "CSS selectors", "90-day history", "Golden Set Generator", "Noise filtering"], pop: true, pattern: "/assets/pat-scales.png" },
               { name: "Business", price: "$49", per: "/mo", desc: "For teams", features: ["100 monitors", "15-min checks", "API access", "Team members (5)", "365-day history", "Priority support", "Custom webhooks", "Export reports"], pop: false, pattern: "/assets/pat-spiral.png" },
             ].map((p) => (

@@ -12,7 +12,7 @@ const PLANS = [
     code: "free",
     price: 0,
     period: "",
-    description: "For trying it out",
+    description: "14-day free trial",
     features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"],
     limits: { monitors: 3, frequency: "Daily", history: "7 days", checks: 100 },
   },

@@ -98,6 +98,11 @@ export function Sidebar({ user }: { user: User }) {
               </Link>
             );
           })}
+          {/* Command palette hint */}
+          <div className="mt-4 mx-3 px-3 py-2 rounded-lg bg-white/3 border border-white/5 flex items-center gap-2 text-[10px] text-gray-500">
+            <kbd className="bg-white/5 px-1.5 py-0.5 rounded text-[9px]">⌘K</kbd>
+            <span>Quick search</span>
+          </div>
         </nav>
 
         <div className="p-3 border-t border-[#1a3a1a]">
