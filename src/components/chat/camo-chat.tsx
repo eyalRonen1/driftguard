@@ -36,12 +36,31 @@ Be friendly, concise (2-3 sentences max), and fun. Use occasional chameleon refe
 If you don't know something, say so and suggest checking the docs.`;
 
 export function CamoChatWidget() {
-  const { pageContext } = useChatContext();
+  const { pageContext, setPageContext } = useChatContext();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Clear messages when switching monitors
+  useEffect(() => {
+    setMessages([]);
+  }, [pageContext.monitorName]);
+
+  // Clear context when URL changes away from a monitor page
+  useEffect(() => {
+    const checkUrl = () => {
+      if (!window.location.pathname.includes("/monitors/") || window.location.pathname.endsWith("/monitors") || window.location.pathname.endsWith("/monitors/new")) {
+        if (pageContext.monitorName) {
+          setPageContext({});
+        }
+      }
+    };
+    // Check on navigation
+    const interval = setInterval(checkUrl, 1000);
+    return () => clearInterval(interval);
+  }, [pageContext.monitorName, setPageContext]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
