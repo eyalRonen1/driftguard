@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ScanLiveLog } from "./scan-live-log";
 
 /**
  * Live Check Animation - When user clicks "Check now",
@@ -30,14 +31,22 @@ export function LiveCheckButton({
     changed: boolean;
     summary?: string;
   } | null>(null);
+  const [logEntries, setLogEntries] = useState<Array<{ time: string; message: string; type: "info" | "success" | "warning" | "error" }>>([]);
 
   async function handleCheck() {
     setChecking(true);
     setResult(null);
+    setLogEntries([]);
 
-    // Animate through steps
+    const addLog = (msg: string, type: "info" | "success" | "warning" | "error" = "info") => {
+      const time = new Date().toLocaleTimeString("en", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setLogEntries((prev) => [...prev, { time, message: msg, type }]);
+    };
+
+    // Animate through steps with log entries
     for (let i = 0; i < STEPS.length; i++) {
       setStep(i);
+      addLog(STEPS[i].label);
       await new Promise((r) => setTimeout(r, STEPS[i].delay));
     }
 
@@ -46,11 +55,15 @@ export function LiveCheckButton({
       const res = await fetch(`/api/v1/monitors/${monitorId}/check`, { method: "POST" });
       const data = await res.json();
 
+      const changed = data.result?.changed || false;
+      addLog(changed ? "Change detected!" : "No changes found.", changed ? "warning" : "success");
+      addLog("Scan complete.", "success");
       setResult({
-        changed: data.result?.changed || false,
+        changed,
         summary: data.result?.summary || undefined,
       });
     } catch {
+      addLog("Scan failed.", "error");
       setResult({ changed: false });
     }
 
@@ -113,6 +126,13 @@ export function LiveCheckButton({
             </div>
           </div>
         </Card>
+      )}
+
+      {/* Live log */}
+      {logEntries.length > 0 && (
+        <div className="mt-3">
+          <ScanLiveLog entries={logEntries} />
+        </div>
       )}
 
       {/* Result toast */}
