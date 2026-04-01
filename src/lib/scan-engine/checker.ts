@@ -130,6 +130,16 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   const diffChars = Math.abs(previousText.length - result.text.length);
   const diffPercentage = maxLen > 0 ? ((diffChars / maxLen) * 100).toFixed(2) : "0";
 
+  // Compute simple text diff (what was added/removed)
+  const beforeSentences = new Set(previousText.split(/[.!?]\s+/).map(s => s.trim().toLowerCase()).filter(Boolean));
+  const afterSentences = new Set(result.text.split(/[.!?]\s+/).map(s => s.trim().toLowerCase()).filter(Boolean));
+
+  const added = result.text.split(/[.!?]\s+/).filter(s => s.trim() && !beforeSentences.has(s.trim().toLowerCase()));
+  const removed = previousText.split(/[.!?]\s+/).filter(s => s.trim() && !afterSentences.has(s.trim().toLowerCase()));
+
+  const addedText = added.slice(0, 5).join(". ").slice(0, 500) || null;
+  const removedText = removed.slice(0, 5).join(". ").slice(0, 500) || null;
+
   // Store the change
   await db.insert(changes).values({
     monitorId,
@@ -140,8 +150,8 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     summaryModel: summaryResult.model,
     changeType: summaryResult.changeType,
     importanceScore: summaryResult.importanceScore,
-    addedText: null, // Could compute detailed diff later
-    removedText: null,
+    addedText,
+    removedText,
     diffPercentage,
   });
 
