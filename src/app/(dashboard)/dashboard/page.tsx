@@ -58,9 +58,9 @@ export default async function DashboardPage() {
 
       {allMonitors.length === 0 ? (
         <div className="card-glass p-10 text-center">
-          <Image src="/assets/camo-sleep.png" alt="" width={130} height={130} className="mx-auto mb-5" />
-          <h2 className="text-xl font-bold text-[var(--text-cream)] mb-2">No pages to watch yet</h2>
-          <p className="text-[var(--text-muted)] mb-6 max-w-sm mx-auto">Give your chameleon a page to watch. It&apos;ll alert you when something changes.</p>
+          <Image src="/assets/empty-hammock.png" alt="" width={200} height={200} className="mx-auto mb-4 rounded-xl" />
+          <h2 className="text-xl font-bold text-[var(--text-cream)] mb-2">Camo is bored!</h2>
+          <p className="text-[var(--text-muted)] mb-6 max-w-xs mx-auto text-sm">Give him a page to watch.</p>
           <Link href="/dashboard/monitors/new" className="btn-primary inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

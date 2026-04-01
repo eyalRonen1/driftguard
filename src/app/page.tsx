@@ -32,7 +32,7 @@ export default function LandingPage() {
         </div>
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <AnimateIn>
-            <Camo size={96} className="mx-auto mb-8 animate-sway" />
+            <Image src="/assets/hero-camo-alarm.png" alt="Camo catches changes" width={400} height={225} className="mx-auto mb-6 rounded-xl" />
           </AnimateIn>
           <AnimateIn delay={0.15}>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
@@ -41,11 +41,6 @@ export default function LandingPage() {
               <span className="text-[var(--accent-jade)]">Camo catches it.</span>
             </h1>
           </AnimateIn>
-          <AnimateIn delay={0.3}>
-            <p className="text-[var(--text-sage)] mt-6 text-lg max-w-md mx-auto leading-relaxed">
-              AI-powered website monitoring. Summaries, not diffs.
-            </p>
-          </AnimateIn>
           <AnimateIn delay={0.45}>
             <div className="flex items-center justify-center gap-3 mt-10">
               <Link href="/signup" className="btn-primary text-base">Start free</Link>
@@ -53,18 +48,11 @@ export default function LandingPage() {
             </div>
           </AnimateIn>
 
-          {/* Hero video - shows the product in action */}
-          <AnimateIn delay={0.6}>
-            <div className="mt-12 max-w-2xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/30">
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full"
-                poster="/assets/hero-diff-visual.png"
-              >
-                <source src="/assets/hero-video.mp4" type="video/mp4" />
+          {/* Hero video - Camo catches a change! */}
+          <AnimateIn delay={0.4}>
+            <div className="mt-10 max-w-lg mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
+              <video autoPlay loop muted playsInline className="w-full" poster="/assets/hero-camo-alarm.png">
+                <source src="/assets/hero-camo-video.mp4" type="video/mp4" />
               </video>
             </div>
           </AnimateIn>
@@ -81,18 +69,17 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <StaggerContainer className="grid sm:grid-cols-3 gap-6">
             {[
-              { t: "Paste a URL", d: "Any page — pricing, docs, jobs, regulations.", img: "/assets/step-url.png", pat: "/assets/pat-eye.png" },
-              { t: "Camo watches", d: "We check hourly, daily, or every 15 minutes.", img: "/assets/step-watch.png", pat: "/assets/pat-chameleon.png" },
-              { t: "Get a summary", d: "AI explains what changed in plain English.", img: "/assets/step-alert.png", pat: "/assets/pat-swirl.png" },
+              { t: "Feed Camo a URL", img: "/assets/step1-eat-url.png", pat: "/assets/pat-eye.png" },
+              { t: "Camo watches", img: "/assets/step2-scan.png", pat: "/assets/pat-chameleon.png" },
+              { t: "Camo rings the bell!", img: "/assets/step3-bell.png", pat: "/assets/pat-swirl.png" },
             ].map((s, i) => (
               <StaggerItem key={i} className="card-glass card-lift p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.06]">
                   <Image src={s.pat} alt="" fill className="object-cover" />
                 </div>
                 <div className="relative z-10">
-                <Image src={s.img} alt="" width={80} height={80} className="mx-auto mb-4 rounded-xl" />
-                <h3 className="font-semibold mb-1">{s.t}</h3>
-                <p className="text-sm text-[var(--text-muted)]">{s.d}</p>
+                <Image src={s.img} alt={s.t} width={120} height={120} className="mx-auto mb-3 rounded-xl" />
+                <h3 className="font-semibold text-sm">{s.t}</h3>
                 </div>
               </StaggerItem>
             ))}
