@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { createMonitorSchema } from "@/lib/validators/monitor";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
 import { fetchPage } from "@/lib/scan-engine/fetcher";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/v1/monitors - List all monitors
 export async function GET() {
@@ -20,10 +21,14 @@ export async function GET() {
   return NextResponse.json({ monitors: result });
 }
 
-// POST /api/v1/monitors - Create a new monitor
+// POST /api/v1/monitors - Create a new monitor (rate limited)
 export async function POST(request: NextRequest) {
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate limit: 20 monitor creations per hour
+  const { allowed } = rateLimit(`create:${auth.user.id}`, 20, 3600000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
 
   let body;
   try {

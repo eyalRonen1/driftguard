@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `You are Camo, the friendly chameleon AI assistant for PageLifeguard - a website change monitoring tool.
 
@@ -24,6 +25,11 @@ Rules:
 - Never make up data about the user's actual monitored pages`;
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 30 messages per hour per IP
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const { allowed } = rateLimit(`chat:${ip}`, 30, 3600000);
+  if (!allowed) return NextResponse.json({ reply: "Camo needs a break! Try again in a few minutes." });
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ reply: "I'm taking a nap right now. Try again later!" });

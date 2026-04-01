@@ -22,11 +22,11 @@ export async function GET(
 
   if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
 
-  // Get recent changes
+  // Get recent changes (scoped to org for tenant isolation)
   const recentChanges = await db
     .select()
     .from(changes)
-    .where(eq(changes.monitorId, monitorId))
+    .where(and(eq(changes.monitorId, monitorId), eq(changes.orgId, auth.org.id)))
     .orderBy(desc(changes.createdAt))
     .limit(20);
 

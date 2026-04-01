@@ -4,6 +4,7 @@ import { monitors } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
 import { checkMonitor } from "@/lib/scan-engine/checker";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/v1/monitors/[monitorId]/check - Run a manual check
 export async function POST(
@@ -13,6 +14,10 @@ export async function POST(
   const { monitorId } = await params;
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate limit: 10 manual checks per hour per user
+  const { allowed } = rateLimit(`check:${auth.user.id}`, 10, 3600000);
+  if (!allowed) return NextResponse.json({ error: "Too many checks. Try again later." }, { status: 429 });
 
   // Verify ownership
   const [monitor] = await db
