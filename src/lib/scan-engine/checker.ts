@@ -4,11 +4,21 @@
  */
 
 import { db } from "@/lib/db";
-import { monitors, snapshots, changes } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { monitors, snapshots, changes, organizations } from "@/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { fetchPage } from "./fetcher";
 import { summarizeChange } from "./summarizer";
 import { filterNoise, calculateSignalScore, shouldAlert } from "./noise-filter";
+
+/** Increment monthly usage counter for the org */
+async function incrementUsage(orgId: string) {
+  try {
+    await db
+      .update(organizations)
+      .set({ monthlyChecksUsed: sql`${organizations.monthlyChecksUsed} + 1` })
+      .where(eq(organizations.id, orgId));
+  } catch {}
+}
 
 export interface CheckResult {
   monitorId: string;
@@ -108,6 +118,7 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       })
       .where(eq(monitors.id, monitorId));
 
+    await incrementUsage(monitor.orgId);
     return { monitorId, changed: false, summary: null, importanceScore: null, error: null };
   }
 
@@ -171,6 +182,8 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       updatedAt: now,
     })
     .where(eq(monitors.id, monitorId));
+
+  await incrementUsage(monitor.orgId);
 
   return {
     monitorId,

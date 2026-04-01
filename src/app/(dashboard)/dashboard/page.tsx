@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureUserAndOrg } from "@/lib/db/ensure-user";
 import { db } from "@/lib/db";
 import { monitors, changes } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
 import { StatusBar } from "@/components/dashboard/status-bar";
@@ -29,9 +29,12 @@ export default async function DashboardPage() {
 
   let allMonitors: any[] = [];
   let recentChanges: any[] = [];
+  let totalChanges = 0;
   try {
     allMonitors = await db.select().from(monitors).where(eq(monitors.orgId, org.id)).orderBy(desc(monitors.createdAt));
     recentChanges = await db.select().from(changes).where(eq(changes.orgId, org.id)).orderBy(desc(changes.createdAt)).limit(10);
+    const countResult = await db.select({ count: sql<number>`count(*)` }).from(changes).where(eq(changes.orgId, org.id));
+    totalChanges = Number(countResult[0]?.count || 0);
   } catch {}
 
   const activeCount = allMonitors.filter((m: any) => m.isActive && !m.isPaused).length;
@@ -53,7 +56,7 @@ export default async function DashboardPage() {
       {allMonitors.length > 0 && (
         <StatusBar
           activeMonitors={activeCount}
-          recentChanges={recentChanges.length}
+          recentChanges={totalChanges}
           hasErrors={allMonitors.some((m: any) => m.healthStatus === "error")}
         />
       )}
@@ -85,7 +88,7 @@ export default async function DashboardPage() {
               <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
                 <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Updates found</p>
-                <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1 count-pop">{recentChanges.length}</p>
+                <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1 count-pop">{totalChanges}</p>
               </div>
             </div>
             <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-ember)]/5 !border-[var(--accent-ember)]/20 relative overflow-hidden">
