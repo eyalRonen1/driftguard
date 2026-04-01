@@ -32,9 +32,6 @@ export default function LandingPage() {
         </div>
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <AnimateIn>
-            <Image src="/assets/hero-camo-alarm.png" alt="Camo catches changes" width={400} height={225} className="mx-auto mb-6 rounded-xl" />
-          </AnimateIn>
-          <AnimateIn delay={0.15}>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
               Your pages change.
               <br />
@@ -69,16 +66,24 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <StaggerContainer className="grid sm:grid-cols-3 gap-6">
             {[
-              { t: "Feed Camo a URL", img: "/assets/step1-eat-url.png", pat: "/assets/pat-eye.png" },
-              { t: "Camo watches", img: "/assets/step2-scan.png", pat: "/assets/pat-chameleon.png" },
-              { t: "Camo rings the bell!", img: "/assets/step3-bell.png", pat: "/assets/pat-swirl.png" },
+              { t: "Feed Camo a URL", img: "/assets/step1-eat-url.png", video: "/assets/step1-eat-url-video.mp4", pat: "/assets/pat-eye.png" },
+              { t: "Camo watches", img: "/assets/step2-scan.png", video: null, pat: "/assets/pat-chameleon.png" },
+              { t: "Camo rings the bell!", img: "/assets/step3-bell.png", video: "/assets/step3-bell-video.mp4", pat: "/assets/pat-swirl.png" },
             ].map((s, i) => (
               <StaggerItem key={i} className="card-glass card-lift p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.06]">
                   <Image src={s.pat} alt="" fill className="object-cover" />
                 </div>
                 <div className="relative z-10">
-                <Image src={s.img} alt={s.t} width={120} height={120} className="mx-auto mb-3 rounded-xl" />
+                {s.video ? (
+                  <div className="mx-auto mb-3 rounded-xl overflow-hidden w-[140px] h-[140px]">
+                    <video autoPlay loop muted playsInline className="w-full h-full object-cover" poster={s.img}>
+                      <source src={s.video} type="video/mp4" />
+                    </video>
+                  </div>
+                ) : (
+                  <Image src={s.img} alt={s.t} width={140} height={140} className="mx-auto mb-3 rounded-xl" />
+                )}
                 <h3 className="font-semibold text-sm">{s.t}</h3>
                 </div>
               </StaggerItem>
