@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { CHAT_TOOLS } from "@/lib/chat-actions/tools";
+import { executeAction } from "@/lib/chat-actions/executor";
 
 const SYSTEM_PROMPT = `You are Camo, the friendly chameleon AI assistant for Zikit - a website change monitoring tool.
 
@@ -35,7 +37,9 @@ Rules:
 - You're Camo the chameleon - you blend in, watch everything, and catch every change!
 - Never make up data about the user's actual monitored pages
 - If you don't have context about specific changes, say: "I can see more details when you go to a specific monitor page. Try clicking on one of your monitors!"
-- When introducing yourself, mention you're a chameleon who watches their pages`;
+- When introducing yourself, mention you're a chameleon who watches their pages
+
+You have TOOLS that can execute real actions on the user's dashboard. When the user asks you to do something (create a monitor, check a page, pause, delete, etc.), use the appropriate tool. When listing data, format it nicely with the information from the tool result.`;
 
 export async function POST(request: NextRequest) {
   // Verify request comes from our frontend
@@ -71,6 +75,20 @@ export async function POST(request: NextRequest) {
     body = await request.json();
   } catch {
     return NextResponse.json({ reply: "Hmm, I didn't catch that. Try again?" });
+  }
+
+  // Handle confirmed destructive actions
+  if (body.confirmAction && auth) {
+    const result = await executeAction(
+      body.confirmAction.name,
+      body.confirmAction.params,
+      { userId: auth.user.id, orgId: auth.org.id },
+      true // confirmed
+    );
+    return NextResponse.json({
+      reply: result.message,
+      action: result.data ? { type: "result", data: result.data } : undefined,
+    });
   }
 
   const rawMessages = body.messages || [];
@@ -172,6 +190,7 @@ export async function POST(request: NextRequest) {
         ],
         temperature: 0.7,
         max_tokens: 500,
+        ...(auth ? { tools: CHAT_TOOLS, tool_choice: "auto" } : {}),
       }),
     });
 
@@ -180,8 +199,73 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || "I blinked and missed that. Say again?";
+    const choice = data.choices?.[0];
 
+    // Check if the model wants to call a function
+    if (choice?.finish_reason === "tool_calls" || choice?.message?.tool_calls?.length > 0) {
+      const toolCall = choice.message.tool_calls[0];
+      const functionName = toolCall.function.name;
+      const functionArgs = JSON.parse(toolCall.function.arguments || "{}");
+
+      // Check if this is a confirmed action (from frontend)
+      const confirmed = body.confirmedAction === toolCall.function.name;
+
+      // Execute the action
+      const actionResult = await executeAction(
+        functionName,
+        functionArgs,
+        { userId: auth!.user.id, orgId: auth!.org.id },
+        confirmed
+      );
+
+      // If action requires confirmation, return confirmation prompt
+      if (actionResult.requiresConfirmation) {
+        return NextResponse.json({
+          reply: actionResult.confirmationMessage,
+          action: {
+            type: "confirmation",
+            actionId: actionResult.actionId,
+            actionName: functionName,
+            params: functionArgs,
+          },
+        });
+      }
+
+      // Feed the result back to the model for a friendly response
+      const followUpRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: contextPrompt },
+            ...messages.slice(-10),
+            choice.message,
+            {
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify(actionResult),
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+
+      const followUpData = await followUpRes.json();
+      const reply = followUpData.choices?.[0]?.message?.content || actionResult.message;
+
+      return NextResponse.json({
+        reply,
+        action: actionResult.data ? { type: "result", data: actionResult.data } : undefined,
+      });
+    }
+
+    // Normal text response (no function call)
+    const reply = choice?.message?.content || "I blinked and missed that. Say again?";
     return NextResponse.json({ reply });
   } catch {
     return NextResponse.json({ reply: "Something went wrong in the jungle. Try again!" });

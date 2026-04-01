@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChatContext } from "./chat-context";
@@ -26,10 +27,16 @@ const WELCOME = {
 
 export function CamoChatWidget() {
   const { pageContext, setPageContext } = useChatContext();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    actionName: string;
+    params: Record<string, any>;
+    confirmMessage: string;
+  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Clear messages when switching monitors
@@ -84,6 +91,25 @@ export function CamoChatWidget() {
 
       const data = await res.json();
 
+      if (data.action?.type === "confirmation") {
+        setPendingAction({
+          actionName: data.action.actionName,
+          params: data.action.params,
+          confirmMessage: data.reply,
+        });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: data.reply,
+            timestamp: Date.now(),
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
@@ -93,6 +119,10 @@ export function CamoChatWidget() {
           timestamp: Date.now(),
         },
       ]);
+
+      if (data.action?.type === "result") {
+        setTimeout(() => router.refresh(), 1500);
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -194,6 +224,82 @@ export function CamoChatWidget() {
               </div>
             )}
           </div>
+
+          {/* Action confirmation */}
+          {pendingAction && (
+            <div className="mx-4 mb-2 p-3 rounded-xl bg-[var(--accent-gold)]/10 border border-[var(--accent-gold)]/20">
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    setLoading(true);
+                    const confirmedAction = pendingAction;
+                    setPendingAction(null);
+                    try {
+                      const res = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "X-Requested-With": "XMLHttpRequest",
+                        },
+                        body: JSON.stringify({
+                          messages: messages.map((m) => ({ role: m.role, content: m.content })),
+                          pageContext,
+                          confirmAction: {
+                            name: confirmedAction.actionName,
+                            params: confirmedAction.params,
+                          },
+                        }),
+                      });
+                      const data = await res.json();
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          id: crypto.randomUUID(),
+                          role: "assistant",
+                          content: data.reply || "Done!",
+                          timestamp: Date.now(),
+                        },
+                      ]);
+                      if (data.action?.type === "result") {
+                        setTimeout(() => router.refresh(), 1500);
+                      }
+                    } catch {
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          id: crypto.randomUUID(),
+                          role: "assistant",
+                          content: "Something went wrong. Please try again.",
+                          timestamp: Date.now(),
+                        },
+                      ]);
+                    }
+                    setLoading(false);
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-[var(--accent-ruby)]/20 text-[var(--accent-ruby)] text-sm font-medium hover:bg-[var(--accent-ruby)]/30 transition"
+                >
+                  Yes, confirm
+                </button>
+                <button
+                  onClick={() => {
+                    setPendingAction(null);
+                    setMessages((prev) => [
+                      ...prev,
+                      {
+                        id: crypto.randomUUID(),
+                        role: "assistant",
+                        content: "Cancelled. No changes were made.",
+                        timestamp: Date.now(),
+                      },
+                    ]);
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-white/5 text-[var(--text-muted)] text-sm font-medium hover:bg-white/10 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Input */}
           <div className="border-t border-border/30 p-3">
