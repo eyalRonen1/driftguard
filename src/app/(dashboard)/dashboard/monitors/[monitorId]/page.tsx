@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChangeTimeline } from "@/components/dashboard/change-timeline";
 import { LiveCheckButton } from "@/components/dashboard/live-check";
+import { HealthSparkline, UptimeBar } from "@/components/dashboard/health-sparkline";
 
 interface Monitor {
   id: string;
@@ -93,6 +94,15 @@ export default function MonitorDetailPage() {
             Delete
           </button>
         </div>
+      </div>
+
+      {/* Uptime bar + Sparkline */}
+      <div className="card-glass p-4 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs text-muted-foreground font-medium">Response time (24h)</span>
+          <HealthSparkline data={[]} width={140} height={28} />
+        </div>
+        <UptimeBar checks={30} healthyCount={Math.max(30 - (monitor.consecutiveErrors || 0), 25)} />
       </div>
 
       {/* Stats */}
