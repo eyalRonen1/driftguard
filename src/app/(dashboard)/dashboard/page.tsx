@@ -70,16 +70,45 @@ export default async function DashboardPage() {
       )}
 
       {allMonitors.length === 0 ? (
-        <div className="card-glass p-10 text-center">
-          <Image src="/assets/empty-hammock.png" alt="" width={200} height={200} className="mx-auto mb-4 rounded-xl" />
-          <h2 className="text-xl font-bold text-[var(--text-cream)] mb-2">Nothing here yet</h2>
-          <p className="text-[var(--text-muted)] mb-6 max-w-xs mx-auto text-sm">Add your first page. We'll show you updates here.</p>
-          <Link href="/dashboard/monitors/new" className="btn-primary inline-flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add first monitor
-          </Link>
+        <div className="space-y-4">
+          <div className="card-glass p-8 text-center">
+            <Image src="/assets/empty-hammock.png" alt="" width={150} height={150} className="mx-auto mb-4 rounded-xl" />
+            <h2 className="text-lg font-bold text-[var(--text-cream)] mb-2">Let&apos;s get Camo watching!</h2>
+            <p className="text-[var(--text-muted)] mb-6 max-w-xs mx-auto text-sm">Add a page and see changes detected in real-time.</p>
+            <Link href="/dashboard/monitors/new" className="btn-primary inline-flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Add first monitor
+            </Link>
+          </div>
+
+          {/* Quick start suggestions */}
+          <div className="card-glass p-5">
+            <p className="text-xs font-semibold text-[var(--text-cream)] mb-3">Quick start ideas</p>
+            <div className="space-y-2">
+              {[
+                { emoji: "🏷️", text: "Track a competitor's pricing page", example: "competitor.com/pricing" },
+                { emoji: "📰", text: "Monitor a news site for updates", example: "news-site.com" },
+                { emoji: "📋", text: "Watch a government regulations page", example: "regulator.gov/rules" },
+              ].map((idea) => (
+                <Link
+                  key={idea.text}
+                  href="/dashboard/monitors/new"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group"
+                >
+                  <span className="text-lg">{idea.emoji}</span>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium group-hover:text-[var(--accent-jade)] transition">{idea.text}</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">{idea.example}</p>
+                  </div>
+                  <svg className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-jade)] transition" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <>
