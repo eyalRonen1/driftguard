@@ -66,11 +66,21 @@ export default function LandingPage() {
       <section className="pb-16 -mt-6 relative z-10">
         <div className="max-w-3xl mx-auto px-6">
           <AnimateIn delay={0.5}>
-            <div className="text-center mb-6">
-              <p className="text-sm font-medium text-[var(--accent-gold)] tracking-wider uppercase mb-2">Try it now</p>
-              <h2 className="text-xl font-bold">Paste a URL and see if Camo can watch it</h2>
+            <div className="card-glass rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.04]">
+                <Image src="/assets/pat-chameleon.png" alt="" fill className="object-cover" />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Image src="/assets/demo-camo-detective.png" alt="" width={56} height={56} className="rounded-xl" />
+                  <div>
+                    <p className="text-sm font-medium text-[var(--accent-gold)] tracking-wider uppercase">Live demo</p>
+                    <h2 className="text-lg sm:text-xl font-bold">Can Camo watch your page?</h2>
+                  </div>
+                </div>
+                <UrlDemo />
+              </div>
             </div>
-            <UrlDemo />
           </AnimateIn>
         </div>
       </section>
