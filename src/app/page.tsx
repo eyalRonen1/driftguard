@@ -72,7 +72,7 @@ export default function LandingPage() {
               </div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center gap-3 mb-5">
-                  <Image src="/assets/demo-camo-detective.png" alt="" width={40} height={40} className="rounded-lg" />
+                  <Image src="/assets/camo-watch.png" alt="" width={40} height={40} className="rounded-lg" />
                   <div>
                     <p className="text-[10px] font-medium text-[var(--accent-gold)] tracking-wider uppercase">Live demo</p>
                     <h2 className="text-base sm:text-lg font-bold">Can Camo watch your page?</h2>
