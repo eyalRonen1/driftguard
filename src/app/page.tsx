@@ -131,12 +131,15 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-6 relative z-10">
           <CamoStripes className="max-w-xs mx-auto mb-4" />
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Pricing</p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Simple and transparent</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">Simple and transparent</h2>
+          <AnimateIn>
+            <Image src="/assets/pricing-gameshow.png" alt="" width={400} height={225} className="mx-auto mb-8 rounded-xl" />
+          </AnimateIn>
           <StaggerContainer className="grid sm:grid-cols-3 gap-4">
             {[
-              { name: "Free", price: "$0", per: "", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts"], pop: false, pattern: "/assets/pat-leaves.png" },
-              { name: "Pro", price: "$19", per: "/mo", features: ["20 monitors", "Hourly checks", "Slack alerts", "CSS selectors", "History"], pop: true, pattern: "/assets/pat-scales.png" },
-              { name: "Business", price: "$49", per: "/mo", features: ["100 monitors", "15-min checks", "API access", "Team members", "Priority"], pop: false, pattern: "/assets/pat-spiral.png" },
+              { name: "Free", price: "$0", per: "", desc: "For trying it out", features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"], pop: false, pattern: "/assets/pat-leaves.png" },
+              { name: "Pro", price: "$19", per: "/mo", desc: "For professionals", features: ["20 monitors", "Hourly checks", "Slack + Email alerts", "CSS selectors", "90-day history", "Golden Set Generator", "Noise filtering"], pop: true, pattern: "/assets/pat-scales.png" },
+              { name: "Business", price: "$49", per: "/mo", desc: "For teams", features: ["100 monitors", "15-min checks", "API access", "Team members (5)", "365-day history", "Priority support", "Custom webhooks", "Export reports"], pop: false, pattern: "/assets/pat-spiral.png" },
             ].map((p) => (
               <StaggerItem key={p.name} className={`relative overflow-hidden card-lift ${p.pop ? "card-glass-featured p-6" : "card-glass p-6"}`}>
                 <div className="absolute inset-0 opacity-[0.06]">
@@ -145,6 +148,7 @@ export default function LandingPage() {
                 <div className="relative z-10">
                 {p.pop && <span className="text-[10px] font-bold text-[var(--accent-gold)] uppercase tracking-wider">Most popular</span>}
                 <h3 className="font-semibold mt-1">{p.name}</h3>
+                <p className="text-xs text-muted-foreground">{p.desc}</p>
                 <div className="mt-3 mb-5">
                   <span className="text-3xl font-bold">{p.price}</span>
                   <span className="text-[var(--text-muted)] text-sm">{p.per}</span>
@@ -172,9 +176,9 @@ export default function LandingPage() {
           <Image src="/assets/pat-camo2.png" alt="" fill className="object-cover" />
         </div>
         <div className="max-w-2xl mx-auto px-6 text-center relative z-10">
-          <Camo state="sleep" size={72} className="mx-auto mb-6" />
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Let Camo do the watching</h2>
-          <p className="text-[var(--text-muted)] mb-8">Free forever for 3 monitors. Set up in 30 seconds.</p>
+          <Image src="/assets/cta-rocket.png" alt="" width={120} height={120} className="mx-auto mb-6 rounded-xl" />
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Ready to launch?</h2>
+          <p className="text-[var(--text-muted)] mb-8">Free forever. 3 monitors. 30 seconds setup.</p>
           <Link href="/signup" className="btn-primary text-lg">Get started free</Link>
         </div>
       </section>
