@@ -1,5 +1,5 @@
-"use client";
-
+import { createClient } from "@/lib/supabase/server";
+import { ensureUserAndOrg } from "@/lib/db/ensure-user";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,33 +9,49 @@ import { CamoPaw } from "@/components/brand/camo";
 const PLANS = [
   {
     name: "Free",
+    code: "free",
     price: 0,
     period: "",
     description: "For trying it out",
     features: ["3 monitors", "Daily checks", "AI summaries", "Email alerts", "7-day history"],
-    limits: { monitors: 3, frequency: "Daily", history: "7 days" },
-    current: true,
+    limits: { monitors: 3, frequency: "Daily", history: "7 days", checks: 100 },
   },
   {
     name: "Pro",
+    code: "pro",
     price: 19,
     period: "/mo",
     description: "For professionals",
     popular: true,
     features: ["20 monitors", "Hourly checks", "Slack + Email", "CSS selectors", "90-day history", "Golden Set Generator", "Noise filtering"],
-    limits: { monitors: 20, frequency: "Hourly", history: "90 days" },
+    limits: { monitors: 20, frequency: "Hourly", history: "90 days", checks: 2000 },
   },
   {
     name: "Business",
+    code: "business",
     price: 49,
     period: "/mo",
     description: "For teams",
     features: ["100 monitors", "15-min checks", "API access", "5 team members", "365-day history", "Priority support", "Custom webhooks", "Export reports"],
-    limits: { monitors: 100, frequency: "15 min", history: "1 year" },
+    limits: { monitors: 100, frequency: "15 min", history: "1 year", checks: 10000 },
   },
 ];
 
-export default function BillingPage() {
+export default async function BillingPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  let org;
+  try {
+    const result = await ensureUserAndOrg(user);
+    org = result.org;
+  } catch {
+    return <p className="text-muted-foreground p-8 text-center">Loading...</p>;
+  }
+
+  const currentPlan = PLANS.find((p) => p.code === org.plan) || PLANS[0];
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -51,71 +67,78 @@ export default function BillingPage() {
         <CardContent className="p-4 flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Current plan</p>
-            <p className="text-lg font-bold">Free</p>
+            <p className="text-lg font-bold capitalize">{org.plan}</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-muted-foreground">Usage this month</p>
-            <p className="text-lg font-bold">0 / 100 checks</p>
+            <p className="text-lg font-bold">{org.monthlyChecksUsed} / {org.monthlyCheckQuota} checks</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Plans grid */}
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
-        {PLANS.map((plan) => (
-          <Card
-            key={plan.name}
-            className={`relative overflow-hidden ${plan.popular ? "border-primary/30 shadow-[0_0_20px_rgba(124,203,139,0.1)]" : ""}`}
-          >
-            {plan.popular && (
-              <div className="absolute top-0 right-0 px-3 py-1 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider rounded-bl-lg">
-                Popular
-              </div>
-            )}
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">{plan.name}</CardTitle>
-              <p className="text-xs text-muted-foreground">{plan.description}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <span className="text-3xl font-bold">${plan.price}</span>
-                <span className="text-muted-foreground text-sm">{plan.period}</span>
-              </div>
-
-              {/* Limits visual */}
-              <div className="grid grid-cols-3 gap-2 mb-4 p-3 rounded-lg bg-muted/30">
-                <div className="text-center">
-                  <p className="text-lg font-bold">{plan.limits.monitors}</p>
-                  <p className="text-[9px] text-muted-foreground">monitors</p>
+        {PLANS.map((plan) => {
+          const isCurrent = plan.code === org.plan;
+          return (
+            <Card
+              key={plan.name}
+              className={`relative overflow-hidden ${plan.popular ? "border-primary/30 shadow-[0_0_20px_rgba(124,203,139,0.1)]" : ""} ${isCurrent ? "ring-2 ring-primary/40" : ""}`}
+            >
+              {plan.popular && (
+                <div className="absolute top-0 right-0 px-3 py-1 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider rounded-bl-lg">
+                  Popular
                 </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold">{plan.limits.frequency}</p>
-                  <p className="text-[9px] text-muted-foreground">checks</p>
+              )}
+              {isCurrent && (
+                <div className="absolute top-0 left-0 px-3 py-1 bg-chart-2 text-primary-foreground text-[10px] font-bold uppercase tracking-wider rounded-br-lg">
+                  Current
                 </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold">{plan.limits.history}</p>
-                  <p className="text-[9px] text-muted-foreground">history</p>
+              )}
+              <CardHeader className="pb-2 pt-8">
+                <CardTitle className="text-base">{plan.name}</CardTitle>
+                <p className="text-xs text-muted-foreground">{plan.description}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  <span className="text-muted-foreground text-sm">{plan.period}</span>
                 </div>
-              </div>
 
-              <ul className="space-y-1.5 mb-5">
-                {plan.features.map((f) => (
-                  <li key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <CamoPaw size={10} />{f}
-                  </li>
-                ))}
-              </ul>
+                <div className="grid grid-cols-3 gap-2 mb-4 p-3 rounded-lg bg-muted/30">
+                  <div className="text-center">
+                    <p className="text-lg font-bold">{plan.limits.monitors}</p>
+                    <p className="text-[9px] text-muted-foreground">monitors</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold">{plan.limits.frequency}</p>
+                    <p className="text-[9px] text-muted-foreground">checks</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold">{plan.limits.history}</p>
+                    <p className="text-[9px] text-muted-foreground">history</p>
+                  </div>
+                </div>
 
-              <Button
-                variant={plan.current ? "outline" : plan.popular ? "default" : "secondary"}
-                className="w-full"
-                disabled={plan.current}
-              >
-                {plan.current ? "Current plan" : `Upgrade to ${plan.name}`}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+                <ul className="space-y-1.5 mb-5">
+                  {plan.features.map((f) => (
+                    <li key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <CamoPaw size={10} />{f}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  variant={isCurrent ? "outline" : plan.popular ? "default" : "secondary"}
+                  className="w-full"
+                  disabled={isCurrent}
+                >
+                  {isCurrent ? "Current plan" : plan.price > currentPlan.price ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* FAQ */}
