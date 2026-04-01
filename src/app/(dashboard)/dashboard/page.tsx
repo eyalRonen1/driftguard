@@ -8,6 +8,7 @@ import Image from "next/image";
 import { StatusBar } from "@/components/dashboard/status-bar";
 import { MonitorCard } from "@/components/dashboard/monitor-card";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
+import { DashboardChatContext } from "@/components/dashboard/dashboard-chat-context";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -42,6 +43,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Set chat context with real dashboard data */}
+      <DashboardChatContext
+        monitorsCount={allMonitors.length}
+        changesCount={totalChanges}
+        plan={org.plan}
+        monitorNames={allMonitors.map((m: any) => m.name)}
+      />
       {/* Welcome */}
       <div className="relative card-glass p-6 sm:p-8 mb-6 overflow-hidden !bg-gradient-to-r !from-[#1a3a1a] !to-[#2d4a2d]">
         <div className="absolute right-2 bottom-0 opacity-30 hidden sm:block">
