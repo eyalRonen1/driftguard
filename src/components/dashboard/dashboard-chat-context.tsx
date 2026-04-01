@@ -30,15 +30,8 @@ export function DashboardChatContext({
     setPageContext({
       monitorName: undefined,
       monitorUrl: undefined,
-      recentChanges: [
-        `This user is tracking EXACTLY ${monitorsCount} pages (not 3, not a guess - exactly ${monitorsCount})`,
-        `Total changes detected: ${changesCount}`,
-        `Current plan: ${plan} (this is their ACTUAL plan, not the default)`,
-        ...(monitorNamesKey ? [`Pages being monitored: ${monitorNamesKey}`] : []),
-        ...(recentChangeSummaries.length > 0
-          ? [`Recent changes detected:\n${recentChangeSummaries.slice(0, 5).map((s, i) => `${i + 1}. ${s}`).join("\n")}`]
-          : []),
-      ],
+      accountFacts: `Tracking ${monitorsCount} pages. ${changesCount} changes detected. Plan: ${plan}. Monitors: ${monitorNamesKey || "none"}.`,
+      recentChanges: recentChangeSummaries.slice(0, 5),
     });
   }, [monitorsCount, changesCount, plan, monitorNamesKey, changesKey, setPageContext]);
 

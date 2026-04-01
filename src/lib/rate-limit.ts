@@ -11,13 +11,22 @@ import { Redis } from "@upstash/redis";
 
 const hasUpstash = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 
-const upstashLimiter = hasUpstash
-  ? new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(60, "1 h"),
-      prefix: "zikit:ratelimit",
-    })
-  : null;
+const upstashRedis = hasUpstash ? Redis.fromEnv() : null;
+
+// Create per-limit Upstash instances (keyed by maxRequests to differentiate tiers)
+const upstashLimiters = new Map<number, Ratelimit>();
+
+function getUpstashLimiter(maxRequests: number): Ratelimit | null {
+  if (!upstashRedis) return null;
+  if (!upstashLimiters.has(maxRequests)) {
+    upstashLimiters.set(maxRequests, new Ratelimit({
+      redis: upstashRedis,
+      limiter: Ratelimit.slidingWindow(maxRequests, "1 h"),
+      prefix: `zikit:rl:${maxRequests}`,
+    }));
+  }
+  return upstashLimiters.get(maxRequests)!;
+}
 
 // ── In-memory fallback (development / no Redis) ─────────────────────
 
@@ -56,9 +65,10 @@ export async function rateLimit(
   maxRequests: number,
   windowMs: number
 ): Promise<{ allowed: boolean; remaining: number }> {
-  if (upstashLimiter) {
+  const limiter = getUpstashLimiter(maxRequests);
+  if (limiter) {
     try {
-      const result = await upstashLimiter.limit(key);
+      const result = await limiter.limit(key);
       return { allowed: result.success, remaining: result.remaining };
     } catch {
       // Fallback to in-memory if Redis is unreachable

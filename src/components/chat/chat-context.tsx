@@ -6,6 +6,7 @@ interface ChatPageContext {
   monitorName?: string;
   monitorUrl?: string;
   recentChanges?: string[];
+  accountFacts?: string;
 }
 
 const ChatContextValue = createContext<{
