@@ -204,20 +204,31 @@ export function CamoChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-border/30 p-3 flex gap-2">
+          <div className="border-t border-border/30 p-3">
+            {messages.length > 0 && (
+              <button
+                onClick={() => setMessages([])}
+                className="text-[9px] text-muted-foreground hover:text-foreground mb-2 block"
+              >
+                Clear chat
+              </button>
+            )}
+            <div className="flex gap-2">
             <Input
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value.slice(0, 500))}
               onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
               placeholder="Ask Camo anything..."
               className="text-sm"
               disabled={loading}
+              dir="auto"
             />
             <Button size="icon" onClick={() => sendMessage(input)} disabled={!input.trim() || loading}>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
               </svg>
             </Button>
+            </div>
           </div>
         </div>
       )}

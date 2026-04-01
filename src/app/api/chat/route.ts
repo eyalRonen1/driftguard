@@ -45,6 +45,34 @@ export async function POST(request: NextRequest) {
   const messages = body.messages || [];
   const pageContext = body.pageContext;
 
+  // Security: limit message count (prevent context stuffing)
+  if (messages.length > 20) {
+    return NextResponse.json({ reply: "Let's start a fresh conversation! I'm getting confused with so many messages." });
+  }
+
+  // Security: limit message length (prevent token abuse)
+  const lastMsg = messages[messages.length - 1]?.content || "";
+  if (lastMsg.length > 1200) {
+    return NextResponse.json({ reply: "That message is a bit too long for me. Can you keep it shorter?" });
+  }
+
+  // Security: prompt injection detection
+  const lowerMsg = lastMsg.toLowerCase();
+  const injectionPatterns = [
+    "ignore previous instructions",
+    "ignore all previous",
+    "system prompt",
+    "developer message",
+    "you are now",
+    "new instructions",
+    "forget your instructions",
+    "override your",
+    "disregard",
+  ];
+  if (injectionPatterns.some((p) => lowerMsg.includes(p))) {
+    return NextResponse.json({ reply: "Nice try! But Camo doesn't fall for that. Ask me something about your monitors!" });
+  }
+
   let contextPrompt = SYSTEM_PROMPT;
   if (pageContext?.recentChanges?.length || pageContext?.monitorName || pageContext?.monitorUrl) {
     contextPrompt += `\n\n=== LIVE USER DATA (TRUST THIS, NOT YOUR GENERAL KNOWLEDGE) ===`;
