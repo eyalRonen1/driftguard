@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useChatContext } from "./chat-context";
 
 /**
  * Camo Chat Widget - AI assistant for PageLifeguard.
@@ -35,6 +36,7 @@ Be friendly, concise (2-3 sentences max), and fun. Use occasional chameleon refe
 If you don't know something, say so and suggest checking the docs.`;
 
 export function CamoChatWidget() {
+  const { pageContext } = useChatContext();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -65,6 +67,7 @@ export function CamoChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
+          pageContext,
         }),
       });
 

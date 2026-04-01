@@ -7,6 +7,7 @@ import Image from "next/image";
 import { ChangeTimeline } from "@/components/dashboard/change-timeline";
 import { LiveCheckButton } from "@/components/dashboard/live-check";
 import { HealthSparkline, UptimeBar } from "@/components/dashboard/health-sparkline";
+import { useChatContext } from "@/components/chat/chat-context";
 
 interface Monitor {
   id: string;
@@ -40,6 +41,7 @@ export default function MonitorDetailPage() {
   const [monitor, setMonitor] = useState<Monitor | null>(null);
   const [changes, setChanges] = useState<Change[]>([]);
   const [loading, setLoading] = useState(true);
+  const { setPageContext } = useChatContext();
 
   useEffect(() => { fetchData(); }, [monitorId]);
 
@@ -49,6 +51,13 @@ export default function MonitorDetailPage() {
     const data = await res.json();
     setMonitor(data.monitor);
     setChanges(data.changes || []);
+
+    // Set chat context so Camo knows about this specific page
+    setPageContext({
+      monitorName: data.monitor?.name,
+      monitorUrl: data.monitor?.url,
+      recentChanges: (data.changes || []).slice(0, 5).map((c: Change) => c.summary),
+    });
     setLoading(false);
   }
 

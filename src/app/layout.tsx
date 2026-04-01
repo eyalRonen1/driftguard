@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CamoChatWidget } from "@/components/chat/camo-chat";
+import { ChatContextProvider } from "@/components/chat/chat-context";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -37,8 +38,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <CamoChatWidget />
+        <ChatContextProvider>
+          {children}
+          <CamoChatWidget />
+        </ChatContextProvider>
       </body>
     </html>
   );

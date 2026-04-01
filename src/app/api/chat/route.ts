@@ -35,6 +35,20 @@ export async function POST(request: NextRequest) {
   }
 
   const messages = body.messages || [];
+  const pageContext = body.pageContext;
+
+  let contextPrompt = SYSTEM_PROMPT;
+  if (pageContext?.monitorName || pageContext?.monitorUrl) {
+    contextPrompt += `\n\nCURRENT PAGE CONTEXT:
+The user is viewing the monitor for: "${pageContext.monitorName || "Unknown"}"
+URL: ${pageContext.monitorUrl || "Unknown"}`;
+    if (pageContext.recentChanges?.length) {
+      contextPrompt += `\nRecent changes on this page:\n${pageContext.recentChanges.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")}`;
+      contextPrompt += `\nRefer to these SPECIFIC changes when the user asks.`;
+    } else {
+      contextPrompt += `\nNo changes detected yet on this page.`;
+    }
+  }
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -46,11 +60,11 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages.slice(-10), // Last 10 messages for context
+          { role: "system", content: contextPrompt },
+          ...messages.slice(-10),
         ],
         temperature: 0.7,
-        max_tokens: 200,
+        max_tokens: 300,
       }),
     });
 
