@@ -46,7 +46,7 @@ export default async function DashboardPage() {
         </div>
         <div className="relative z-10">
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-cream)]">Hey {firstName}!</h1>
-          <p className="text-[var(--text-muted)] mt-1 text-sm">Your chameleon is watching. All good.</p>
+          <p className="text-[var(--text-muted)] mt-1 text-sm">All your pages look good right now.</p>
         </div>
       </div>
 
@@ -61,8 +61,8 @@ export default async function DashboardPage() {
       {allMonitors.length === 0 ? (
         <div className="card-glass p-10 text-center">
           <Image src="/assets/empty-hammock.png" alt="" width={200} height={200} className="mx-auto mb-4 rounded-xl" />
-          <h2 className="text-xl font-bold text-[var(--text-cream)] mb-2">Camo is bored!</h2>
-          <p className="text-[var(--text-muted)] mb-6 max-w-xs mx-auto text-sm">Give him a page to watch.</p>
+          <h2 className="text-xl font-bold text-[var(--text-cream)] mb-2">Nothing here yet</h2>
+          <p className="text-[var(--text-muted)] mb-6 max-w-xs mx-auto text-sm">Add your first page. We'll show you updates here.</p>
           <Link href="/dashboard/monitors/new" className="btn-primary inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -77,14 +77,14 @@ export default async function DashboardPage() {
             <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-lime)]/5 !border-[var(--accent-lime)]/20 relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-eye.png" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
-                <p className="text-[10px] text-[var(--accent-lime)] font-semibold uppercase tracking-wider">Watching</p>
+                <p className="text-[10px] text-[var(--accent-lime)] font-semibold uppercase tracking-wider">Pages tracked</p>
                 <p className="text-2xl font-bold text-[var(--accent-lime)] mt-1 count-pop">{activeCount}</p>
               </div>
             </div>
             <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-gold)]/5 !border-[var(--accent-gold)]/20 relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
-                <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Changes</p>
+                <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Updates found</p>
                 <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1 count-pop">{recentChanges.length}</p>
               </div>
             </div>

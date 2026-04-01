@@ -110,7 +110,7 @@ export default function MonitorDetailPage() {
         <div className="card-glass p-4 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-scales.png" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Health</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Page health</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="relative flex h-3 w-3">
                 {monitor.healthStatus === "healthy" && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-jade)] opacity-75" />}
@@ -127,21 +127,21 @@ export default function MonitorDetailPage() {
         <div className="card-glass p-4 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-rings.png" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Frequency</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Check schedule</p>
             <p className="font-bold mt-2 capitalize">{monitor.checkFrequency}</p>
           </div>
         </div>
         <div className="card-glass p-4 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-eye.png" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Last Check</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Last checked</p>
             <p className="font-bold text-sm mt-2">{monitor.lastCheckedAt ? new Date(monitor.lastCheckedAt).toLocaleString() : "Never"}</p>
           </div>
         </div>
         <div className="card-glass p-4 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-spiral.png" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Changes</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Updates found</p>
             <p className="font-bold text-lg mt-2 text-[var(--accent-gold)]">{changes.length}</p>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function MonitorDetailPage() {
       {/* Changes timeline */}
       <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
         <Image src="/assets/camo-watch.png" alt="" width={24} height={24} />
-        Change History
+        What changed<
       </h2>
       <ChangeTimeline changes={changes} />
     </div>

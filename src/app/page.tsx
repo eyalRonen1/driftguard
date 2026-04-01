@@ -33,13 +33,18 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <AnimateIn>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-              Your pages change.
+              Know when your
               <br />
-              <span className="text-[var(--accent-jade)]">Camo catches it.</span>
+              <span className="text-[var(--accent-jade)]">website changes</span>
             </h1>
           </AnimateIn>
-          <AnimateIn delay={0.45}>
-            <div className="flex items-center justify-center gap-3 mt-10">
+          <AnimateIn delay={0.15}>
+            <p className="text-[var(--text-sage)] mt-5 text-lg max-w-md mx-auto">
+              We watch your pages and tell you what changed — so you don&apos;t have to keep checking.
+            </p>
+          </AnimateIn>
+          <AnimateIn delay={0.3}>
+            <div className="flex items-center justify-center gap-3 mt-8">
               <Link href="/signup" className="btn-primary text-base">Start free</Link>
               <a href="#how" className="btn-secondary text-base">How it works</a>
             </div>
@@ -66,9 +71,9 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-14">Three steps. Zero effort.</h2>
           <StaggerContainer className="grid sm:grid-cols-3 gap-6">
             {[
-              { t: "Feed Camo a URL", img: "/assets/step1-eat-url.png", video: "/assets/step1-eat-url-video.mp4", pat: "/assets/pat-eye.png" },
-              { t: "Camo watches", img: "/assets/step2-scan.png", video: null, pat: "/assets/pat-chameleon.png" },
-              { t: "Camo rings the bell!", img: "/assets/step3-bell.png", video: "/assets/step3-bell-video.mp4", pat: "/assets/pat-swirl.png" },
+              { t: "Add pages you care about", img: "/assets/step1-eat-url.png", video: "/assets/step1-eat-url-video.mp4", pat: "/assets/pat-eye.png" },
+              { t: "We check them for changes", img: "/assets/step2-scan.png", video: null, pat: "/assets/pat-chameleon.png" },
+              { t: "You get clear updates", img: "/assets/step3-bell.png", video: "/assets/step3-bell-video.mp4", pat: "/assets/pat-swirl.png" },
             ].map((s, i) => (
               <StaggerItem key={i} className="card-glass card-lift p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.06]">
