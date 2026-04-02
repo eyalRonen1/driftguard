@@ -36,7 +36,8 @@ function isPrivateIp(ip: string): boolean {
  * Blocks private/internal IPs, non-http(s) schemes, and common bypass notations.
  */
 export async function validateUrl(
-  url: string
+  url: string,
+  opts?: { isRedirect?: boolean }
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   let parsed: URL;
   try {
@@ -94,6 +95,11 @@ export async function validateUrl(
     // DNS timeout or failure — allow the request (proxy will handle it if HTTP fails)
     if (err instanceof Error && err.message === "DNS timeout") {
       return { ok: true }; // Let it through, proxy will catch blocked sites
+    }
+    // For redirect targets, allow DNS failures — the initial URL was already validated,
+    // and redirect targets (CDN hostnames etc.) may have transient DNS issues
+    if (opts?.isRedirect) {
+      return { ok: true };
     }
     return { ok: false, reason: "Could not resolve hostname" };
   }
@@ -192,7 +198,7 @@ export async function fetchPage(
       if (!location) break;
 
       const redirectUrl = new URL(location, currentUrl).toString();
-      const redirectValidation = await validateUrl(redirectUrl);
+      const redirectValidation = await validateUrl(redirectUrl, { isRedirect: true });
       if (!redirectValidation.ok) {
         clearTimeout(timeout);
         return {
@@ -433,6 +439,15 @@ export async function smartFetch(
     forceBrowser?: boolean;
   }
 ): Promise<FetchResult> {
+  // Clean tracking parameters to reduce URL noise
+  try {
+    const parsed = new URL(url);
+    const trackingParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_campaignid", "gclid", "gad_source", "gad_campaignid", "dclid", "fbclid", "msclkid"];
+    let cleaned = false;
+    trackingParams.forEach((p) => { if (parsed.searchParams.has(p)) { parsed.searchParams.delete(p); cleaned = true; } });
+    if (cleaned) url = parsed.toString();
+  } catch {}
+
   // If explicitly forced to use browser
   if (options?.forceBrowser) {
     const browserAvailable = await isPlaywrightAvailable();
@@ -447,10 +462,22 @@ export async function smartFetch(
 
   const isBlocked =
     result.error?.includes("403") ||
+    result.error?.includes("401") ||
+    result.error?.includes("429") ||
     result.error?.includes("503") ||
     result.error?.includes("Blocked") ||
-    result.error?.includes("Forbidden");
-  const isJsOnly = result.text.length < 100 && result.statusCode === 200;
+    result.error?.includes("Forbidden") ||
+    (result.statusCode >= 400 && result.text.length < 100);
+
+  // Page returned HTML but extracted text is tiny = JS rendering needed (e.g. SPA shell)
+  const isJsOnly = (result.text.length < 500 && result.statusCode === 200 && result.html.length > 1000);
+
+  // Connection-refused sites are genuinely unreachable — don't waste proxy credits
+  const isConnectionRefused = result.statusCode === 0 && (
+    result.error?.includes("ECONNREFUSED") ||
+    result.error?.includes("ECONNRESET") ||
+    result.error?.includes("ENETUNREACH")
+  );
 
   if (!isBlocked && !isJsOnly) {
     return result; // Tier 1 succeeded
@@ -458,7 +485,8 @@ export async function smartFetch(
 
   // ── Tier 2: Scraping proxy (fast, works on serverless) ──
   // Try proxy BEFORE browser — proxy is faster and works within Vercel's 10s timeout
-  if (isBlocked && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
+  // Don't try proxy for connection-refused sites — they're genuinely unreachable
+  if (isBlocked && !isConnectionRefused && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
     const proxyResult = await fetchViaProxy(url);
     if (!proxyResult.error && proxyResult.text.length > 50) {
       return proxyResult;
