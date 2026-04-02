@@ -434,29 +434,76 @@ export async function smartFetch(
     }
   }
 
-  // Tier 1: Try regular HTTP first
+  // ── Tier 1: Regular HTTP ──
   const result = await fetchPage(url, options);
 
-  // Determine if we should retry with a headless browser
-  const shouldRetryWithBrowser =
+  const isBlocked =
     result.error?.includes("403") ||
     result.error?.includes("503") ||
     result.error?.includes("Blocked") ||
-    (result.text.length < 100 && result.statusCode === 200); // JS-only page
+    result.error?.includes("Forbidden");
+  const isJsOnly = result.text.length < 100 && result.statusCode === 200;
 
-  if (shouldRetryWithBrowser) {
-    const browserAvailable = await isPlaywrightAvailable();
-    if (browserAvailable) {
-      console.log(`[smartFetch] HTTP fetch insufficient for ${url}, retrying with browser...`);
-      const browserResult = await fetchPageWithBrowser(url, {
-        timeoutMs: options?.timeoutMs || 30000,
-      });
-      // Only use browser result if it actually got more content
-      if (!browserResult.error && browserResult.text.length > result.text.length) {
-        return browserResult;
-      }
+  if (!isBlocked && !isJsOnly) {
+    return result; // Tier 1 succeeded
+  }
+
+  // ── Tier 2: Headless browser ──
+  const browserAvailable = await isPlaywrightAvailable();
+  if (browserAvailable) {
+    console.log(`[smartFetch] Tier 2: browser fallback for ${url}`);
+    const browserResult = await fetchPageWithBrowser(url, {
+      timeoutMs: options?.timeoutMs || 30000,
+    });
+    if (!browserResult.error && browserResult.text.length > result.text.length) {
+      return browserResult;
+    }
+  }
+
+  // ── Tier 3: Scraping proxy (for IP-blocked sites) ──
+  if (isBlocked && process.env.SCRAPING_API_KEY) {
+    console.log(`[smartFetch] Tier 3: proxy fallback for ${url}`);
+    const proxyResult = await fetchViaProxy(url);
+    if (!proxyResult.error && proxyResult.text.length > 50) {
+      return proxyResult;
     }
   }
 
   return result;
+}
+
+/**
+ * Fetch via scraping proxy service (Tier 3 fallback).
+ * Handles Cloudflare/IP-blocked sites using premium residential proxies.
+ * Requires SCRAPING_API_KEY env var (ScrapingBee free tier: 1000 req/month).
+ */
+async function fetchViaProxy(url: string): Promise<FetchResult> {
+  const apiKey = process.env.SCRAPING_API_KEY;
+  if (!apiKey) {
+    return { text: "", html: "", hash: "", statusCode: 0, responseTimeMs: 0, contentLength: 0, error: "No proxy configured" };
+  }
+
+  const start = Date.now();
+  try {
+    const proxyUrl = `https://app.scrapingbee.com/api/v1/?api_key=${apiKey}&url=${encodeURIComponent(url)}&render_js=false&premium_proxy=true`;
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(20000) });
+    const responseTimeMs = Date.now() - start;
+
+    if (!res.ok) {
+      return { text: "", html: "", hash: "", statusCode: res.status, responseTimeMs, contentLength: 0, error: `Proxy returned ${res.status}` };
+    }
+
+    const html = await res.text();
+    const text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const hash = createHash("sha256").update(text).digest("hex");
+    return { text, html, hash, statusCode: 200, responseTimeMs, contentLength: text.length, error: null };
+  } catch (err) {
+    return { text: "", html: "", hash: "", statusCode: 0, responseTimeMs: Date.now() - start, contentLength: 0, error: err instanceof Error ? err.message : "Proxy failed" };
+  }
 }
