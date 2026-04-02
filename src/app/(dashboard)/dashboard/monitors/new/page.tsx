@@ -209,6 +209,9 @@ export default function NewMonitorPage() {
                   {loading ? "Checking..." : "Preview"}
                 </button>
               </div>
+              <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                Supports: websites, JSON APIs, PDF documents, RSS/Atom feeds
+              </p>
             </div>
 
             {/* Preview result */}

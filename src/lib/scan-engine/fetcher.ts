@@ -94,6 +94,19 @@ export async function validateUrl(
   return { ok: true };
 }
 
+// ── User-Agent Rotation ─────────────────────────────────────────────
+
+const USER_AGENTS = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0",
+];
+
+function getRandomUA(): string {
+  return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+}
+
 // Maximum number of redirects we will follow manually
 const MAX_REDIRECTS = 5;
 
@@ -145,9 +158,10 @@ export async function fetchPage(
     for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
       response = await fetch(currentUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; Zikit/1.0; +https://zikit.ai)",
-          Accept: "text/html,application/xhtml+xml",
-          "Accept-Language": "en-US,en;q=0.9",
+          "User-Agent": getRandomUA(),
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7",
+          "Accept-Language": "en-US,en;q=0.9,he;q=0.8",
+          "Accept-Encoding": "gzip, deflate, br",
           ...(options?.headers || {}),
         },
         signal: controller.signal,
@@ -207,6 +221,72 @@ export async function fetchPage(
       };
     }
 
+    const statusCode = response.status;
+    const contentType = response.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      // JSON API response
+      const json = await response.text();
+      const text = JSON.stringify(JSON.parse(json), null, 2); // pretty-print for readable diffs
+      const hash = createHash("sha256").update(text).digest("hex");
+      return { text, html: json, hash, statusCode, responseTimeMs, contentLength: text.length, error: null };
+    }
+
+    if (contentType.includes("application/pdf")) {
+      // PDF document — extract text if possible, otherwise hash the binary
+      const buffer = await response.arrayBuffer();
+      const hash = createHash("sha256").update(Buffer.from(buffer)).digest("hex");
+      let text = `[PDF document, ${buffer.byteLength} bytes]`;
+
+      try {
+        // Try to extract text from PDF (pdf-parse v2 class-based API)
+        const { PDFParse } = await import("pdf-parse");
+        const parser = new PDFParse({ data: new Uint8Array(buffer) });
+        const result = await parser.getText();
+        if (result.text) {
+          text = result.text.replace(/\s+/g, " ").trim() || text;
+        }
+        await parser.destroy();
+      } catch {
+        // pdf-parse not available or failed, use hash-only monitoring
+      }
+
+      return { text, html: "", hash, statusCode, responseTimeMs, contentLength: buffer.byteLength, error: null };
+    }
+
+    if (contentType.includes("application/rss") || contentType.includes("application/atom") || contentType.includes("text/xml") || contentType.includes("application/xml")) {
+      const xml = await response.text();
+
+      // Check if it's actually an RSS/Atom feed
+      if (xml.includes("<rss") || xml.includes("<feed") || xml.includes("<channel>")) {
+        // Extract items/entries for readable comparison
+        const items: string[] = [];
+        const itemRegex = /<(?:item|entry)>([\s\S]*?)<\/(?:item|entry)>/gi;
+        let match;
+        while ((match = itemRegex.exec(xml)) !== null) {
+          const titleMatch = match[1].match(/<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/i);
+          const linkMatch = match[1].match(/<link[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/link>/i) || match[1].match(/<link[^>]*href="([^"]*)"[^>]*\/?>/i);
+          const descMatch = match[1].match(/<description[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/description>/i) || match[1].match(/<(?:summary|content)[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/(?:summary|content)>/i);
+
+          const title = titleMatch?.[1]?.trim() || "";
+          const link = linkMatch?.[1]?.trim() || "";
+          const desc = descMatch?.[1]?.replace(/<[^>]+>/g, "").trim().slice(0, 200) || "";
+
+          if (title) items.push(`${title}\n${link}\n${desc}`);
+        }
+
+        const text = items.join("\n\n---\n\n") || xml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        const hash = createHash("sha256").update(text).digest("hex");
+        return { text, html: xml, hash, statusCode, responseTimeMs, contentLength: text.length, error: null };
+      }
+
+      // Regular XML — treat as HTML using already-read content
+      const text = extractText(xml, options?.cssSelector, options?.ignoreSelectors);
+      const hash = createHash("sha256").update(text).digest("hex");
+      return { text, html: xml, hash, statusCode, responseTimeMs, contentLength: text.length, error: null };
+    }
+
+    // Default: HTML content
     const html = await response.text();
     const text = extractText(html, options?.cssSelector, options?.ignoreSelectors);
     const hash = createHash("sha256").update(text).digest("hex");
@@ -215,7 +295,7 @@ export async function fetchPage(
       text,
       html,
       hash,
-      statusCode: response.status,
+      statusCode,
       responseTimeMs,
       contentLength: text.length,
       error: null,
