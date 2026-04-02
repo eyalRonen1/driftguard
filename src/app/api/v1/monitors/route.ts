@@ -78,16 +78,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Preflight check: verify URL is accessible
+  // Preflight check: try to fetch the URL (non-blocking — monitor is created even if this fails)
   const preflight = await fetchPage(data.url, { cssSelector: data.cssSelector, timeoutMs: 10000 });
-  if (preflight.error) {
-    return NextResponse.json(
-      { error: `Cannot reach URL: ${preflight.error}`, preflight: false },
-      { status: 422 }
-    );
-  }
+  const preflightOk = !preflight.error && preflight.text.length > 0;
 
-  // Create monitor with initial content
+  // Create monitor (always — even if preflight failed, smartFetch will retry with browser later)
   const [monitor] = await db
     .insert(monitors)
     .values({
@@ -103,10 +98,12 @@ export async function POST(request: NextRequest) {
       useCase: data.useCase ?? null,
       watchKeywords: data.watchKeywords ?? null,
       keywordMode: data.keywordMode ?? "any",
-      lastContentHash: preflight.hash,
-      lastContentText: preflight.text,
+      lastContentHash: preflightOk ? preflight.hash : null,
+      lastContentText: preflightOk ? preflight.text : null,
       lastCheckedAt: new Date(),
       nextCheckAt: getNextCheckTime(data.checkFrequency),
+      healthStatus: preflightOk ? "healthy" : "unstable",
+      healthReason: preflightOk ? null : `Initial fetch returned: ${preflight.error || "empty content"}. Will retry with Smart Browser.`,
     })
     .returning();
 
@@ -122,6 +119,10 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  return NextResponse.json({ monitor, contentPreview: preflight.text.slice(0, 500) }, { status: 201 });
+  return NextResponse.json({
+    monitor,
+    contentPreview: preflightOk ? preflight.text.slice(0, 500) : null,
+    preflightWarning: preflightOk ? undefined : "This site uses bot protection. Camo will use Smart Browser to monitor it.",
+  }, { status: 201 });
 }
 

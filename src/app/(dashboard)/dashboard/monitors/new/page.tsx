@@ -94,13 +94,20 @@ export default function NewMonitorPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Could not reach this URL");
-        setLoading(false);
-        return;
+        const errMsg = data.error || "";
+        // If it's a bot-protected site, still allow creating the monitor
+        if (errMsg.includes("403") || errMsg.includes("Forbidden") || errMsg.includes("503") || errMsg.includes("Blocked")) {
+          setPreview("This site uses bot protection — Camo will use Smart Browser to watch it.");
+          if (!name) setName(new URL(url).hostname);
+        } else {
+          setError(errMsg || "Could not reach this URL");
+          setLoading(false);
+          return;
+        }
+      } else {
+        setPreview(data.preview?.slice(0, 300) || "Content detected");
+        if (!name) setName(data.title || new URL(url).hostname);
       }
-
-      setPreview(data.preview?.slice(0, 300) || "Content detected");
-      if (!name) setName(data.title || new URL(url).hostname);
     } catch {
       setError("Could not check URL");
     }
