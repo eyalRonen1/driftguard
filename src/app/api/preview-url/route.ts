@@ -31,15 +31,8 @@ export async function POST(request: NextRequest) {
     console.log(`[preview-url] result: error=${result.error}, text=${result.text.length}, hasProxy=${hasProxy}, tokenLen=${process.env.SCRAPE_DO_TOKEN?.length || 0}`);
 
     if (result.error && result.text.length === 0) {
-      // Check if it's a bot-protection error
-      if (result.error.includes("403") || result.error.includes("Forbidden") || result.error.includes("Blocked")) {
-        return NextResponse.json(
-          { error: `Page returned 403 Forbidden` },
-          { status: 422 }
-        );
-      }
       return NextResponse.json(
-        { error: result.error },
+        { error: result.error, _debug: { hasProxy, tokenLen: process.env.SCRAPE_DO_TOKEN?.length || 0, statusCode: result.statusCode } },
         { status: 422 }
       );
     }
