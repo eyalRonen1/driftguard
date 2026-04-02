@@ -17,6 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zikit.ai"),
   title: "Zikit - Website Change Monitoring with AI Summaries",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   description:
     "Monitor any web page for changes and get AI-powered summaries of what changed. Not raw diffs — plain English insights like 'Competitor dropped prices by 15%.'",
   keywords: "website monitoring, page change detection, competitor tracking, AI summaries, web alerts",

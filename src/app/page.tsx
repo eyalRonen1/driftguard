@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Camo, CamoStripes, CamoEye, CamoPaw } from "@/components/brand/camo";
+import { CamoStripes, CamoEye, CamoPaw } from "@/components/brand/camo";
 import { FloatingLeaves } from "@/components/marketing/floating-leaves";
 import { AnimateIn, StaggerContainer, StaggerItem } from "@/components/shared/animate-in";
 import { UrlDemo } from "@/components/marketing/url-demo";
@@ -16,7 +16,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 nav-glass">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <Camo size={28} className="animate-sway" />
+            <Image src="/assets/zikit-icon.webp" alt="Zikit" width={28} height={28} className="rounded" />
             <span className="font-semibold tracking-tight">Zikit</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-white/6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-[var(--text-muted)]">
             <div className="flex items-center gap-2">
-              <Camo size={16} />
+              <Image src="/assets/zikit-icon.webp" alt="Zikit" width={16} height={16} className="rounded" />
               <span>&copy; {new Date().getFullYear()} Zikit. All rights reserved.</span>
             </div>
             <span>Payments processed by <a href="https://paddle.com" className="text-[var(--accent-jade)] hover:underline">Paddle</a></span>
