@@ -22,6 +22,7 @@ interface MonitorCardProps {
   isActive: boolean;
   lastCheckedAt: string | null;
   changesCount?: number;
+  busyLabel?: string;
   onPause?: () => void;
   onResume?: () => void;
   onCheck?: () => void;
@@ -49,14 +50,24 @@ function getFaviconUrl(url: string): string {
 
 export function MonitorCard({
   id, name, url, checkFrequency, healthStatus, isActive, lastCheckedAt, changesCount = 0,
-  onPause, onResume, onCheck, onDelete,
+  busyLabel, onPause, onResume, onCheck, onDelete,
 }: MonitorCardProps) {
   const healthColor = healthStatus === "error" ? "destructive"
     : healthStatus === "unstable" ? "secondary"
     : "default";
 
   return (
-    <Card className="card-lift overflow-hidden">
+    <Card className={`card-lift overflow-hidden relative ${busyLabel ? "opacity-70 pointer-events-none" : ""}`}>
+      {busyLabel && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-xl">
+          <div className="flex items-center gap-2 bg-[var(--bg-deep)]/90 px-3 py-1.5 rounded-full">
+            <svg className="w-3.5 h-3.5 animate-spin text-[var(--accent-jade)]" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="40 20" />
+            </svg>
+            <span className="text-xs text-[var(--accent-jade)] font-medium">{busyLabel}</span>
+          </div>
+        </div>
+      )}
       <Link href={`/dashboard/monitors/${id}`} className="block p-4">
         <div className="flex items-start gap-3">
           {/* Favicon */}

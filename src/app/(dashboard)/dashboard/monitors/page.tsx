@@ -35,6 +35,7 @@ export default function MonitorsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [busyMonitors, setBusyMonitors] = useState<Record<string, string>>({});
 
   useEffect(() => { fetchMonitors(); }, []);
 
@@ -52,33 +53,35 @@ export default function MonitorsPage() {
     }
   }
 
-  async function handleCheck(monitorId: string) {
-    await fetch(`/api/v1/monitors/${monitorId}/check`, { method: "POST" });
-    fetchMonitors();
+  async function withBusy(monitorId: string, label: string, fn: () => Promise<void>) {
+    setBusyMonitors((prev) => ({ ...prev, [monitorId]: label }));
+    try {
+      await fn();
+      await fetchMonitors();
+    } finally {
+      setBusyMonitors((prev) => { const next = { ...prev }; delete next[monitorId]; return next; });
+    }
   }
 
-  async function handlePause(monitorId: string) {
-    await fetch(`/api/v1/monitors/${monitorId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isPaused: true }),
-    });
-    fetchMonitors();
+  function handleCheck(monitorId: string) {
+    withBusy(monitorId, "Checking...", () => fetch(`/api/v1/monitors/${monitorId}/check`, { method: "POST" }));
   }
 
-  async function handleResume(monitorId: string) {
-    await fetch(`/api/v1/monitors/${monitorId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isPaused: false }),
-    });
-    fetchMonitors();
+  function handlePause(monitorId: string) {
+    withBusy(monitorId, "Pausing...", () => fetch(`/api/v1/monitors/${monitorId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isPaused: true }),
+    }));
   }
 
-  async function handleDelete(monitorId: string) {
+  function handleResume(monitorId: string) {
+    withBusy(monitorId, "Resuming...", () => fetch(`/api/v1/monitors/${monitorId}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isPaused: false }),
+    }));
+  }
+
+  function handleDelete(monitorId: string) {
     if (!confirm("Delete this monitor and all its history?")) return;
-    await fetch(`/api/v1/monitors/${monitorId}`, { method: "DELETE" });
-    fetchMonitors();
+    withBusy(monitorId, "Deleting...", () => fetch(`/api/v1/monitors/${monitorId}`, { method: "DELETE" }));
   }
 
   // Client-side filtering
@@ -212,6 +215,7 @@ export default function MonitorsPage() {
               healthStatus={m.healthStatus || "healthy"}
               isActive={m.isActive && !m.isPaused}
               lastCheckedAt={m.lastCheckedAt}
+              busyLabel={busyMonitors[m.id]}
               onCheck={() => handleCheck(m.id)}
               onPause={() => handlePause(m.id)}
               onResume={() => handleResume(m.id)}
