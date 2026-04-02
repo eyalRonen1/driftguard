@@ -487,12 +487,40 @@ async function fetchViaProxy(url: string): Promise<FetchResult> {
   }
 
   const start = Date.now();
-  try {
-    // Prefer Scrape.do (98% Cloudflare success, fastest)
-    const proxyUrl = scrapeDoToken
-      ? `https://api.scrape.do/?token=${scrapeDoToken}&url=${encodeURIComponent(url)}&super=true`
-      : `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url)}&render_js=false&premium_proxy=true`;
 
+  if (scrapeDoToken) {
+    // Scrape.do: try regular proxy first (1 credit), then super (5 credits) if it fails
+    for (const superMode of [false, true]) {
+      try {
+        const proxyUrl = `https://api.scrape.do/?token=${scrapeDoToken}&url=${encodeURIComponent(url)}${superMode ? "&super=true" : ""}`;
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(20000) });
+
+        if (res.ok) {
+          const html = await res.text();
+          if (html.length > 100) {
+            const responseTimeMs = Date.now() - start;
+            const text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+            const hash = createHash("sha256").update(text).digest("hex");
+            console.log(`[proxy] ${url} succeeded with ${superMode ? "super" : "regular"} proxy`);
+            return { text, html, hash, statusCode: 200, responseTimeMs, contentLength: text.length, error: null };
+          }
+        }
+
+        if (!superMode) {
+          console.log(`[proxy] Regular proxy failed for ${url}, trying super...`);
+          continue;
+        }
+      } catch {
+        if (!superMode) continue;
+      }
+    }
+
+    return { text: "", html: "", hash: "", statusCode: 0, responseTimeMs: Date.now() - start, contentLength: 0, error: "Proxy failed after both regular and super attempts" };
+  }
+
+  // ScrapingBee fallback
+  try {
+    const proxyUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url)}&render_js=false&premium_proxy=true`;
     const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(25000) });
     const responseTimeMs = Date.now() - start;
 
