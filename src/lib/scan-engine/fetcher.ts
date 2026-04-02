@@ -150,7 +150,7 @@ export async function fetchPage(
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options?.timeoutMs || 15000);
+    const timeout = setTimeout(() => controller.abort(), options?.timeoutMs || 5000);
 
     let currentUrl = url;
     let response: Response | undefined;
@@ -496,7 +496,7 @@ async function fetchViaProxy(url: string): Promise<FetchResult> {
     for (const superMode of [false, true]) {
       try {
         const proxyUrl = `https://api.scrape.do/?token=${scrapeDoToken}&url=${encodeURIComponent(url)}${superMode ? "&super=true" : ""}`;
-        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(20000) });
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(7000) });
 
         if (res.ok) {
           const html = await res.text();
@@ -524,7 +524,7 @@ async function fetchViaProxy(url: string): Promise<FetchResult> {
   // ScrapingBee fallback
   try {
     const proxyUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url)}&render_js=false&premium_proxy=true`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(25000) });
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(7000) });
     const responseTimeMs = Date.now() - start;
 
     if (!res.ok) {
