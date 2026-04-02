@@ -9,6 +9,18 @@ import { eq } from "drizzle-orm";
 import type { User } from "@supabase/supabase-js";
 
 export async function ensureUserAndOrg(authUser: User) {
+  const emailDomain = authUser.email?.split("@")[1]?.toLowerCase();
+  if (emailDomain) {
+    try {
+      const disposableDomains: string[] = require("disposable-email-domains");
+      if (disposableDomains.includes(emailDomain)) {
+        throw new Error("Please use a permanent email address to sign up.");
+      }
+    } catch (err: any) {
+      if (err?.message?.includes("permanent email")) throw err;
+    }
+  }
+
   // Check if user exists in our DB
   const [existingUser] = await db
     .select()

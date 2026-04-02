@@ -14,6 +14,9 @@ export async function GET() {
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { allowed } = await rateLimit(`list:${auth.user.id}`, 60, 60000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+
   try {
     const result = await db
       .select()

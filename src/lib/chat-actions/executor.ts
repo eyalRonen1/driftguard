@@ -9,6 +9,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { checkMonitor } from "@/lib/scan-engine/checker";
 import { fetchPage } from "@/lib/scan-engine/fetcher";
 import { getNextCheckTime } from "@/lib/utils/check-schedule";
+import { rateLimit } from "@/lib/rate-limit";
 
 export interface ActionResult {
   success: boolean;
@@ -45,6 +46,22 @@ export async function executeAction(
   auth: AuthContext,
   confirmed: boolean = false
 ): Promise<ActionResult> {
+  const actionLimits: Record<string, { max: number; windowMs: number }> = {
+    create_monitor: { max: 5, windowMs: 3600000 },
+    delete_monitor: { max: 3, windowMs: 3600000 },
+    check_monitor: { max: 10, windowMs: 3600000 },
+    pause_monitor: { max: 10, windowMs: 3600000 },
+    resume_monitor: { max: 10, windowMs: 3600000 },
+    list_monitors: { max: 30, windowMs: 60000 },
+    get_stats: { max: 30, windowMs: 60000 },
+    get_changes: { max: 30, windowMs: 60000 },
+  };
+  const actionLimit = actionLimits[action];
+  if (actionLimit) {
+    const { allowed } = await rateLimit(`action:${action}:${auth.userId}`, actionLimit.max, actionLimit.windowMs);
+    if (!allowed) return { success: false, message: "You're doing that too often. Please wait a bit." };
+  }
+
   switch (action) {
     case "list_monitors": {
       const result = await db.select({

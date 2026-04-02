@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db";
 import {
   users,
@@ -32,6 +33,9 @@ export async function DELETE() {
   if (!authUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { allowed } = await rateLimit(`account-delete:${authUser.id}`, 3, 3600000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   try {
     // Find the user record

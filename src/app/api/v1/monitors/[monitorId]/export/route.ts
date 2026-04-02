@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { monitors, changes } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(
   _request: NextRequest,
@@ -11,6 +12,9 @@ export async function GET(
   const { monitorId } = await params;
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed } = await rateLimit('export:' + auth.user.id, 5, 60000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   // Verify ownership
   const [monitor] = await db.select()

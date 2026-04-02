@@ -3,10 +3,14 @@ import { db } from "@/lib/db";
 import { monitors, changes } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed } = await rateLimit('export-all:' + auth.user.id, 5, 60000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   try {
     const allChanges = await db.select({

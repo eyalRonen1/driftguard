@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { alertConfigs, monitors } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { rateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const alertConfigSchema = z.object({
@@ -17,6 +18,9 @@ const alertConfigSchema = z.object({
 export async function GET(request: NextRequest) {
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed: readAllowed } = await rateLimit('alerts-read:' + auth.user.id, 60, 60000);
+  if (!readAllowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   const monitorId = request.nextUrl.searchParams.get("monitorId");
 
@@ -47,6 +51,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed: writeAllowed } = await rateLimit('alerts-write:' + auth.user.id, 20, 60000);
+  if (!writeAllowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   let body;
   try {
@@ -117,6 +124,9 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed: deleteAllowed } = await rateLimit('alerts-delete:' + auth.user.id, 10, 60000);
+  if (!deleteAllowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   const configId = request.nextUrl.searchParams.get("id");
   if (!configId) return NextResponse.json({ error: "Missing config id" }, { status: 400 });

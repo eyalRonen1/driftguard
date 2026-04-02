@@ -4,6 +4,7 @@ import { monitors, changes } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { updateMonitorSchema } from "@/lib/validators/monitor";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { rateLimit } from "@/lib/rate-limit";
 
 // GET /api/v1/monitors/[monitorId] - Get monitor with recent changes
 export async function GET(
@@ -13,6 +14,9 @@ export async function GET(
   const { monitorId } = await params;
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed } = await rateLimit(`read:${auth.user.id}`, 60, 60000);
+  if (!allowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   try {
     const [monitor] = await db
@@ -47,6 +51,9 @@ export async function PATCH(
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { allowed: patchAllowed } = await rateLimit(`update:${auth.user.id}`, 20, 60000);
+  if (!patchAllowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+
   let body;
   try { body = await request.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
@@ -80,6 +87,9 @@ export async function DELETE(
   const { monitorId } = await params;
   const auth = await getAuthenticatedOrg();
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { allowed: delAllowed } = await rateLimit(`delete-monitor:${auth.user.id}`, 10, 60000);
+  if (!delAllowed) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
 
   try {
     const [monitor] = await db

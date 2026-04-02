@@ -8,6 +8,10 @@ import { createHash } from "crypto";
 import dns from "dns";
 import { fetchPageWithBrowser, isPlaywrightAvailable } from "./browser-fetcher";
 
+let proxyCallsThisHour = 0;
+const PROXY_HOURLY_LIMIT = 50;
+if (typeof globalThis !== "undefined") { setInterval(() => { proxyCallsThisHour = 0; }, 3600000); }
+
 // ── SSRF Protection ──────────────────────────────────────────────────
 
 const PRIVATE_IP_RANGES = [
@@ -501,7 +505,6 @@ export async function smartFetch(
   if (isBlocked || isJsOnly) {
     const browserAvailable = await isPlaywrightAvailable();
     if (browserAvailable) {
-      console.log(`[smartFetch] Tier 3: browser fallback for ${url}`);
       const browserResult = await fetchPageWithBrowser(url, {
         timeoutMs: options?.timeoutMs || 30000,
       });
@@ -528,6 +531,11 @@ async function fetchViaProxy(url: string): Promise<FetchResult> {
     return { text: "", html: "", hash: "", statusCode: 0, responseTimeMs: 0, contentLength: 0, error: "No proxy configured" };
   }
 
+  if (proxyCallsThisHour >= PROXY_HOURLY_LIMIT) {
+    return { text: "", html: "", hash: "", statusCode: 0, responseTimeMs: 0, contentLength: 0, error: "Proxy limit reached" };
+  }
+  proxyCallsThisHour++;
+
   const start = Date.now();
 
   if (scrapeDoToken) {
@@ -543,13 +551,11 @@ async function fetchViaProxy(url: string): Promise<FetchResult> {
             const responseTimeMs = Date.now() - start;
             const text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
             const hash = createHash("sha256").update(text).digest("hex");
-            console.log(`[proxy] ${url} succeeded with ${superMode ? "super" : "regular"} proxy`);
             return { text, html, hash, statusCode: 200, responseTimeMs, contentLength: text.length, error: null };
           }
         }
 
         if (!superMode) {
-          console.log(`[proxy] Regular proxy failed for ${url}, trying super...`);
           continue;
         }
       } catch {

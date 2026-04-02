@@ -49,6 +49,8 @@ function extractTimestamp(signatureHeader: string | null): string | null {
   return match ? match[1] : null;
 }
 
+const processedEvents = new Set<string>();
+
 // POST /api/webhooks/paddle - Handle Paddle webhook events
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
@@ -69,7 +71,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const event = JSON.parse(rawBody);
+    const eventId = event.event_id || event.notification_id || "";
+    if (eventId && processedEvents.has(eventId)) {
+      return NextResponse.json({ received: true, duplicate: true }, { status: 200 });
+    }
     await handlePaddleWebhook(event);
+    if (eventId) { processedEvents.add(eventId); setTimeout(() => processedEvents.delete(eventId), 3600000); }
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error("Paddle webhook processing error:", err);
