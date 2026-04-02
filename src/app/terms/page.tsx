@@ -4,8 +4,13 @@ export default function TermsPage() {
   return (
     <main className="bg-jungle-stage min-h-screen">
       <div className="max-w-3xl mx-auto px-6 py-20">
-        <Link href="/" className="text-sm text-muted-foreground hover:text-primary mb-8 block">← Back to home</Link>
+        <Link href="/" className="text-sm text-muted-foreground hover:text-primary mb-8 block">&larr; Back to home</Link>
         <h1 className="text-3xl font-bold mb-8">Terms & Conditions</h1>
+        <nav className="flex gap-4 text-xs text-muted-foreground mb-8">
+          <Link href="/terms" className="text-primary font-medium">Terms</Link>
+          <Link href="/privacy" className="hover:text-primary transition">Privacy</Link>
+          <Link href="/accessibility" className="hover:text-primary transition">Accessibility</Link>
+        </nav>
         <div className="prose prose-invert prose-sm max-w-none space-y-4 text-muted-foreground">
           <p><strong>Last updated:</strong> April 1, 2026</p>
           <p>These Terms & Conditions govern your use of Zikit (&quot;the Service&quot;), operated by Zikit (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;).</p>
@@ -28,7 +33,16 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-foreground mt-6">6. Limitation of Liability</h2>
           <p>The Service is provided &quot;as is&quot;. We are not liable for missed changes, delayed alerts, or any decisions made based on our monitoring results.</p>
 
-          <h2 className="text-lg font-semibold text-foreground mt-6">7. Contact</h2>
+          <h2 className="text-lg font-semibold text-foreground mt-6">7. Intellectual Property</h2>
+          <p>All content, code, and intellectual property of Zikit remains owned by Zikit. You retain full ownership of your data. We grant you a limited, non-exclusive license to use the service for its intended purpose during your subscription period.</p>
+
+          <h2 className="text-lg font-semibold text-foreground mt-6">8. Governing Law</h2>
+          <p>These terms are governed by the laws of the State of Israel. Any disputes shall be resolved in the competent courts of Tel Aviv, Israel.</p>
+
+          <h2 className="text-lg font-semibold text-foreground mt-6">9. Dispute Resolution</h2>
+          <p>Before initiating legal proceedings, both parties agree to attempt to resolve disputes through good-faith negotiation for a period of 30 days. Either party may initiate this process by sending written notice to the other party describing the dispute and proposed resolution.</p>
+
+          <h2 className="text-lg font-semibold text-foreground mt-6">10. Contact</h2>
           <p>Email: <a href="mailto:support@zikit.ai" className="text-primary">support@zikit.ai</a></p>
         </div>
       </div>

@@ -211,9 +211,10 @@ export default function NewMonitorPage() {
 
           <div className="card-glass rounded-xl border border-white/8 p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">URL to monitor</label>
+              <label htmlFor="monitor-url" className="block text-sm font-medium text-[var(--text-sage)] mb-1">URL to monitor</label>
               <div className="flex gap-2">
                 <input
+                  id="monitor-url"
                   type="url"
                   value={url}
                   onChange={(e) => { setUrl(e.target.value); setPreview(null); }}
@@ -256,8 +257,9 @@ export default function NewMonitorPage() {
             {preview && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-sage)] mb-1">Monitor name</label>
+                  <label htmlFor="monitor-name" className="block text-sm font-medium text-[var(--text-sage)] mb-1">Monitor name</label>
                   <input
+                    id="monitor-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -297,10 +299,11 @@ export default function NewMonitorPage() {
 
                 {/* Keyword monitoring (optional) */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[var(--text-cream)]">
+                  <label htmlFor="monitor-keywords" className="block text-sm font-medium text-[var(--text-cream)]">
                     Keyword alerts <span className="text-[var(--text-muted)] font-normal">(optional)</span>
                   </label>
                   <input
+                    id="monitor-keywords"
                     type="text"
                     value={keywords}
                     onChange={(e) => setKeywords(e.target.value)}

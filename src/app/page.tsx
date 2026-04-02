@@ -72,7 +72,7 @@ export default function LandingPage() {
               </div>
               <div className="relative z-10">
                 <div className="flex items-center justify-center gap-3 mb-5">
-                  <Image src="/assets/camo-watch.webp" alt="" width={40} height={40} className="rounded-lg" />
+                  <Image src="/assets/camo-watch.webp" alt="Camo watching your page" width={40} height={40} className="rounded-lg" />
                   <div>
                     <p className="text-[10px] font-medium text-[var(--accent-gold)] tracking-wider uppercase">Live demo</p>
                     <h2 className="text-base sm:text-lg font-bold">Can Camo watch your page?</h2>
@@ -157,7 +157,7 @@ export default function LandingPage() {
           <p className="text-center text-sm font-medium text-[var(--accent-gold)] mb-3 tracking-wider uppercase">Pricing</p>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">Simple and transparent</h2>
           <AnimateIn>
-            <Image src="/assets/pricing-gameshow.webp" alt="" width={400} height={225} className="mx-auto mb-8 rounded-xl" />
+            <Image src="/assets/pricing-gameshow.webp" alt="Camo presenting Zikit pricing plans" width={400} height={225} className="mx-auto mb-8 rounded-xl" />
           </AnimateIn>
           <StaggerContainer className="grid sm:grid-cols-3 gap-4">
             {[
@@ -200,7 +200,7 @@ export default function LandingPage() {
           <Image src="/assets/pat-camo2.webp" alt="" fill className="object-cover" />
         </div>
         <div className="max-w-2xl mx-auto px-6 text-center relative z-10">
-          <Image src="/assets/cta-rocket.webp" alt="" width={120} height={120} className="mx-auto mb-6 rounded-xl" />
+          <Image src="/assets/cta-rocket.webp" alt="Camo launching a rocket" width={120} height={120} className="mx-auto mb-6 rounded-xl" />
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Ready to launch?</h2>
           <p className="text-[var(--text-muted)] mb-8">Free forever. 3 monitors. 30 seconds setup.</p>
           <Link href="/signup" className="btn-primary text-lg">Get started free</Link>
@@ -225,6 +225,7 @@ export default function LandingPage() {
                 <Link href="/terms" className="block hover:text-[var(--accent-jade)] transition">Terms & Conditions</Link>
                 <Link href="/privacy" className="block hover:text-[var(--accent-jade)] transition">Privacy Policy</Link>
                 <Link href="/refund" className="block hover:text-[var(--accent-jade)] transition">Refund Policy</Link>
+                <Link href="/accessibility" className="block hover:text-[var(--accent-jade)] transition">Accessibility</Link>
               </div>
             </div>
             <div>

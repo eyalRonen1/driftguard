@@ -31,12 +31,12 @@ export function SettingsForm({ email, name: initialName }: { email: string; name
   return (
     <form onSubmit={handleSave} className="space-y-3">
       <div>
-        <label className="text-xs text-muted-foreground mb-1 block">Email</label>
-        <Input value={email} disabled className="bg-muted/30" />
+        <label htmlFor="settings-email" className="text-xs text-muted-foreground mb-1 block">Email</label>
+        <Input id="settings-email" value={email} disabled className="bg-muted/30" />
       </div>
       <div>
-        <label className="text-xs text-muted-foreground mb-1 block">Name</label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} />
+        <label htmlFor="settings-name" className="text-xs text-muted-foreground mb-1 block">Name</label>
+        <Input id="settings-name" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       {message && (
         <p className={`text-xs ${message.includes("Failed") ? "text-destructive" : "text-primary"}`}>{message}</p>

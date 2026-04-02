@@ -136,8 +136,9 @@ function LoginForm() {
               Enter your email and we&apos;ll send you a password reset link.
             </p>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-cream)] mb-1">Email</label>
+              <label htmlFor="reset-email" className="block text-sm font-medium text-[var(--text-cream)] mb-1">Email</label>
               <input
+                id="reset-email"
                 type="email"
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
@@ -172,8 +173,9 @@ function LoginForm() {
         ) : (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--text-cream)] mb-1">Email</label>
+              <label htmlFor="login-email" className="block text-sm font-medium text-[var(--text-cream)] mb-1">Email</label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -184,7 +186,7 @@ function LoginForm() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[var(--text-cream)]">Password</label>
+                <label htmlFor="login-password" className="block text-sm font-medium text-[var(--text-cream)]">Password</label>
                 <button
                   type="button"
                   onClick={() => { setForgotMode(true); setResetEmail(email); }}
@@ -194,6 +196,7 @@ function LoginForm() {
                 </button>
               </div>
               <input
+                id="login-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

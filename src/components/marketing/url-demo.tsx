@@ -93,6 +93,7 @@ export function UrlDemo() {
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && canTry && handleCheck()}
           placeholder="Paste any URL to try..."
+          aria-label="URL to check"
           className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-base text-[var(--text-cream)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)] focus:border-transparent"
           disabled={state === "loading" || !canTry}
         />

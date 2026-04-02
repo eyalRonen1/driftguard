@@ -236,7 +236,9 @@ export function AlertPreferences({
                 </label>
                 {slack && (
                   <div className="pl-7">
+                    <label htmlFor="slack-webhook-url" className="sr-only">Slack webhook URL</label>
                     <input
+                      id="slack-webhook-url"
                       type="url"
                       value={slackWebhookUrl}
                       onChange={(e) => setSlackWebhookUrl(e.target.value)}
@@ -263,7 +265,9 @@ export function AlertPreferences({
                 </label>
                 {webhook && (
                   <div className="pl-7">
+                    <label htmlFor="webhook-url" className="sr-only">Webhook URL</label>
                     <input
+                      id="webhook-url"
                       type="url"
                       value={webhookUrl}
                       onChange={(e) => setWebhookUrl(e.target.value)}
@@ -290,7 +294,9 @@ export function AlertPreferences({
                 </label>
                 {discord && (
                   <div className="pl-7">
+                    <label htmlFor="discord-webhook-url" className="sr-only">Discord webhook URL</label>
                     <input
+                      id="discord-webhook-url"
                       type="url"
                       value={discordWebhookUrl}
                       onChange={(e) => setDiscordWebhookUrl(e.target.value)}
@@ -317,7 +323,9 @@ export function AlertPreferences({
                 </label>
                 {telegram && (
                   <div className="pl-7">
+                    <label htmlFor="telegram-config" className="sr-only">Telegram bot token and chat ID</label>
                     <input
+                      id="telegram-config"
                       type="text"
                       value={telegramConfig}
                       onChange={(e) => setTelegramConfig(e.target.value)}

@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 /**
  * DELETE /api/v1/account
@@ -97,6 +98,13 @@ export async function DELETE() {
 
     // Delete user record
     await db.delete(users).where(eq(users.id, dbUser.id));
+
+    // Delete the Supabase Auth user using admin API
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    await supabaseAdmin.auth.admin.deleteUser(authUser.id);
 
     // Sign out the Supabase session
     await supabase.auth.signOut();

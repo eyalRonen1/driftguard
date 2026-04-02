@@ -58,7 +58,7 @@ export default async function BillingPage() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Image src="/assets/camo-happy.webp" alt="" width={32} height={32} />
+        <Image src="/assets/camo-happy.webp" alt="Camo mascot" width={32} height={32} />
         <div>
           <h1 className="text-xl font-bold text-[var(--text-cream)]">Plans & Billing</h1>
           <p className="text-sm text-[var(--text-muted)]">Choose the right plan for your needs</p>
@@ -170,7 +170,7 @@ export default async function BillingPage() {
       {/* FAQ */}
       <div className="card-glass rounded-2xl p-5">
         <h2 className="text-sm font-semibold text-[var(--text-cream)] mb-4 flex items-center gap-2">
-          <Image src="/assets/camo-watch.webp" alt="" width={20} height={20} />
+          <Image src="/assets/camo-watch.webp" alt="Camo thinking" width={20} height={20} />
           Common questions
         </h2>
         <div className="grid sm:grid-cols-2 gap-4">

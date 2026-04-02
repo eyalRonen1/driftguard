@@ -56,7 +56,7 @@ export function StatusBar({
         ? "bg-chart-2/10 border border-chart-2/20"
         : "bg-primary/5 border border-primary/10"
     }`}>
-      <Image src={camoImg} alt="" width={28} height={28} className={mood === "alert" ? "animate-bounce" : ""} />
+      <Image src={camoImg} alt="Camo status" width={28} height={28} className={mood === "alert" ? "animate-bounce" : ""} />
       <div className="flex-1">
         <p className="text-xs text-muted-foreground">{msg}</p>
         {mood === "worried" && (

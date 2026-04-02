@@ -317,6 +317,7 @@ export function CamoChatWidget() {
               onChange={(e) => setInput(e.target.value.slice(0, 500))}
               onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
               placeholder="Ask Camo anything..."
+              aria-label="Message to Camo"
               className="text-base"
               disabled={loading}
               dir="auto"
