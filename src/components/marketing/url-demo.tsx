@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-type DemoState = "idle" | "loading" | "success" | "error";
+type DemoState = "idle" | "loading" | "success" | "error" | "protected";
 
 export function UrlDemo() {
   const [url, setUrl] = useState("");
@@ -42,7 +42,13 @@ export function UrlDemo() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Could not reach this URL");
+        const errMsg = data.error || "";
+        // Bot-protected / firewall sites — show positive message instead of error
+        if (errMsg.includes("403") || errMsg.includes("Forbidden") || errMsg.includes("Blocked") || errMsg.includes("503")) {
+          setState("protected");
+          return;
+        }
+        setError(errMsg || "Could not reach this URL");
         setState("error");
         return;
       }
@@ -85,6 +91,31 @@ export function UrlDemo() {
           )}
         </button>
       </div>
+
+      {/* Protected site — positive message */}
+      {state === "protected" && (
+        <div className="mt-4 card-glass rounded-xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--accent-jade)]/20 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--accent-jade)]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-[var(--accent-jade)]">This site uses bot protection</p>
+                <p className="text-xs text-[var(--text-muted)]">Camo handles this with Smart Browser technology</p>
+              </div>
+            </div>
+            <p className="text-xs text-[var(--text-sage)] mb-4">
+              This site blocks automated requests, but Camo uses a real browser engine to bypass protection and monitor changes. Sign up to start watching it!
+            </p>
+            <Link href="/signup" className="btn-primary block text-center text-sm">
+              Start monitoring — free
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Error */}
       {state === "error" && (
