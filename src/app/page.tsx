@@ -15,9 +15,8 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 nav-glass">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/assets/zikit-icon.webp" alt="Zikit" width={28} height={28} className="rounded" />
-            <span className="font-semibold tracking-tight">Zikit</span>
+          <Link href="/">
+            <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={120} height={36} className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-[var(--text-sage)] hover:text-[var(--text-cream)] transition hidden sm:block">Sign in</Link>
@@ -244,7 +243,7 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-white/6 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-[var(--text-muted)]">
             <div className="flex items-center gap-2">
-              <Image src="/assets/zikit-icon.webp" alt="Zikit" width={16} height={16} className="rounded" />
+              <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={60} height={18} className="h-4 w-auto" />
               <span>&copy; {new Date().getFullYear()} Zikit. All rights reserved.</span>
             </div>
             <span>Payments processed by <a href="https://paddle.com" className="text-[var(--accent-jade)] hover:underline">Paddle</a></span>

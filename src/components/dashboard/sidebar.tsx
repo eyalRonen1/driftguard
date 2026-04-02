@@ -35,9 +35,8 @@ export function Sidebar({ user }: { user: User }) {
     <>
       {/* Mobile header bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 nav-glass px-4 py-3 flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Image src="/assets/zikit-icon.webp" alt="Zikit" width={28} height={28} className="rounded" />
-          <span className="font-semibold text-[var(--text-cream)]">Zikit</span>
+        <Link href="/dashboard">
+          <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={100} height={30} className="h-7 w-auto" />
         </Link>
         <button
           onClick={() => setOpen(!open)}
@@ -73,9 +72,8 @@ export function Sidebar({ user }: { user: User }) {
         pt-14 lg:pt-0
       `}>
         <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Image src="/assets/zikit-icon.webp" alt="Zikit" width={32} height={32} className="rounded" />
-            <span className="font-semibold text-lg text-[var(--text-cream)]">Zikit</span>
+          <Link href="/dashboard">
+            <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={120} height={36} className="h-8 w-auto" />
           </Link>
         </div>
 
