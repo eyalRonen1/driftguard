@@ -464,7 +464,12 @@ export async function smartFetch(
   if (isBlocked && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
     console.log(`[smartFetch] Tier 2: proxy fallback for ${url}`);
     const proxyResult = await fetchViaProxy(url);
+    console.log(`[smartFetch] Tier 2 result: error=${proxyResult.error}, text=${proxyResult.text.length}, status=${proxyResult.statusCode}`);
     if (!proxyResult.error && proxyResult.text.length > 50) {
+      return proxyResult;
+    }
+    // If proxy got content but less than 50 chars, still return it if better than nothing
+    if (proxyResult.text.length > 0 && !proxyResult.error) {
       return proxyResult;
     }
   }

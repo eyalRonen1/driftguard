@@ -24,15 +24,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const fetchStart = Date.now();
     const result = await smartFetch(url, { timeoutMs: 3000 });
+    const fetchTime = Date.now() - fetchStart;
 
-    // Debug: log proxy availability
     const hasProxy = !!(process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY);
-    console.log(`[preview-url] result: error=${result.error}, text=${result.text.length}, hasProxy=${hasProxy}, tokenLen=${process.env.SCRAPE_DO_TOKEN?.length || 0}`);
 
     if (result.error && result.text.length === 0) {
       return NextResponse.json(
-        { error: result.error, _debug: { hasProxy, tokenLen: process.env.SCRAPE_DO_TOKEN?.length || 0, statusCode: result.statusCode } },
+        { error: result.error, _debug: { hasProxy, tokenLen: process.env.SCRAPE_DO_TOKEN?.length || 0, statusCode: result.statusCode, fetchTimeMs: fetchTime } },
         { status: 422 }
       );
     }
