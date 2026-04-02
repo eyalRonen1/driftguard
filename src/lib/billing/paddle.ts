@@ -29,18 +29,18 @@ interface PaddleWebhookEvent {
   };
 }
 
-// Price IDs from Paddle dashboard -- update these after creating products
+// Price IDs from Paddle dashboard
 const PRICE_TO_PLAN: Record<string, PlanCode> = {
-  // Sandbox price IDs (replace with production IDs)
-  "pri_sandbox_pro_monthly": "pro",
-  "pri_sandbox_business_monthly": "business",
-  // Add production IDs here when you create Paddle products
+  // Sandbox
+  "pri_01kn70ew9pqf4jym0aaszttzt9": "pro",
+  "pri_01kn70f5jcahzyphtz48mbdx15": "business",
+  // Production — add when you go live
 };
 
-// Product ID fallback mapping (in case price IDs change but product IDs stay stable)
+// Product ID fallback mapping
 const PRODUCT_TO_PLAN: Record<string, PlanCode> = {
-  "pro_sandbox_pro": "pro",
-  "pro_sandbox_business": "business",
+  "pro_01kn70e1e06hab170k494nr7kb": "pro",
+  "pro_01kn70egs0p1ryh8qxw7nyt1pq": "business",
 };
 
 /**

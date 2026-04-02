@@ -133,6 +133,8 @@ export default async function BillingPage() {
                   label={plan.price > currentPlan.price ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
                   variant={plan.popular ? "default" : "secondary"}
                   isCurrent={isCurrent}
+                  orgId={org.id}
+                  userEmail={user.email || undefined}
                 />
               </CardContent>
             </Card>
