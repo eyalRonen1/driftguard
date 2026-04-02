@@ -448,24 +448,27 @@ export async function smartFetch(
     return result; // Tier 1 succeeded
   }
 
-  // ── Tier 2: Headless browser ──
-  const browserAvailable = await isPlaywrightAvailable();
-  if (browserAvailable) {
-    console.log(`[smartFetch] Tier 2: browser fallback for ${url}`);
-    const browserResult = await fetchPageWithBrowser(url, {
-      timeoutMs: options?.timeoutMs || 30000,
-    });
-    if (!browserResult.error && browserResult.text.length > result.text.length) {
-      return browserResult;
-    }
-  }
-
-  // ── Tier 3: Scraping proxy (for IP-blocked sites) ──
+  // ── Tier 2: Scraping proxy (fast, works on serverless) ──
+  // Try proxy BEFORE browser — proxy is faster and works within Vercel's 10s timeout
   if (isBlocked && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
-    console.log(`[smartFetch] Tier 3: proxy fallback for ${url}`);
+    console.log(`[smartFetch] Tier 2: proxy fallback for ${url}`);
     const proxyResult = await fetchViaProxy(url);
     if (!proxyResult.error && proxyResult.text.length > 50) {
       return proxyResult;
+    }
+  }
+
+  // ── Tier 3: Headless browser (last resort, needs long timeout) ──
+  if (isBlocked || isJsOnly) {
+    const browserAvailable = await isPlaywrightAvailable();
+    if (browserAvailable) {
+      console.log(`[smartFetch] Tier 3: browser fallback for ${url}`);
+      const browserResult = await fetchPageWithBrowser(url, {
+        timeoutMs: options?.timeoutMs || 30000,
+      });
+      if (!browserResult.error && browserResult.text.length > result.text.length) {
+        return browserResult;
+      }
     }
   }
 
