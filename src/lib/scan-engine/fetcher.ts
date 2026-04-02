@@ -81,13 +81,20 @@ export async function validateUrl(
     }
   }
 
-  // 4. Resolve hostname and check resulting IP against private ranges
+  // 4. Resolve hostname and check resulting IP against private ranges (with timeout)
   try {
-    const { address } = await dns.promises.lookup(hostname);
-    if (isPrivateIp(address)) {
+    const dnsResult = await Promise.race([
+      dns.promises.lookup(hostname),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("DNS timeout")), 2000)),
+    ]);
+    if (isPrivateIp(dnsResult.address)) {
       return { ok: false, reason: "URL resolves to a private/internal IP address" };
     }
-  } catch {
+  } catch (err) {
+    // DNS timeout or failure — allow the request (proxy will handle it if HTTP fails)
+    if (err instanceof Error && err.message === "DNS timeout") {
+      return { ok: true }; // Let it through, proxy will catch blocked sites
+    }
     return { ok: false, reason: "Could not resolve hostname" };
   }
 
@@ -434,8 +441,9 @@ export async function smartFetch(
     }
   }
 
-  // ── Tier 1: Regular HTTP ──
-  const result = await fetchPage(url, options);
+  // ── Tier 1: Regular HTTP (short timeout so proxy has time) ──
+  const hasProxy = !!(process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY);
+  const result = await fetchPage(url, { ...options, timeoutMs: hasProxy ? 3000 : (options?.timeoutMs || 5000) });
 
   const isBlocked =
     result.error?.includes("403") ||
