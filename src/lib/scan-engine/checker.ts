@@ -22,6 +22,97 @@ import { extractStructuredContent } from "./structured-extractor";
 import { semanticGate } from "./semantic-gate";
 import { sendChangeAlert, sendSlackChangeAlert, sendWebhookAlert, sendDiscordAlert, sendTelegramAlert } from "@/lib/notifications/email";
 
+// ── Error Classification ────────────────────────────────────────────
+
+function classifyError(statusCode: number, errorMsg: string, url: string): { healthReason: string; userMessage: string } {
+  // Bot protection / Firewall
+  if (statusCode === 403 || errorMsg.includes("403") || errorMsg.includes("Forbidden")) {
+    let hostname = url;
+    try { hostname = new URL(url).hostname; } catch {}
+    return {
+      healthReason: `This site (${hostname}) blocks automated monitoring. It uses bot protection (like Cloudflare) that only allows real browsers.`,
+      userMessage: "This site has bot protection that blocks our servers. We're working on Smart Browser support to handle this. In the meantime, try monitoring a different page on the same site, or check if the site has an RSS feed or API."
+    };
+  }
+
+  // Rate limited
+  if (statusCode === 429) {
+    return {
+      healthReason: "The site is rate-limiting our requests. We'll try again at the next scheduled check with a longer delay.",
+      userMessage: "This site is temporarily limiting our access. Camo will retry automatically — no action needed."
+    };
+  }
+
+  // Server error
+  if (statusCode >= 500) {
+    return {
+      healthReason: `The site returned a server error (${statusCode}). This is usually temporary.`,
+      userMessage: "The site itself is having issues (server error). Camo will keep trying — this usually resolves on its own."
+    };
+  }
+
+  // Not found
+  if (statusCode === 404) {
+    return {
+      healthReason: "This page no longer exists (404). It may have been moved or deleted.",
+      userMessage: "This page was not found (404). It might have been moved or deleted. Check if the URL is still correct."
+    };
+  }
+
+  // Timeout
+  if (errorMsg.includes("Timeout") || errorMsg.includes("timeout") || errorMsg.includes("AbortError")) {
+    return {
+      healthReason: "The page took too long to respond. This could be a slow server or a very large page.",
+      userMessage: "This page is taking too long to load. It might be a slow server or a very heavy page. Camo will retry."
+    };
+  }
+
+  // DNS / Connection error
+  if (errorMsg.includes("ENOTFOUND") || errorMsg.includes("resolve")) {
+    return {
+      healthReason: "Could not find this website. The domain may not exist or DNS is not resolving.",
+      userMessage: "Can't find this website. Check that the URL is spelled correctly and the site is online."
+    };
+  }
+
+  if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ECONNRESET")) {
+    return {
+      healthReason: "Connection refused by the server. The site may be down or blocking connections.",
+      userMessage: "The site refused our connection. It might be temporarily down. Camo will keep trying."
+    };
+  }
+
+  // SSL/TLS error
+  if (errorMsg.includes("SSL") || errorMsg.includes("TLS") || errorMsg.includes("certificate")) {
+    return {
+      healthReason: "SSL certificate error. The site may have an expired or invalid certificate.",
+      userMessage: "This site has a security certificate issue. The site owner needs to fix their SSL certificate."
+    };
+  }
+
+  // SSRF blocked
+  if (errorMsg.includes("Blocked:")) {
+    return {
+      healthReason: errorMsg,
+      userMessage: "This URL cannot be monitored for security reasons. Only public http/https URLs are supported."
+    };
+  }
+
+  // Too many redirects
+  if (errorMsg.includes("redirect")) {
+    return {
+      healthReason: "The page has too many redirects. It may be misconfigured.",
+      userMessage: "This page keeps redirecting and never loads. The site may be misconfigured."
+    };
+  }
+
+  // Generic fallback
+  return {
+    healthReason: errorMsg || "Unknown error occurred during page check.",
+    userMessage: "Something went wrong while checking this page. Camo will try again at the next scheduled check."
+  };
+}
+
 /** Increment monthly usage counter for the org */
 async function incrementUsage(orgId: string) {
   try {
@@ -53,7 +144,7 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     .limit(1);
 
   if (!monitor) {
-    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: "Monitor not found" };
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: "This monitor no longer exists. It may have been deleted." };
   }
 
   // Quota enforcement: check org hasn't exceeded monthly limit
@@ -83,7 +174,7 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
         summary: null,
         importanceScore: null,
         confidenceScore: null,
-        error: "Monthly check quota exceeded",
+        error: "You've used all your monthly checks. Your quota resets on the 1st of next month, or you can upgrade your plan for more checks.",
       };
     }
   }
@@ -101,18 +192,20 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   if (result.error) {
     const errors = monitor.consecutiveErrors + 1;
     const healthStatus = errors >= 3 ? "error" : errors >= 2 ? "unstable" : "healthy";
+    const classified = classifyError(result.statusCode, result.error, monitor.url);
+
     const healthReason = errors >= 3
-      ? `Page unreachable for ${errors} consecutive checks: ${result.error}`
+      ? `${classified.healthReason} (failed ${errors} times in a row)`
       : errors >= 2
-      ? `Page returned errors ${errors} times: ${result.error}`
-      : null;
+      ? `${classified.healthReason} (failed ${errors} times)`
+      : classified.healthReason;
 
     await db
       .update(monitors)
       .set({
         lastCheckedAt: now,
         consecutiveErrors: errors,
-        lastError: result.error,
+        lastError: classified.userMessage,
         healthStatus,
         healthReason,
         healthCheckedAt: now,
@@ -120,7 +213,7 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       })
       .where(eq(monitors.id, monitorId));
 
-    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: result.error };
+    return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: classified.userMessage };
   }
 
   // Store snapshot

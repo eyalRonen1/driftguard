@@ -184,8 +184,49 @@ export default function MonitorDetailPage() {
       {/* Error banner */}
       {monitor.lastError && (
         <div className="card-glass !border-[var(--accent-ruby)]/30 rounded-xl p-4 mb-6">
-          <p className="text-sm text-[var(--accent-ruby)] font-medium">Last error: {monitor.lastError}</p>
-          <p className="text-xs text-[var(--accent-ruby)] mt-1">Consecutive errors: {monitor.consecutiveErrors}</p>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-[var(--accent-ruby)]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-[var(--accent-ruby)]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[var(--accent-ruby)]">
+                {monitor.healthReason || monitor.lastError}
+              </p>
+              {monitor.consecutiveErrors > 1 && (
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  Failed {monitor.consecutiveErrors} times in a row. Camo will keep trying.
+                </p>
+              )}
+              {(monitor.lastError?.includes("bot protection") || monitor.lastError?.includes("403") || monitor.lastError?.includes("Forbidden")) && (
+                <div className="mt-2 p-2 rounded-lg bg-white/[0.03]">
+                  <p className="text-[10px] text-[var(--text-sage)]">
+                    <strong>Tip:</strong> This site blocks automated access. Try these alternatives:
+                  </p>
+                  <ul className="text-[10px] text-[var(--text-muted)] mt-1 space-y-0.5 ml-4 list-disc">
+                    <li>Check if the site has an RSS feed (add /feed or /rss to the URL)</li>
+                    <li>Monitor a different page on the same site</li>
+                    <li>Use a specific API endpoint if available</li>
+                  </ul>
+                </div>
+              )}
+              {(monitor.lastError?.includes("not found") || monitor.lastError?.includes("404")) && (
+                <div className="mt-2 p-2 rounded-lg bg-white/[0.03]">
+                  <p className="text-[10px] text-[var(--text-sage)]">
+                    <strong>Tip:</strong> The page might have moved. Try checking the site for a new URL, or update this monitor with the correct address.
+                  </p>
+                </div>
+              )}
+              {monitor.lastError?.includes("monthly checks") && (
+                <div className="mt-2 p-2 rounded-lg bg-white/[0.03]">
+                  <p className="text-[10px] text-[var(--text-sage)]">
+                    <strong>Tip:</strong> Upgrade your plan to get more monthly checks, or wait until the 1st of next month when your quota resets.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

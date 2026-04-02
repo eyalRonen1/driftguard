@@ -80,6 +80,7 @@ export default async function DashboardPage() {
           activeMonitors={activeCount}
           recentChanges={totalChanges}
           hasErrors={allMonitors.some((m: any) => m.healthStatus === "error")}
+          errorCount={errorCount}
         />
       )}
 

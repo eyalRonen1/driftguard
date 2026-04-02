@@ -10,10 +10,12 @@ export function StatusBar({
   activeMonitors,
   recentChanges,
   hasErrors,
+  errorCount = 0,
 }: {
   activeMonitors: number;
   recentChanges: number;
   hasErrors: boolean;
+  errorCount?: number;
 }) {
   const mood = hasErrors ? "worried" : recentChanges > 0 ? "alert" : "happy";
 
@@ -27,10 +29,20 @@ export function StatusBar({
       `Camo spotted ${recentChanges} change${recentChanges > 1 ? "s" : ""}! Check the timeline.`,
       `${recentChanges} page${recentChanges > 1 ? "s" : ""} changed. Camo's on it.`,
     ],
-    worried: [
-      "Some monitors are having trouble. Camo is investigating.",
-      "Connection issues detected. Camo is retrying.",
-    ],
+    worried: errorCount === 1
+      ? [
+          "One monitor is having trouble reaching its page. Camo is retrying automatically.",
+          "One site is not responding. Camo will keep trying — no action needed yet.",
+        ]
+      : errorCount > 1
+      ? [
+          `${errorCount} monitors are having trouble. This is usually temporary — Camo will keep retrying.`,
+          `${errorCount} sites are not responding right now. Check the monitor details for more info.`,
+        ]
+      : [
+          "Some monitors are having trouble reaching their pages. Camo is retrying automatically.",
+          "Connection issues detected. Camo will keep trying — this is usually temporary.",
+        ],
   };
 
   const msg = messages[mood][Math.floor(Date.now() / 60000) % messages[mood].length];
@@ -45,7 +57,14 @@ export function StatusBar({
         : "bg-primary/5 border border-primary/10"
     }`}>
       <Image src={camoImg} alt="" width={28} height={28} className={mood === "alert" ? "animate-bounce" : ""} />
-      <p className="text-xs text-muted-foreground flex-1">{msg}</p>
+      <div className="flex-1">
+        <p className="text-xs text-muted-foreground">{msg}</p>
+        {mood === "worried" && (
+          <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+            Click on a monitor to see what went wrong and what you can do.
+          </p>
+        )}
+      </div>
       {activeMonitors > 0 && (
         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
           <span className="relative flex h-2 w-2">

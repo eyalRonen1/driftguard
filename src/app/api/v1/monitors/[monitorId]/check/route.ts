@@ -13,11 +13,11 @@ export async function POST(
 ) {
   const { monitorId } = await params;
   const auth = await getAuthenticatedOrg();
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!auth) return NextResponse.json({ error: "You need to be logged in to run a check. Please sign in and try again." }, { status: 401 });
 
   // Rate limit: 10 manual checks per hour per user
   const { allowed } = await rateLimit(`check:${auth.user.id}`, 10, 3600000);
-  if (!allowed) return NextResponse.json({ error: "Too many checks. Try again later." }, { status: 429 });
+  if (!allowed) return NextResponse.json({ error: "You've run too many manual checks this hour. Please wait a few minutes and try again." }, { status: 429 });
 
   // Verify ownership
   const [monitor] = await db
@@ -26,13 +26,13 @@ export async function POST(
     .where(and(eq(monitors.id, monitorId), eq(monitors.orgId, auth.org.id)))
     .limit(1);
 
-  if (!monitor) return NextResponse.json({ error: "Monitor not found" }, { status: 404 });
+  if (!monitor) return NextResponse.json({ error: "This monitor was not found. It may have been deleted." }, { status: 404 });
 
   try {
     const result = await checkMonitor(monitorId);
     return NextResponse.json({ result }, { status: 200 });
   } catch (err) {
     console.error("Failed to check monitor:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong on our end. Please try again in a moment." }, { status: 500 });
   }
 }

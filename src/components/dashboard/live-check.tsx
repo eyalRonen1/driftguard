@@ -30,6 +30,7 @@ export function LiveCheckButton({
   const [result, setResult] = useState<{
     changed: boolean;
     summary?: string;
+    error?: string;
   } | null>(null);
   const [logEntries, setLogEntries] = useState<Array<{ time: string; message: string; type: "info" | "success" | "warning" | "error" }>>([]);
 
@@ -55,16 +56,25 @@ export function LiveCheckButton({
       const res = await fetch(`/api/v1/monitors/${monitorId}/check`, { method: "POST" });
       const data = await res.json();
 
-      const changed = data.result?.changed || false;
-      addLog(changed ? "Change detected!" : "No changes found.", changed ? "warning" : "success");
-      addLog("Scan complete.", "success");
-      setResult({
-        changed,
-        summary: data.result?.summary || undefined,
-      });
+      if (!res.ok) {
+        const apiError = data.error || "Something went wrong. Camo will try again at the next scheduled check.";
+        addLog(apiError, "error");
+        setResult({ changed: false, error: apiError });
+      } else if (data.result?.error) {
+        addLog(data.result.error, "error");
+        setResult({ changed: false, error: data.result.error });
+      } else {
+        const changed = data.result?.changed || false;
+        addLog(changed ? "Change detected!" : "No changes found.", changed ? "warning" : "success");
+        addLog("Scan complete.", "success");
+        setResult({
+          changed,
+          summary: data.result?.summary || undefined,
+        });
+      }
     } catch {
-      addLog("Scan failed.", "error");
-      setResult({ changed: false });
+      addLog("Could not reach the server. Check your internet connection and try again.", "error");
+      setResult({ changed: false, error: "Could not reach the server. Check your internet connection and try again." });
     }
 
     setStep(-1);
@@ -138,17 +148,22 @@ export function LiveCheckButton({
       {/* Result toast */}
       {result && (
         <Card className={`mt-4 p-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
-          result.changed ? "border-chart-2/30" : "border-primary/20"
+          result.error ? "border-destructive/30" : result.changed ? "border-chart-2/30" : "border-primary/20"
         }`}>
           <div className="flex items-center gap-3">
             <Image
-              src={result.changed ? "/assets/camo-watch.webp" : "/assets/camo-happy.webp"}
+              src={result.error ? "/assets/camo-watch.webp" : result.changed ? "/assets/camo-watch.webp" : "/assets/camo-happy.webp"}
               alt=""
               width={36}
               height={36}
             />
             <div>
-              {result.changed ? (
+              {result.error ? (
+                <>
+                  <p className="text-sm font-medium text-destructive">{result.error}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Camo will keep retrying at the next scheduled check.</p>
+                </>
+              ) : result.changed ? (
                 <>
                   <p className="text-sm font-medium text-chart-2">Change detected!</p>
                   {result.summary && (

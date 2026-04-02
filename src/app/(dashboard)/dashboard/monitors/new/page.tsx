@@ -96,11 +96,31 @@ export default function NewMonitorPage() {
       if (!res.ok) {
         const errMsg = data.error || "";
         // If it's a bot-protected site, still allow creating the monitor
-        if (errMsg.includes("403") || errMsg.includes("Forbidden") || errMsg.includes("503") || errMsg.includes("Blocked")) {
+        if (errMsg.includes("403") || errMsg.includes("Forbidden") || errMsg.includes("503") || errMsg.includes("Blocked") || errMsg.includes("bot protection")) {
           setPreview("This site uses bot protection — Camo will use Smart Browser to watch it.");
           if (!name) setName(new URL(url).hostname);
+        } else if (errMsg.includes("ENOTFOUND") || errMsg.includes("resolve") || errMsg.includes("Invalid URL")) {
+          setError("Can't find this website. Check that the URL is spelled correctly and the site is online.");
+          setLoading(false);
+          return;
+        } else if (errMsg.includes("ECONNREFUSED") || errMsg.includes("ECONNRESET")) {
+          setError("The site refused our connection. It might be temporarily down. Try again in a few minutes.");
+          setLoading(false);
+          return;
+        } else if (errMsg.includes("Timeout") || errMsg.includes("timeout") || errMsg.includes("AbortError")) {
+          setError("The page took too long to load. It might be a very slow or heavy page. You can still create the monitor and Camo will keep trying.");
+          setLoading(false);
+          return;
+        } else if (errMsg.includes("404")) {
+          setError("This page was not found (404). Check that the URL is correct.");
+          setLoading(false);
+          return;
+        } else if (errMsg.includes("SSL") || errMsg.includes("TLS") || errMsg.includes("certificate")) {
+          setError("This site has a security certificate issue. The site owner needs to fix their SSL certificate before it can be monitored.");
+          setLoading(false);
+          return;
         } else {
-          setError(errMsg || "Could not reach this URL");
+          setError(errMsg || "Could not reach this URL. Check that the address is correct and try again.");
           setLoading(false);
           return;
         }
@@ -109,7 +129,7 @@ export default function NewMonitorPage() {
         if (!name) setName(data.title || new URL(url).hostname);
       }
     } catch {
-      setError("Could not check URL");
+      setError("Could not reach the server. Check your internet connection and try again.");
     }
     setLoading(false);
   }
@@ -134,7 +154,7 @@ export default function NewMonitorPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to create monitor");
+        setError(data.error || "Something went wrong while creating the monitor. Please try again.");
         return;
       }
 
