@@ -103,7 +103,7 @@ export function MonitorCard({
 
           {/* Quick actions */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+            <DropdownMenuTrigger onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
               <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
