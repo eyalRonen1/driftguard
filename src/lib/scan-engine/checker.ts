@@ -15,7 +15,7 @@
 import { db } from "@/lib/db";
 import { monitors, snapshots, changes, organizations, alertConfigs } from "@/lib/db/schema";
 import { eq, or, isNull, sql, desc } from "drizzle-orm";
-import { fetchPage } from "./fetcher";
+import { smartFetch } from "./fetcher";
 import { summarizeChange } from "./summarizer";
 import { filterNoise, calculateSignalScore } from "./noise-filter";
 import { extractStructuredContent } from "./structured-extractor";
@@ -88,8 +88,8 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     }
   }
 
-  // Fetch the page
-  const result = await fetchPage(monitor.url, {
+  // Fetch the page (HTTP first, browser fallback for Cloudflare/SPAs)
+  const result = await smartFetch(monitor.url, {
     cssSelector: monitor.cssSelector,
     ignoreSelectors: monitor.ignoreSelectors,
     headers: monitor.headers as Record<string, string> | null,

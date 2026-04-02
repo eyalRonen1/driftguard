@@ -1,10 +1,12 @@
 /**
  * Page Fetcher - Fetches a URL and extracts clean text content.
- * HTTP-only, no headless browser.
+ * Tier 1: HTTP fetch (fast, cheap).
+ * Tier 2: Playwright browser fallback via smartFetch (slow, for Cloudflare/SPAs).
  */
 
 import { createHash } from "crypto";
 import dns from "dns";
+import { fetchPageWithBrowser, isPlaywrightAvailable } from "./browser-fetcher";
 
 // ── SSRF Protection ──────────────────────────────────────────────────
 
@@ -318,4 +320,54 @@ function extractText(
     .replace(/&#39;/g, "'")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// ── Smart Fetch (two-tier: HTTP → Browser fallback) ─────────────────
+
+/**
+ * Smart fetch: tries HTTP first, falls back to browser for blocked/JS-heavy sites.
+ */
+export async function smartFetch(
+  url: string,
+  options?: {
+    cssSelector?: string | null;
+    ignoreSelectors?: string | null;
+    headers?: Record<string, string> | null;
+    timeoutMs?: number;
+    forceBrowser?: boolean;
+  }
+): Promise<FetchResult> {
+  // If explicitly forced to use browser
+  if (options?.forceBrowser) {
+    const browserAvailable = await isPlaywrightAvailable();
+    if (browserAvailable) {
+      return fetchPageWithBrowser(url, { timeoutMs: options?.timeoutMs });
+    }
+  }
+
+  // Tier 1: Try regular HTTP first
+  const result = await fetchPage(url, options);
+
+  // Determine if we should retry with a headless browser
+  const shouldRetryWithBrowser =
+    result.error?.includes("403") ||
+    result.error?.includes("503") ||
+    result.error?.includes("Blocked") ||
+    (result.text.length < 100 && result.statusCode === 200); // JS-only page
+
+  if (shouldRetryWithBrowser) {
+    const browserAvailable = await isPlaywrightAvailable();
+    if (browserAvailable) {
+      console.log(`[smartFetch] HTTP fetch insufficient for ${url}, retrying with browser...`);
+      const browserResult = await fetchPageWithBrowser(url, {
+        timeoutMs: options?.timeoutMs || 30000,
+      });
+      // Only use browser result if it actually got more content
+      if (!browserResult.error && browserResult.text.length > result.text.length) {
+        return browserResult;
+      }
+    }
+  }
+
+  return result;
 }
