@@ -443,9 +443,7 @@ export async function smartFetch(
 
   // ── Tier 1: Regular HTTP (short timeout so proxy has time) ──
   const hasProxy = !!(process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY);
-  console.log(`[smartFetch] Tier 1: HTTP for ${url} (proxy available: ${hasProxy})`);
   const result = await fetchPage(url, { ...options, timeoutMs: hasProxy ? 3000 : (options?.timeoutMs || 5000) });
-  console.log(`[smartFetch] Tier 1 result: status=${result.statusCode}, error=${result.error}, text=${result.text.length}chars`);
 
   const isBlocked =
     result.error?.includes("403") ||
@@ -457,14 +455,11 @@ export async function smartFetch(
   if (!isBlocked && !isJsOnly) {
     return result; // Tier 1 succeeded
   }
-  console.log(`[smartFetch] Tier 1 failed (blocked=${isBlocked}, jsOnly=${isJsOnly}), escalating...`);
 
   // ── Tier 2: Scraping proxy (fast, works on serverless) ──
   // Try proxy BEFORE browser — proxy is faster and works within Vercel's 10s timeout
   if (isBlocked && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
-    console.log(`[smartFetch] Tier 2: proxy fallback for ${url}`);
     const proxyResult = await fetchViaProxy(url);
-    console.log(`[smartFetch] Tier 2 result: error=${proxyResult.error}, text=${proxyResult.text.length}, status=${proxyResult.statusCode}`);
     if (!proxyResult.error && proxyResult.text.length > 50) {
       return proxyResult;
     }

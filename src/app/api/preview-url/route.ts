@@ -24,17 +24,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const fetchStart = Date.now();
     const result = await smartFetch(url, { timeoutMs: 3000 });
-    const fetchTime = Date.now() - fetchStart;
-
-    const hasProxy = !!(process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY);
 
     if (result.error && result.text.length === 0) {
-      return NextResponse.json(
-        { error: result.error, _debug: { hasProxy, tokenLen: process.env.SCRAPE_DO_TOKEN?.length || 0, statusCode: result.statusCode, fetchTimeMs: fetchTime } },
-        { status: 422 }
-      );
+      if (result.error.includes("403") || result.error.includes("Forbidden") || result.error.includes("Blocked")) {
+        return NextResponse.json({ error: "Page returned 403 Forbidden" }, { status: 422 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 422 });
     }
 
     // Extract title from HTML
