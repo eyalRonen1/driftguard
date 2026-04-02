@@ -51,12 +51,10 @@ export default function LandingPage() {
             </div>
           </AnimateIn>
 
-          {/* Hero video - Camo catches a change! */}
+          {/* Hero image */}
           <AnimateIn delay={0.4}>
-            <div className="mt-10 max-w-lg mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
-              <video autoPlay loop muted playsInline className="w-full" poster="/assets/hero-camo-alarm.webp">
-                <source src="/assets/hero-camo-video.mp4" type="video/mp4" />
-              </video>
+            <div className="mt-10 max-w-xs mx-auto">
+              <Image src="/assets/zikit-icon.webp" alt="Zikit - Website change monitoring" width={300} height={300} className="mx-auto rounded-3xl shadow-2xl shadow-black/40" />
             </div>
           </AnimateIn>
         </div>
