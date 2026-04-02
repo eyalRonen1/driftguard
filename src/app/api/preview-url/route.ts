@@ -24,7 +24,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await smartFetch(url, { timeoutMs: 5000 });
+    const result = await smartFetch(url, { timeoutMs: 3000 });
+
+    // Debug: log proxy availability
+    const hasProxy = !!(process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY);
+    console.log(`[preview-url] result: error=${result.error}, text=${result.text.length}, hasProxy=${hasProxy}, tokenLen=${process.env.SCRAPE_DO_TOKEN?.length || 0}`);
 
     if (result.error && result.text.length === 0) {
       // Check if it's a bot-protection error
