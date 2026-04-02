@@ -31,8 +31,16 @@ export function UrlDemo() {
     let checkUrl = trimmed;
     if (!/^https?:\/\//i.test(checkUrl)) {
       checkUrl = `https://${checkUrl}`;
-      setUrl(checkUrl);
     }
+
+    // Clean tracking parameters — they change on every click and cause noise
+    try {
+      const parsed = new URL(checkUrl);
+      const trackingParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_campaignid", "gclid", "gad_source", "gad_campaignid", "dclid", "fbclid", "msclkid", "ref", "mc_cid", "mc_eid"];
+      trackingParams.forEach((p) => parsed.searchParams.delete(p));
+      checkUrl = parsed.toString();
+    } catch {}
+    setUrl(checkUrl);
 
     setState("loading");
     setError("");
@@ -50,7 +58,7 @@ export function UrlDemo() {
 
       if (!res.ok) {
         const errMsg = data.error || "";
-        if (errMsg.includes("403") || errMsg.includes("Forbidden") || errMsg.includes("Blocked") || errMsg.includes("503")) {
+        if (errMsg.includes("403") || errMsg.includes("Forbidden") || errMsg.includes("Blocked") || errMsg.includes("503") || errMsg.includes("491") || errMsg.includes("429")) {
           setState("protected");
           return;
         }
