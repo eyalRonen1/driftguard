@@ -4,5 +4,15 @@
       "path": "/api/internal/dispatch-scans",
       "schedule": "0 6 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/v1/monitors/[monitorId]/check/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/internal/dispatch-scans/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }
