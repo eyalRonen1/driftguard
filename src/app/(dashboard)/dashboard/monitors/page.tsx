@@ -53,7 +53,7 @@ export default function MonitorsPage() {
     }
   }
 
-  async function withBusy(monitorId: string, label: string, fn: () => Promise<void>) {
+  async function withBusy(monitorId: string, label: string, fn: () => Promise<unknown>) {
     setBusyMonitors((prev) => ({ ...prev, [monitorId]: label }));
     try {
       await fn();
