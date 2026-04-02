@@ -461,7 +461,7 @@ export async function smartFetch(
   }
 
   // ── Tier 3: Scraping proxy (for IP-blocked sites) ──
-  if (isBlocked && process.env.SCRAPING_API_KEY) {
+  if (isBlocked && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
     console.log(`[smartFetch] Tier 3: proxy fallback for ${url}`);
     const proxyResult = await fetchViaProxy(url);
     if (!proxyResult.error && proxyResult.text.length > 50) {
@@ -474,19 +474,26 @@ export async function smartFetch(
 
 /**
  * Fetch via scraping proxy service (Tier 3 fallback).
- * Handles Cloudflare/IP-blocked sites using premium residential proxies.
- * Requires SCRAPING_API_KEY env var (ScrapingBee free tier: 1000 req/month).
+ * Handles Cloudflare/IP-blocked sites using residential proxies.
+ * Supports: Scrape.do (SCRAPE_DO_TOKEN) or ScrapingBee (SCRAPING_API_KEY).
+ * Free tier: 1000 requests/month, no credit card needed.
  */
 async function fetchViaProxy(url: string): Promise<FetchResult> {
-  const apiKey = process.env.SCRAPING_API_KEY;
-  if (!apiKey) {
+  const scrapeDoToken = process.env.SCRAPE_DO_TOKEN;
+  const scrapingBeeKey = process.env.SCRAPING_API_KEY;
+
+  if (!scrapeDoToken && !scrapingBeeKey) {
     return { text: "", html: "", hash: "", statusCode: 0, responseTimeMs: 0, contentLength: 0, error: "No proxy configured" };
   }
 
   const start = Date.now();
   try {
-    const proxyUrl = `https://app.scrapingbee.com/api/v1/?api_key=${apiKey}&url=${encodeURIComponent(url)}&render_js=false&premium_proxy=true`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(20000) });
+    // Prefer Scrape.do (98% Cloudflare success, fastest)
+    const proxyUrl = scrapeDoToken
+      ? `https://api.scrape.do/?token=${scrapeDoToken}&url=${encodeURIComponent(url)}&super=true`
+      : `https://app.scrapingbee.com/api/v1/?api_key=${scrapingBeeKey}&url=${encodeURIComponent(url)}&render_js=false&premium_proxy=true`;
+
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(25000) });
     const responseTimeMs = Date.now() - start;
 
     if (!res.ok) {
