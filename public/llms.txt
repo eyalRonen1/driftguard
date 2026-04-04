@@ -1,0 +1,45 @@
+# Zikit.ai — AI-Powered Website Change Monitoring
+
+## What is Zikit?
+Zikit is a website change monitoring tool that uses AI to detect and summarize changes on any public webpage. Instead of showing raw diffs, Zikit explains what changed in plain English — like "Competitor dropped prices by 15%" or "New job posting added for Senior Engineer."
+
+## How it works
+1. Add any URL you want to monitor
+2. Zikit checks the page automatically (daily, hourly, or every 15 minutes)
+3. When something changes, you get an AI-powered summary via email, Slack, Discord, Telegram, or webhook
+4. A built-in AI chat assistant (Camo) helps you understand changes and take action
+
+## Key features
+- AI-powered change summaries (not raw diffs)
+- Smart noise filtering (ignores timestamps, cookie banners, ad rotations)
+- Built-in AI chat assistant
+- Email, Slack, Discord, Telegram, and webhook alerts
+- CSS selector targeting (monitor specific page sections)
+- Keyword monitoring (alert only when specific words appear/disappear)
+- Change importance scoring (1-10)
+- Semantic change detection using embeddings
+- Supports websites, JSON APIs, PDF documents, RSS/Atom feeds
+
+## Pricing
+- Free: 3 monitors, daily checks, email alerts, AI summaries — no time limit
+- Pro ($19/month): 20 monitors, hourly checks, Slack + email alerts, CSS selectors, 90-day history
+- Business ($49/month): 100 monitors, 15-minute checks, API access, custom webhooks, 365-day history
+
+## Use cases
+- Competitor pricing monitoring
+- Regulatory and compliance tracking
+- Job posting monitoring
+- E-commerce price tracking
+- News and content monitoring
+- Legal document change tracking
+
+## Technical details
+- Built with Next.js, deployed on Vercel
+- Database: PostgreSQL (Supabase)
+- AI: OpenAI GPT-4o-mini for summaries, text-embedding-3-small for semantic comparison
+- Billing: Paddle (Merchant of Record)
+- Email: Resend
+
+## Contact
+- Website: https://zikit.ai
+- Support: support@zikit.ai

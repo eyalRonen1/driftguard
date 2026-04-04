@@ -15,6 +15,13 @@
       "when": 1775061338824,
       "tag": "0001_absurd_network",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775158488594,
+      "tag": "0002_steep_wendell_rand",
+      "breakpoints": true
     }
   ]
 }

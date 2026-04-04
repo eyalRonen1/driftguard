@@ -82,10 +82,16 @@ export function LiveCheckButton({
 
     // Refresh parent after a moment
     setTimeout(onComplete, 1500);
+
+    // Auto-dismiss overlay after 4 seconds
+    setTimeout(() => {
+      setLogEntries([]);
+      setResult(null);
+    }, 4000);
   }
 
   return (
-    <div>
+    <div className="relative">
       <Button
         onClick={handleCheck}
         disabled={checking}
@@ -101,81 +107,44 @@ export function LiveCheckButton({
         {checking ? "Scanning..." : "Check now"}
       </Button>
 
-      {/* Scanning overlay */}
-      {checking && step >= 0 && (
-        <Card className="mt-4 p-5 border-primary/20 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Image
-                src="/assets/camo-watch.webp"
-                alt=""
-                width={48}
-                height={48}
-                className="animate-pulse"
-              />
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
-              </span>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{STEPS[step].icon}</span>
-                <p className="text-sm font-medium">{STEPS[step].label}</p>
-              </div>
-              {/* Progress bar */}
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+      {/* Floating overlay  - doesn't push content down */}
+      {(logEntries.length > 0 || result) && (
+        <div className="fixed inset-x-3 top-20 sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-[320px] z-30 animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* Live log */}
+          {logEntries.length > 0 && (
+            <ScanLiveLog entries={logEntries} />
+          )}
+
+          {/* Result toast */}
+          {result && !checking && (
+            <Card className={`mt-2 p-3 ${
+              result.error ? "border-destructive/30" : result.changed ? "border-chart-2/30" : "border-primary/20"
+            }`}>
+              <div className="flex items-center gap-3">
+                <Image
+                  src={result.error ? "/assets/camo-watch.webp" : result.changed ? "/assets/camo-watch.webp" : "/assets/camo-happy.webp"}
+                  alt=""
+                  width={28}
+                  height={28}
                 />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Step {step + 1} of {STEPS.length}
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Live log */}
-      {logEntries.length > 0 && (
-        <div className="mt-3">
-          <ScanLiveLog entries={logEntries} />
-        </div>
-      )}
-
-      {/* Result toast */}
-      {result && (
-        <Card className={`mt-4 p-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
-          result.error ? "border-destructive/30" : result.changed ? "border-chart-2/30" : "border-primary/20"
-        }`}>
-          <div className="flex items-center gap-3">
-            <Image
-              src={result.error ? "/assets/camo-watch.webp" : result.changed ? "/assets/camo-watch.webp" : "/assets/camo-happy.webp"}
-              alt=""
-              width={36}
-              height={36}
-            />
-            <div>
-              {result.error ? (
-                <>
-                  <p className="text-sm font-medium text-destructive">{result.error}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Camo will keep retrying at the next scheduled check.</p>
-                </>
-              ) : result.changed ? (
-                <>
-                  <p className="text-sm font-medium text-chart-2">Change detected!</p>
-                  {result.summary && (
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{result.summary}</p>
+                <div>
+                  {result.error ? (
+                    <p className="text-xs font-medium text-destructive">{result.error}</p>
+                  ) : result.changed ? (
+                    <>
+                      <p className="text-xs font-medium text-chart-2">Change detected!</p>
+                      {result.summary && (
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{result.summary}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs font-medium text-primary">No changes. All good!</p>
                   )}
-                </>
-              ) : (
-                <p className="text-sm font-medium text-primary">No changes. All good!</p>
-              )}
-            </div>
-          </div>
-        </Card>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
       )}
     </div>
   );

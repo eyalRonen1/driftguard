@@ -10,6 +10,7 @@ import { checkMonitor } from "@/lib/scan-engine/checker";
 import { fetchPage } from "@/lib/scan-engine/fetcher";
 import { getNextCheckTime } from "@/lib/utils/check-schedule";
 import { rateLimit } from "@/lib/rate-limit";
+import { PLAN_LIMITS, type PlanCode } from "@/lib/billing/paddle";
 
 export interface ActionResult {
   success: boolean;
@@ -106,18 +107,40 @@ export async function executeAction(
       const { url, name, checkFrequency } = params;
       if (!url) return { success: false, message: "I need a URL to monitor. What page should I watch?" };
 
-      // Auto-add https
+      // Plan enforcement
+      const org = await db.select().from(organizations).where(eq(organizations.id, auth.orgId)).limit(1);
+      const plan = (org[0]?.plan || "free") as PlanCode;
+      const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+
+      // Check monitor limit
+      const [{ count: currentCount }] = await db.select({ count: sql<number>`count(*)` })
+        .from(monitors).where(eq(monitors.orgId, auth.orgId));
+      if (currentCount >= limits.monitors) {
+        return { success: false, message: `You've reached your ${plan} plan limit of ${limits.monitors} monitors. Upgrade to add more!` };
+      }
+
+      // Check frequency
+      const freq = checkFrequency || "daily";
+      const allowedFreqs: readonly string[] = limits.checkFrequency;
+      if (!allowedFreqs.includes(freq)) {
+        return { success: false, message: `"${freq}" checks aren't available on your ${plan} plan. Available: ${allowedFreqs.join(", ")}.` };
+      }
+
+      // Auto-add https + validate URL
       let monitorUrl = url;
       if (!/^https?:\/\//i.test(monitorUrl)) monitorUrl = `https://${monitorUrl}`;
+      try { new URL(monitorUrl); } catch {
+        return { success: false, message: "That doesn't look like a valid URL. Try something like example.com." };
+      }
+
+      // Validate name length
+      const monitorName = (name || new URL(monitorUrl).hostname).slice(0, 255);
 
       // Preflight check
       const preflight = await fetchPage(monitorUrl, { timeoutMs: 10000 });
       if (preflight.error) {
         return { success: false, message: `I couldn't reach ${monitorUrl}: ${preflight.error}. Check the URL?` };
       }
-
-      const monitorName = name || new URL(monitorUrl).hostname;
-      const freq = checkFrequency || "daily";
 
       const [newMonitor] = await db.insert(monitors).values({
         orgId: auth.orgId,
@@ -126,7 +149,10 @@ export async function executeAction(
         checkFrequency: freq,
         lastContentHash: preflight.hash,
         lastContentText: preflight.text,
+        lastCheckedAt: new Date(),
         nextCheckAt: getNextCheckTime(freq),
+        healthStatus: "healthy",
+        lastHealthyAt: new Date(),
       }).returning();
 
       // Create baseline snapshot

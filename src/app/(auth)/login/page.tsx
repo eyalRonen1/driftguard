@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
@@ -74,17 +75,14 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-jungle-stage">
-      <div className="w-full max-w-md p-8 card-glass mx-4">
-        <div className="flex justify-center mb-6">
-          <a href="/" className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--accent-lime)] transition">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-            </svg>
-            <span className="text-sm">Back to home</span>
-          </a>
+      <div className="w-full max-w-[440px] p-10 card-glass mx-4 sm:mx-0">
+        <div className="flex justify-center mb-8">
+          <Link href="/">
+            <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={120} height={40} className="h-9 w-auto" />
+          </Link>
         </div>
-        <h1 className="text-2xl font-bold text-center mb-2 text-[var(--text-cream)]">Welcome back</h1>
-        <p className="text-[var(--text-muted)] text-center mb-8">Sign in to Zikit</p>
+        <h1 className="text-[28px] sm:text-[32px] font-bold text-center mb-2 text-[var(--text-cream)] tracking-tight">Welcome back</h1>
+        <p className="text-[var(--text-muted)] text-center mb-8">Sign in to your account</p>
 
         {authError && (
           <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
@@ -126,7 +124,7 @@ function LoginForm() {
             <div className="w-full border-t border-[var(--text-muted)]/20" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-[var(--bg-deep)] text-[var(--text-muted)]">or</span>
+            <span className="px-2 bg-[var(--bg-ink-2)] text-[var(--text-muted)]">or</span>
           </div>
         </div>
 

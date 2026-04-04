@@ -7,9 +7,9 @@ import { organizations, monitors } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 export const PLAN_LIMITS = {
-  free: { monitors: 3, checkFrequency: ["daily", "weekly"], checksPerMonth: 100 },
-  pro: { monitors: 20, checkFrequency: ["15min", "hourly", "every_6h", "daily", "weekly"], checksPerMonth: 2000 },
-  business: { monitors: 100, checkFrequency: ["15min", "hourly", "every_6h", "daily", "weekly"], checksPerMonth: 10000 },
+  free: { monitors: 3, checkFrequency: ["daily", "weekly"], cssSelector: false, slackAlerts: false, export: false, checksPerMonth: 100 },
+  pro: { monitors: 20, checkFrequency: ["hourly", "every_6h", "daily", "weekly"], cssSelector: true, slackAlerts: true, export: true, checksPerMonth: 2000 },
+  business: { monitors: 100, checkFrequency: ["15min", "hourly", "every_6h", "daily", "weekly"], cssSelector: true, slackAlerts: true, export: true, checksPerMonth: 10000 },
 } as const;
 
 export type PlanCode = keyof typeof PLAN_LIMITS;
@@ -21,6 +21,8 @@ interface PaddleWebhookEvent {
     customer_id?: string;
     status?: string;
     custom_data?: { org_id?: string };
+    current_billing_period?: { starts_at?: string; ends_at?: string };
+    scheduled_change?: { action?: string; effective_at?: string };
     items?: Array<{
       price?: { id?: string; product_id?: string };
       price_id?: string;
@@ -34,13 +36,19 @@ const PRICE_TO_PLAN: Record<string, PlanCode> = {
   // Sandbox
   "pri_01kn70ew9pqf4jym0aaszttzt9": "pro",
   "pri_01kn70f5jcahzyphtz48mbdx15": "business",
-  // Production — add when you go live
+  // Production
+  "pri_01kn8185pa1ne42gnkhd2yfmhh": "pro",
+  "pri_01kn8186qbsey8bdwjbc2j943e": "business",
 };
 
 // Product ID fallback mapping
 const PRODUCT_TO_PLAN: Record<string, PlanCode> = {
+  // Sandbox
   "pro_01kn70e1e06hab170k494nr7kb": "pro",
   "pro_01kn70egs0p1ryh8qxw7nyt1pq": "business",
+  // Production
+  "pro_01kn817smxmkvvp03y5bdn136p": "pro",
+  "pro_01kn817vhh6ys4y3msa0pka21b": "business",
 };
 
 /**
@@ -89,15 +97,17 @@ function logMissingOrg(eventType: string, data: PaddleWebhookEvent["data"]) {
 }
 
 /**
- * After downgrading an org to the free plan, pause any monitors that exceed
- * the free-tier limit (3). The newest monitors (by createdAt) are paused first.
+ * After downgrading an org, enforce the target plan's limits:
+ * 1. Pause monitors that exceed the plan's monitor limit
+ * 2. Downgrade check frequency on remaining monitors if needed
  */
-async function pauseExcessMonitors(orgId: string) {
-  const freeLimit = PLAN_LIMITS.free.monitors;
+async function enforceDowngradeLimits(orgId: string, targetPlan: PlanCode = "free") {
+  const limits = PLAN_LIMITS[targetPlan];
+  const allowedFrequencies = limits.checkFrequency as readonly string[];
 
   // Get all active, unpaused monitors for the org, newest first
   const orgMonitors = await db
-    .select({ id: monitors.id })
+    .select({ id: monitors.id, checkFrequency: monitors.checkFrequency })
     .from(monitors)
     .where(
       and(
@@ -108,20 +118,29 @@ async function pauseExcessMonitors(orgId: string) {
     )
     .orderBy(desc(monitors.createdAt));
 
-  if (orgMonitors.length <= freeLimit) return;
-
-  // Pause everything beyond the free limit (keep the oldest ones active)
-  const toPause = orgMonitors.slice(freeLimit);
-  for (const m of toPause) {
-    await db
-      .update(monitors)
-      .set({ isPaused: true, updatedAt: new Date() })
-      .where(eq(monitors.id, m.id));
+  // Pause excess monitors (keep the oldest ones active)
+  if (orgMonitors.length > limits.monitors) {
+    const toPause = orgMonitors.slice(limits.monitors);
+    for (const m of toPause) {
+      await db
+        .update(monitors)
+        .set({ isPaused: true, updatedAt: new Date() })
+        .where(eq(monitors.id, m.id));
+    }
+    console.warn(`Paused ${toPause.length} excess monitor(s) for org ${orgId} after downgrade`);
   }
 
-  console.log(
-    `Paused ${toPause.length} excess monitor(s) for org ${orgId} after downgrade to free`,
-  );
+  // Downgrade frequency on remaining active monitors
+  const activeMonitors = orgMonitors.slice(0, limits.monitors);
+  for (const m of activeMonitors) {
+    if (!allowedFrequencies.includes(m.checkFrequency)) {
+      await db
+        .update(monitors)
+        .set({ checkFrequency: "daily", updatedAt: new Date() })
+        .where(eq(monitors.id, m.id));
+      console.warn(`Downgraded frequency for monitor ${m.id} from ${m.checkFrequency} to daily`);
+    }
+  }
 }
 
 export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
@@ -136,6 +155,7 @@ export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
       const priceId = event.data.items?.[0]?.price?.id;
       const plan = getPlanFromPriceId(priceId, event);
       const limits = PLAN_LIMITS[plan];
+      const periodEndsAt = event.data.current_billing_period?.ends_at;
 
       await db
         .update(organizations)
@@ -145,6 +165,7 @@ export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
           paddleSubscriptionId: event.data.id || null,
           paddleSubscriptionStatus: event.data.status || "active",
           monthlyCheckQuota: limits.checksPerMonth,
+          billingPeriodEndsAt: periodEndsAt ? new Date(periodEndsAt) : null,
           updatedAt: new Date(),
         })
         .where(eq(organizations.id, orgId));
@@ -171,7 +192,7 @@ export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
 
       // If downgraded, pause excess monitors
       if (plan === "free") {
-        await pauseExcessMonitors(orgId);
+        await enforceDowngradeLimits(orgId);
       }
       break;
     }
@@ -192,7 +213,7 @@ export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
         })
         .where(eq(organizations.id, orgId));
 
-      await pauseExcessMonitors(orgId);
+      await enforceDowngradeLimits(orgId);
       break;
     }
 
@@ -227,12 +248,13 @@ export async function handlePaddleWebhook(event: PaddleWebhookEvent) {
           paddleSubscriptionId: null,
           paddleSubscriptionStatus: "canceled",
           monthlyCheckQuota: PLAN_LIMITS.free.checksPerMonth,
+          billingPeriodEndsAt: null,
           updatedAt: new Date(),
         })
         .where(eq(organizations.id, orgId));
 
-      // Pause monitors that exceed the free-tier limit
-      await pauseExcessMonitors(orgId);
+      // Enforce free-tier limits (pause excess monitors + downgrade frequencies)
+      await enforceDowngradeLimits(orgId);
       break;
     }
   }

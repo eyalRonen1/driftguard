@@ -26,9 +26,19 @@ export function Sidebar({ user }: { user: User }) {
   );
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Even if signOut fails, we'll clear cookies manually
+    }
+    // Clear all Supabase auth cookies to ensure full logout
+    document.cookie.split(";").forEach((c) => {
+      const name = c.trim().split("=")[0];
+      if (name.startsWith("sb-")) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      }
+    });
+    window.location.href = "/login";
   }
 
   return (
@@ -36,7 +46,7 @@ export function Sidebar({ user }: { user: User }) {
       {/* Mobile header bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 nav-glass px-4 py-3 flex items-center justify-between">
         <Link href="/dashboard">
-          <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={100} height={30} className="h-7 w-auto" />
+          <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={120} height={40} className="h-9 w-auto" />
         </Link>
         <button
           onClick={() => setOpen(!open)}
@@ -64,22 +74,24 @@ export function Sidebar({ user }: { user: User }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-30
-        w-64 bg-[#0f1f0f] flex flex-col
+        fixed inset-y-0 left-0 z-30
+        w-64 bg-[var(--bg-ink-2)] flex flex-col
         transform transition-transform duration-200
         ${open ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
         pt-14 lg:pt-0
       `}>
-        <div className="p-4 border-b border-[#1a3a1a] hidden lg:block">
+        <div className="p-4 border-b border-white/8 hidden lg:block">
           <Link href="/dashboard">
-            <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={120} height={36} className="h-8 w-auto" />
+            <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={150} height={50} className="h-10 w-auto" />
           </Link>
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.name}
@@ -88,7 +100,7 @@ export function Sidebar({ user }: { user: User }) {
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                   isActive
                     ? "bg-[var(--accent-lime)]/10 text-[var(--accent-lime)] font-medium"
-                    : "text-gray-400 hover:bg-[var(--bg-ink-2)]/50 hover:text-[var(--text-cream)]"
+                    : "text-[var(--text-muted)] hover:bg-white/[0.04] hover:text-[var(--text-cream)]"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -97,27 +109,27 @@ export function Sidebar({ user }: { user: User }) {
             );
           })}
           {/* Command palette hint */}
-          <div className="mt-4 mx-3 px-3 py-2 rounded-lg bg-white/3 border border-white/5 flex items-center gap-2 text-[10px] text-gray-500">
+          <div className="mt-4 mx-3 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 flex items-center gap-2 text-xs text-[var(--text-muted)]">
             <kbd className="bg-white/5 px-1.5 py-0.5 rounded text-[9px]">⌘K</kbd>
             <span>Quick search</span>
           </div>
         </nav>
 
-        <div className="p-3 border-t border-[#1a3a1a]">
+        <div className="p-3 border-t border-white/8">
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-[var(--bg-ink-3)] rounded-full flex items-center justify-center text-sm font-medium text-gray-300">
+            <div className="w-8 h-8 bg-[var(--bg-ink-3)] rounded-full flex items-center justify-center text-sm font-medium text-[var(--text-sage)]">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
                 {user.user_metadata?.full_name || user.email}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              <p className="text-xs text-[var(--text-muted)] truncate">{user.email}</p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full mt-2 px-3 py-2 text-sm text-gray-500 hover:bg-white/5 hover:text-gray-300 rounded-lg transition text-left"
+            className="w-full mt-2 px-3 py-2 text-sm text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-cream)] rounded-lg transition text-left"
           >
             Sign out
           </button>

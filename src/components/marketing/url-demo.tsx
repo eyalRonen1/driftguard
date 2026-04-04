@@ -33,7 +33,7 @@ export function UrlDemo() {
       checkUrl = `https://${checkUrl}`;
     }
 
-    // Clean tracking parameters — they change on every click and cause noise
+    // Clean tracking parameters  - they change on every click and cause noise
     try {
       const parsed = new URL(checkUrl);
       const trackingParams = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_campaignid", "gclid", "gad_source", "gad_campaignid", "dclid", "fbclid", "msclkid", "ref", "mc_cid", "mc_eid"];
@@ -86,7 +86,7 @@ export function UrlDemo() {
   return (
     <div className="max-w-xl mx-auto">
       {/* Input */}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="url"
           value={url}
@@ -140,10 +140,10 @@ export function UrlDemo() {
               </div>
             </div>
             <p className="text-xs text-[var(--text-sage)] mb-4">
-              Some sites block preview requests but can still be monitored over time. Sign up to add this page — Camo will use multiple strategies to access it.
+              Some sites block preview requests but can still be monitored over time. Sign up to add this page  - Camo will use multiple strategies to access it.
             </p>
             <Link href="/signup" className="btn-primary block text-center text-sm">
-              Try monitoring this page — free
+              Try monitoring this page  - free
             </Link>
           </div>
         </div>
@@ -196,7 +196,7 @@ export function UrlDemo() {
             </div>
 
             <Link href="/signup" className="btn-primary block text-center text-sm">
-              Start monitoring this page — free
+              Start monitoring this page  - free
             </Link>
           </div>
         </div>

@@ -14,7 +14,7 @@
 
 import { db } from "@/lib/db";
 import { monitors, snapshots, changes, organizations, alertConfigs } from "@/lib/db/schema";
-import { eq, or, isNull, sql, desc } from "drizzle-orm";
+import { eq, and, or, lte, isNull, sql, desc } from "drizzle-orm";
 import { smartFetch } from "./fetcher";
 import { summarizeChange } from "./summarizer";
 import { filterNoise, calculateSignalScore } from "./noise-filter";
@@ -156,15 +156,15 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
 
   if (org) {
     const now = new Date();
-    // Reset quota if the reset date has passed
+    // Atomic quota reset — WHERE prevents race condition with concurrent checks
     if (org.quotaResetAt <= now) {
-      const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1); // First of next month
-      await db
+      const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const [updated] = await db
         .update(organizations)
         .set({ monthlyChecksUsed: 0, quotaResetAt: nextReset })
-        .where(eq(organizations.id, org.id));
-      org.monthlyChecksUsed = 0;
-      org.quotaResetAt = nextReset;
+        .where(and(eq(organizations.id, org.id), lte(organizations.quotaResetAt, now)))
+        .returning({ used: organizations.monthlyChecksUsed });
+      if (updated) { org.monthlyChecksUsed = 0; org.quotaResetAt = nextReset; }
     }
 
     if (org.monthlyChecksUsed >= org.monthlyCheckQuota) {
@@ -185,6 +185,10 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     ignoreSelectors: monitor.ignoreSelectors,
     headers: monitor.headers as Record<string, string> | null,
   });
+
+  // ── Track fetch metadata ──
+  const fetchMethod = result.fetchMethod || "http";
+  const responseTime = result.responseTimeMs;
 
   // Update last checked time
   const now = new Date();
@@ -210,6 +214,9 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
         healthReason,
         healthCheckedAt: now,
         updatedAt: now,
+        totalChecks: sql`total_checks + 1`,
+        lastResponseTimeMs: responseTime,
+        lastFetchMethod: fetchMethod,
       })
       .where(eq(monitors.id, monitorId));
 
@@ -253,6 +260,9 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
         healthCheckedAt: now,
         lastHealthyAt: now,
         updatedAt: now,
+        totalChecks: sql`total_checks + 1`,
+        lastResponseTimeMs: responseTime,
+        lastFetchMethod: fetchMethod,
       })
       .where(eq(monitors.id, monitorId));
 
@@ -275,8 +285,13 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       // Alert only if a keyword disappears from content
       keywordMatch = keywords.some(k => beforeLower.includes(k) && !afterLower.includes(k));
     } else {
-      // "any" mode: alert if any keyword is mentioned in the change
-      keywordMatch = keywords.some(k => afterLower.includes(k) || beforeLower.includes(k));
+      // "any" mode: alert if keyword appeared, disappeared, or changed count
+      // (covers renames, additions, removals - any meaningful change involving the keyword)
+      keywordMatch = keywords.some(k => {
+        const beforeCount = (beforeLower.match(new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+        const afterCount = (afterLower.match(new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+        return beforeCount !== afterCount;
+      });
     }
   }
 
@@ -294,6 +309,9 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       healthCheckedAt: now,
       lastHealthyAt: now,
       updatedAt: now,
+      totalChecks: sql`total_checks + 1`,
+      lastResponseTimeMs: responseTime,
+      lastFetchMethod: fetchMethod,
     }).where(eq(monitors.id, monitorId));
     await incrementUsage(monitor.orgId);
     return { monitorId, changed: false, summary: null, importanceScore: null, confidenceScore: null, error: null };
@@ -304,9 +322,19 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   const pageType = structuredAfter.pageType;
 
   // ── Stage 3: Semantic gate (embeddings — 200x cheaper than LLM) ──
-  const semanticResult = await semanticGate(previousRaw, result.text, pageType);
+  // Use FILTERED text for semantic comparison to avoid navigation/chrome dominating embeddings
+  const semanticResult = await semanticGate(filteredBefore, filteredAfter, pageType);
 
-  // If semantic gate says skip: record as low-importance noise change without LLM
+  // Override semantic gate if noise filter is highly confident this is a real change.
+  // The semantic gate compares full-page embeddings, which are dominated by unchanged
+  // navigation/menus on sites like news portals. The noise filter is more precise.
+  const semanticOverridden = semanticResult.recommendation === "skip_llm" && signalScore >= 50;
+  if (semanticOverridden) {
+    semanticResult.recommendation = "low_priority_llm";
+    semanticResult.isSemanticChange = true;
+  }
+
+  // If semantic gate says skip AND noise filter agrees: skip without LLM
   if (semanticResult.recommendation === "skip_llm") {
     await db
       .update(monitors)
@@ -321,6 +349,9 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
         healthCheckedAt: now,
         lastHealthyAt: now,
         updatedAt: now,
+        totalChecks: sql`total_checks + 1`,
+        lastResponseTimeMs: responseTime,
+        lastFetchMethod: fetchMethod,
       })
       .where(eq(monitors.id, monitorId));
 
@@ -342,12 +373,19 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   // ── Stage 5: LLM summarization ──
   const isLowPriority = semanticResult.recommendation === "low_priority_llm";
   const previousText = monitor.lastContentText || "";
-  const summaryResult = await summarizeChange(previousText, result.text, monitor.url);
+  const summaryResult = await summarizeChange(previousText, result.text, monitor.url, monitor.useCase);
 
   // Adjust importance using confidence score — blend LLM score with composite
-  const adjustedImportance = isLowPriority
+  let adjustedImportance = isLowPriority
     ? Math.round(summaryResult.importanceScore * 0.4 + (confidence.overall / 10) * 0.3 + 1) // dampen for low priority
     : Math.round(summaryResult.importanceScore * 0.6 + (confidence.overall / 10) * 0.4);
+
+  // Keyword match boost: if user explicitly asked to watch for these keywords
+  // and they're involved in a change, importance must be at least 6
+  if (monitor.watchKeywords && keywordMatch) {
+    adjustedImportance = Math.max(adjustedImportance, 6);
+  }
+
   const finalImportance = Math.max(1, Math.min(10, adjustedImportance));
 
   // Find the previous snapshot for reference (descending: index 0 = current, index 1 = previous)
@@ -385,6 +423,31 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
   const addedText = added.slice(0, 5).join(". ").slice(0, 500) || null;
   const removedText = removed.slice(0, 5).join(". ").slice(0, 500) || null;
 
+  // ── Focused diff extraction ──
+  // Find the first position where before and after text diverge, then take context around it
+  let focusedDiffBefore: string | null = null;
+  let focusedDiffAfter: string | null = null;
+  {
+    const minLen = Math.min(previousText.length, result.text.length);
+    let divergeAt = -1;
+    for (let i = 0; i < minLen; i++) {
+      if (previousText[i] !== result.text[i]) {
+        divergeAt = i;
+        break;
+      }
+    }
+    // If no char-level diff found but lengths differ, divergence is at the shorter string's end
+    if (divergeAt === -1 && previousText.length !== result.text.length) {
+      divergeAt = minLen;
+    }
+    if (divergeAt >= 0) {
+      const contextBefore = 100;
+      const start = Math.max(0, divergeAt - contextBefore);
+      focusedDiffBefore = previousText.slice(start, start + 500) || null;
+      focusedDiffAfter = result.text.slice(start, start + 500) || null;
+    }
+  }
+
   // Enrich summary with page type context
   const enrichedSummary = pageType !== "general"
     ? `[${pageType}] ${summaryResult.summary}`
@@ -403,6 +466,17 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
     addedText,
     removedText,
     diffPercentage,
+    confidenceScore: confidence.overall,
+    signalScore,
+    fetchMethod,
+    llmTokensUsed: summaryResult.tokensUsed ?? null,
+    keywordMatched: monitor.watchKeywords ? keywordMatch : null,
+    pageType,
+    semanticSimilarity: String(semanticResult.similarity),
+    focusedDiffBefore,
+    focusedDiffAfter,
+    details: summaryResult.details,
+    actionItem: summaryResult.actionItem,
   }).returning();
 
   // ── Stage 6: Notifications (fire-and-forget) ──
@@ -416,13 +490,16 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       )
       .limit(10);
 
+    // Keyword match bypasses importance threshold - user explicitly asked for these
+    const isKeywordAlert = monitor.watchKeywords && keywordMatch;
     const activeConfigs = configs.filter(
-      (c) => c.isActive && finalImportance >= c.minImportance && c.orgId === monitor.orgId
+      (c) => c.isActive && c.orgId === monitor.orgId && (isKeywordAlert || finalImportance >= c.minImportance)
     );
 
     if (activeConfigs.length > 0) {
       const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://zikit.ai";
       const alertData = {
+        orgId: monitor.orgId,
         monitorName: monitor.name,
         monitorUrl: monitor.url,
         summary: enrichedSummary,
@@ -451,7 +528,17 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       });
 
       // Fire-and-forget: don't block the check on notification delivery
-      Promise.allSettled(notificationPromises).then(async () => {
+      Promise.allSettled(notificationPromises).then(async (results) => {
+        // Log any failed alert deliveries (no full error for security)
+        results.forEach((result, idx) => {
+          if (result.status === "rejected") {
+            const config = activeConfigs[idx];
+            console.error(
+              `Alert delivery failed: channel=${config.channel} destination=${config.destination} monitor=${monitorId}`
+            );
+          }
+        });
+
         try {
           await db.update(changes)
             .set({ notified: true, notifiedAt: new Date() })
@@ -479,6 +566,10 @@ export async function checkMonitor(monitorId: string): Promise<CheckResult> {
       healthCheckedAt: now,
       lastHealthyAt: now,
       updatedAt: now,
+      totalChecks: sql`total_checks + 1`,
+      totalChanges: sql`total_changes + 1`,
+      lastResponseTimeMs: responseTime,
+      lastFetchMethod: fetchMethod,
     })
     .where(eq(monitors.id, monitorId));
 

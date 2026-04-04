@@ -101,13 +101,14 @@ export async function semanticGate(
   const similarity = cosineSimilarity(embBefore, embAfter);
 
   // Adjust thresholds based on page type
+  // Higher skip threshold = harder to suppress (more changes get through)
   const thresholds = {
-    pricing: { skip: 0.98, low: 0.92 }, // pricing changes are ALWAYS important
-    legal: { skip: 0.97, low: 0.90 },
-    news: { skip: 0.93, low: 0.80 }, // news changes frequently, higher tolerance
-    docs: { skip: 0.96, low: 0.88 },
-    ecommerce: { skip: 0.97, low: 0.90 },
-    general: { skip: 0.95, low: 0.85 },
+    pricing: { skip: 0.99, low: 0.93 }, // pricing changes are ALWAYS important
+    legal: { skip: 0.98, low: 0.92 },
+    news: { skip: 0.98, low: 0.88 }, // news changes frequently — NEVER skip lightly
+    docs: { skip: 0.97, low: 0.90 },
+    ecommerce: { skip: 0.98, low: 0.92 },
+    general: { skip: 0.96, low: 0.87 },
   };
 
   const t = thresholds[pageType as keyof typeof thresholds] || thresholds.general;

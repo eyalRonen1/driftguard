@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { users, organizations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { User } from "@supabase/supabase-js";
+import { logActivity } from "@/lib/activity-log";
 
 export async function ensureUserAndOrg(authUser: User) {
   const emailDomain = authUser.email?.split("@")[1]?.toLowerCase();
@@ -65,6 +66,15 @@ export async function ensureUserAndOrg(authUser: User) {
 
   // Create default org
   const org = await ensureOrg(newUser.id, authUser);
+
+  logActivity({
+    orgId: org.id,
+    userEmail: authUser.email,
+    action: "account.signup",
+    targetType: "user",
+    targetId: newUser.id,
+  });
+
   return { user: newUser, org };
 }
 

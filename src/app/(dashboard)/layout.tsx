@@ -24,7 +24,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-jungle-stage">
       <Sidebar user={user} />
       <CommandPalette />
-      <main className="lg:ml-64 pt-14 lg:pt-0 p-4 sm:p-6 min-h-screen relative z-10">
+      <main className="lg:ml-64 pt-16 lg:pt-6 pb-4 px-4 sm:pb-6 sm:px-6 min-h-screen relative z-10">
         {children}
       </main>
     </div>

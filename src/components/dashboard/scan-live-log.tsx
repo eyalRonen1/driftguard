@@ -47,7 +47,7 @@ export function ScanLiveLog({ entries }: { entries: LogEntry[] }) {
         <span className="text-[10px] text-muted-foreground font-mono">scan.log</span>
         <Image src="/assets/camo-watch.webp" alt="" width={16} height={16} className="ml-auto animate-pulse" />
       </div>
-      <div ref={scrollRef} className="p-3 max-h-[200px] overflow-y-auto font-mono text-xs space-y-0.5">
+      <div ref={scrollRef} className="p-3 h-[180px] overflow-y-auto font-mono text-xs space-y-0.5">
         {entries.map((entry, i) => (
           <div key={i} className="flex gap-2">
             <span className="text-muted-foreground/50 select-none w-[50px] flex-shrink-0">{entry.time}</span>

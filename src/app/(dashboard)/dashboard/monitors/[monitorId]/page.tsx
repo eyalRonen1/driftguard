@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { createBrowserClient } from "@supabase/ssr";
 import { ChangeTimeline } from "@/components/dashboard/change-timeline";
 import { LiveCheckButton } from "@/components/dashboard/live-check";
 import { HealthSparkline, UptimeBar } from "@/components/dashboard/health-sparkline";
 import { useChatContext } from "@/components/chat/chat-context";
 import { AlertPreferences } from "@/components/dashboard/alert-preferences";
 import { FirstMonitorCard } from "@/components/dashboard/first-monitor-card";
+import { MonitorSettings } from "@/components/dashboard/monitor-settings";
 
 interface Monitor {
   id: string;
@@ -25,6 +25,13 @@ interface Monitor {
   healthStatus: string;
   healthReason: string | null;
   useCase: string | null;
+  preferredCheckHour: number | null;
+  preferredCheckDay: number | null;
+  cssSelector: string | null;
+  ignoreSelectors: string | null;
+  watchKeywords: string | null;
+  description: string | null;
+  tags: string | null;
 }
 
 interface Change {
@@ -35,6 +42,11 @@ interface Change {
   diffPercentage: string | null;
   addedText: string | null;
   removedText: string | null;
+  details: string | null;
+  actionItem: string | null;
+  focusedDiffBefore: string | null;
+  focusedDiffAfter: string | null;
+  tags: string | null;
   createdAt: string;
 }
 
@@ -45,18 +57,15 @@ export default function MonitorDetailPage() {
   const [changes, setChanges] = useState<Change[]>([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
+  const [plan, setPlan] = useState("free");
+  const [emailUnsubscribedAt, setEmailUnsubscribedAt] = useState<string | null>(null);
+  const [timezone, setTimezone] = useState("UTC");
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [preferredHour, setPreferredHour] = useState<string>("");
+  const [preferredDay, setPreferredDay] = useState<string>("");
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [scheduleSaved, setScheduleSaved] = useState(false);
   const { setPageContext } = useChatContext();
-
-  // Get the authenticated user's email for alert preferences
-  useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) setUserEmail(data.user.email);
-    });
-  }, []);
 
   useEffect(() => { fetchData(); }, [monitorId]);
 
@@ -66,6 +75,12 @@ export default function MonitorDetailPage() {
     const data = await res.json();
     setMonitor(data.monitor);
     setChanges(data.changes || []);
+    if (data.plan) setPlan(data.plan);
+    if (data.userEmail) setUserEmail(data.userEmail);
+    if (data.emailUnsubscribedAt) setEmailUnsubscribedAt(data.emailUnsubscribedAt);
+    if (data.timezone) setTimezone(data.timezone);
+    setPreferredHour(data.monitor?.preferredCheckHour != null ? String(data.monitor.preferredCheckHour) : "");
+    setPreferredDay(data.monitor?.preferredCheckDay != null ? String(data.monitor.preferredCheckDay) : "");
 
     // Set chat context so Camo knows about this specific page
     setPageContext({
@@ -80,6 +95,31 @@ export default function MonitorDetailPage() {
     if (!confirm("Delete this monitor and all its history?")) return;
     await fetch(`/api/v1/monitors/${monitorId}`, { method: "DELETE" });
     router.push("/dashboard/monitors");
+  }
+
+  async function handleSaveSchedule() {
+    setScheduleSaving(true);
+    setScheduleSaved(false);
+    try {
+      const res = await fetch(`/api/v1/monitors/${monitorId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preferredCheckHour: preferredHour !== "" ? Number(preferredHour) : null,
+          preferredCheckDay: preferredDay !== "" ? Number(preferredDay) : null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMonitor(data.monitor);
+        setScheduleSaved(true);
+        setTimeout(() => setScheduleSaved(false), 2000);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setScheduleSaving(false);
+    }
   }
 
   if (loading) {
@@ -105,7 +145,7 @@ export default function MonitorDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-cream)]">{monitor.name}</h1>
-          <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="text-sm text-[var(--accent-jade)] hover:underline">
+          <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="text-base text-[var(--accent-jade)] hover:underline">
             {monitor.url}
           </a>
         </div>
@@ -131,9 +171,9 @@ export default function MonitorDetailPage() {
       </div>
 
       {/* Uptime bar + Sparkline */}
-      <div className="card-glass p-4 mb-4">
+      <div className="card-glass p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs text-muted-foreground font-medium">Response time (24h)</span>
+          <span className="text-sm text-muted-foreground font-medium">Response time (24h)</span>
           <HealthSparkline data={[]} width={140} height={28} />
         </div>
         <UptimeBar checks={30} healthyCount={Math.max(30 - (monitor.consecutiveErrors || 0), 25)} />
@@ -141,10 +181,10 @@ export default function MonitorDetailPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        <div className="card-glass p-4 relative overflow-hidden">
+        <div className="card-glass p-5 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-scales.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Page health</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Page health</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="relative flex h-3 w-3">
                 {monitor.healthStatus === "healthy" && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-jade)] opacity-75" />}
@@ -154,32 +194,138 @@ export default function MonitorDetailPage() {
                   "bg-[var(--accent-jade)]"
                 }`} />
               </span>
-              <span className="font-bold capitalize">{monitor.healthStatus}</span>
+              <span className="text-base font-bold capitalize">{monitor.healthStatus}</span>
             </div>
           </div>
         </div>
-        <div className="card-glass p-4 relative overflow-hidden">
+        <div className="card-glass p-5 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-rings.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Check schedule</p>
-            <p className="font-bold mt-2 capitalize">{monitor.checkFrequency}</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Check schedule</p>
+            <p className="text-base font-bold mt-2 capitalize">{monitor.checkFrequency}</p>
           </div>
         </div>
-        <div className="card-glass p-4 relative overflow-hidden">
+        <div className="card-glass p-5 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-eye.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Last checked</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Last checked</p>
             <p className="font-bold text-sm mt-2">{monitor.lastCheckedAt ? new Date(monitor.lastCheckedAt).toLocaleString() : "Never"}</p>
           </div>
         </div>
-        <div className="card-glass p-4 relative overflow-hidden">
+        <div className="card-glass p-5 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.04]"><Image src="/assets/pat-spiral.webp" alt="" fill className="object-cover" /></div>
           <div className="relative z-10">
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Updates found</p>
-            <p className="font-bold text-lg mt-2 text-[var(--accent-gold)]">{changes.length}</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Updates found</p>
+            <p className="font-bold text-xl mt-2 text-[var(--accent-gold)]">{changes.length}</p>
           </div>
         </div>
       </div>
+
+      {/* Monitor settings - view & edit */}
+      <MonitorSettings monitor={monitor} monitorId={monitorId} onSaved={fetchData} />
+
+      {/* Schedule options (for daily, weekly, every_6h) */}
+      {["daily", "weekly", "every_6h"].includes(monitor.checkFrequency) && (
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => setShowSchedule(!showSchedule)}
+            className="w-full text-left text-sm text-[var(--text-sage)] hover:text-[var(--accent-jade)] transition flex items-center gap-2 py-3 px-4 rounded-xl border border-white/8 hover:border-white/15 bg-white/[0.02]"
+          >
+            <svg className={`w-4 h-4 transition-transform ${showSchedule ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+            <span className="text-base">&#9200;</span>
+            <span>Schedule  - choose when to check</span>
+            {(monitor.preferredCheckHour != null || monitor.preferredCheckDay != null) && (
+              <span className="ml-auto text-xs text-[var(--text-muted)]">
+                {monitor.checkFrequency === "weekly" && monitor.preferredCheckDay != null
+                  ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][monitor.preferredCheckDay] + " "
+                  : ""}
+                {monitor.preferredCheckHour != null
+                  ? (() => { const d = new Date(); d.setUTCHours(monitor.preferredCheckHour, 0, 0, 0); return d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone }); })()
+                  : ""}
+              </span>
+            )}
+          </button>
+          {showSchedule && (
+            <div className="mt-2 p-4 rounded-xl border border-white/8 bg-white/[0.02] space-y-3">
+              {monitor.checkFrequency === "weekly" && (
+                <div>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1">Preferred day</label>
+                  <select
+                    value={preferredDay}
+                    onChange={(e) => setPreferredDay(e.target.value)}
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-[var(--text-cream)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
+                  >
+                    <option value="">Any day</option>
+                    <option value="0">Sunday</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs text-[var(--text-muted)] mb-1">
+                  {monitor.checkFrequency === "every_6h" ? "First check at" : "Preferred time"}
+                </label>
+                <select
+                  value={preferredHour}
+                  onChange={(e) => setPreferredHour(e.target.value)}
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-[var(--text-cream)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-jade)]"
+                >
+                  <option value="">Anytime</option>
+                  {Array.from({ length: 24 }, (_, utcHour) => {
+                    const d = new Date();
+                    d.setUTCHours(utcHour, 0, 0, 0);
+                    const localLabel = d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone });
+                    return (
+                      <option key={utcHour} value={String(utcHour)}>
+                        {localLabel}
+                      </option>
+                    );
+                  })}
+                </select>
+                {monitor.checkFrequency === "every_6h" && preferredHour && (
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                    Checks at {[0, 6, 12, 18].map((offset) => {
+                      const utcH = (Number(preferredHour) + offset) % 24;
+                      const d = new Date();
+                      d.setUTCHours(utcH, 0, 0, 0);
+                      return d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone });
+                    }).join(", ")}
+                  </p>
+                )}
+              </div>
+              {/* Save button: show when values differ from stored */}
+              {(
+                (preferredHour !== (monitor.preferredCheckHour != null ? String(monitor.preferredCheckHour) : "")) ||
+                (preferredDay !== (monitor.preferredCheckDay != null ? String(monitor.preferredCheckDay) : ""))
+              ) && (
+                <button
+                  onClick={handleSaveSchedule}
+                  disabled={scheduleSaving}
+                  className="w-full py-2 text-sm font-medium rounded-lg bg-[var(--accent-jade)] text-[var(--bg-deep)] hover:opacity-90 transition disabled:opacity-50"
+                >
+                  {scheduleSaving ? "Saving..." : "Save schedule"}
+                </button>
+              )}
+              {scheduleSaved && (
+                <p className="text-xs text-[var(--accent-jade)] text-center flex items-center justify-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  Schedule updated
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Error banner */}
       {monitor.lastError && (
@@ -256,7 +402,7 @@ export default function MonitorDetailPage() {
 
       {/* Alert preferences */}
       <div className="mt-8">
-        <AlertPreferences monitorId={monitorId} monitorName={monitor.name} userEmail={userEmail} />
+        <AlertPreferences monitorId={monitorId} monitorName={monitor.name} userEmail={userEmail} plan={plan} emailUnsubscribedAt={emailUnsubscribedAt} />
       </div>
     </div>
   );

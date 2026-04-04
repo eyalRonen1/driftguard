@@ -6,12 +6,17 @@
 
 export interface SummaryResult {
   summary: string;
+  details: string | null; // 2-3 bullet points about specific changes
+  actionItem: string | null; // optional suggestion starting with "Consider..."
   changeType: string; // content, price, removal, addition, structure
   importanceScore: number; // 1-10
   model: string;
+  tokensUsed: number | null; // total tokens consumed by this LLM call
 }
 
 const SUMMARIZER_PROMPT = `You are a website change analyst. You compare two versions of a web page and produce a clear, actionable summary of what changed.
+
+CRITICAL: Be SPECIFIC. Mention actual content, names, numbers, headlines, prices. Never say vague things like "content was updated" or "some text changed". For news sites, mention the actual headline topics. For pricing pages, mention actual prices. For product pages, mention the actual product names and features.
 
 Rules:
 1. Write in plain English. No technical jargon.
@@ -20,7 +25,6 @@ Rules:
 4. If a price changed, always state: old price → new price.
 5. If content was added, summarize what was added.
 6. If content was removed, note what's missing.
-7. Keep the summary under 3 sentences for minor changes, under 5 for major ones.
 
 Classify the change type as one of:
 - "price" - pricing, cost, or fee changes
@@ -36,8 +40,14 @@ Rate importance 1-10:
 - 7-9: Important (pricing changes, feature changes, legal updates)
 - 10: Critical (page removed, major policy change, service discontinuation)
 
-Respond in JSON:
-{"summary": "...", "changeType": "...", "importanceScore": N}`;
+Respond in JSON with these fields:
+{
+  "summary": "One clear, direct sentence about what changed. Be specific — mention actual content, names, numbers.",
+  "details": "2-3 bullet points (using • character) with concrete facts about the changes. Each bullet should be a specific, verifiable fact. Example: • Pro plan price increased from $29/mo to $39/mo\\n• Free tier now limited to 5 projects (was 10)\\n• Enterprise plan added custom SSO support",
+  "actionItem": "One-line suggestion starting with 'Consider...' or null if not applicable. Example: 'Consider updating your comparison page to reflect the new pricing.'",
+  "changeType": "...",
+  "importanceScore": N
+}`;
 
 /**
  * Generate an AI summary of the difference between two page versions
@@ -45,7 +55,8 @@ Respond in JSON:
 export async function summarizeChange(
   beforeText: string,
   afterText: string,
-  pageUrl: string
+  pageUrl: string,
+  useCase?: string | null,
 ): Promise<SummaryResult> {
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -53,9 +64,12 @@ export async function summarizeChange(
     // Fallback: basic diff description without AI
     return {
       summary: "Page content has changed. AI summary unavailable.",
+      details: null,
+      actionItem: null,
       changeType: "content",
       importanceScore: 5,
       model: "fallback",
+      tokensUsed: null,
     };
   }
 
@@ -79,7 +93,7 @@ export async function summarizeChange(
           { role: "system", content: SUMMARIZER_PROMPT },
           {
             role: "user",
-            content: `Page URL: ${pageUrl}
+            content: `Page URL: ${pageUrl}${useCase ? `\nUser monitoring context: ${useCase}. Focus on changes relevant to this use case.` : ""}
 
 BEFORE:
 ${before}
@@ -91,7 +105,7 @@ Summarize what changed.`,
           },
         ],
         temperature: 0.2,
-        max_tokens: 300,
+        max_tokens: 500,
       }),
       signal: controller.signal,
     });
@@ -99,14 +113,18 @@ Summarize what changed.`,
     if (!response.ok) {
       return {
         summary: "Page content has changed. AI summary generation failed.",
+        details: null,
+        actionItem: null,
         changeType: "content",
         importanceScore: 5,
         model: "error",
+        tokensUsed: null,
       };
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
+    const tokensUsed: number | null = data.usage?.total_tokens ?? null;
 
     try {
       const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -114,33 +132,45 @@ Summarize what changed.`,
 
       return {
         summary: parsed.summary || "Page content changed.",
+        details: parsed.details || null,
+        actionItem: parsed.actionItem || null,
         changeType: parsed.changeType || "content",
         importanceScore: Math.max(1, Math.min(10, Number(parsed.importanceScore) || 5)),
         model: "gpt-4o-mini",
+        tokensUsed,
       };
     } catch {
       // If JSON parsing fails, use raw text
       return {
         summary: content.slice(0, 500),
+        details: null,
+        actionItem: null,
         changeType: "content",
         importanceScore: 5,
         model: "gpt-4o-mini",
+        tokensUsed,
       };
     }
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
       return {
         summary: "Change detected (AI summary unavailable)",
+        details: null,
+        actionItem: null,
         changeType: "content",
         importanceScore: 5,
         model: "timeout",
+        tokensUsed: null,
       };
     }
     return {
       summary: "Page content has changed. Summary generation failed.",
+      details: null,
+      actionItem: null,
       changeType: "content",
       importanceScore: 5,
       model: "error",
+      tokensUsed: null,
     };
   } finally {
     clearTimeout(timeout);

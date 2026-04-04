@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
@@ -59,18 +60,15 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-jungle-stage">
-      <div className="w-full max-w-md p-8 card-glass">
-        <div className="flex justify-center mb-6">
-          <a href="/" className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--accent-jade)] transition">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-            </svg>
-            <span className="text-sm">Back to home</span>
-          </a>
+      <div className="w-full max-w-[440px] p-10 card-glass mx-4 sm:mx-0">
+        <div className="flex justify-center mb-8">
+          <Link href="/">
+            <Image src="/assets/zikit-nav-logo.webp" alt="Zikit" width={120} height={40} className="h-9 w-auto" />
+          </Link>
         </div>
-        <h1 className="text-2xl font-bold text-center mb-2 text-[var(--text-cream)]">Create your account</h1>
+        <h1 className="text-[28px] sm:text-[32px] font-bold text-center mb-2 text-[var(--text-cream)] tracking-tight">Create your account</h1>
         <p className="text-[var(--text-muted)] text-center mb-8">
-          Start monitoring pages in 60 seconds
+          Start monitoring pages in 30 seconds
         </p>
 
         <button
@@ -91,7 +89,7 @@ export default function SignupPage() {
             <div className="w-full border-t border-[var(--text-muted)]/20" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-[var(--bg-deep)] text-[var(--text-muted)]">or</span>
+            <span className="px-2 bg-[var(--bg-ink-2)] text-[var(--text-muted)]">or</span>
           </div>
         </div>
 
@@ -150,7 +148,7 @@ export default function SignupPage() {
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button
             type="submit"
@@ -162,7 +160,13 @@ export default function SignupPage() {
         </form>
         )}
 
-        <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
+        <p className="mt-4 text-center text-xs text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed">
+          By creating an account you agree to our{" "}
+          <Link href="/terms" className="text-[var(--accent-jade)] hover:underline">Terms</Link>
+          {" "}and{" "}
+          <Link href="/privacy" className="text-[var(--accent-jade)] hover:underline">Privacy Policy</Link>.
+        </p>
+        <p className="mt-4 text-center text-sm text-[var(--text-muted)]">
           Already have an account?{" "}
           <Link href="/login" className="text-[var(--accent-jade)] hover:underline">
             Sign in

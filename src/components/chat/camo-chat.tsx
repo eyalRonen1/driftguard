@@ -1,11 +1,35 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useChatContext } from "./chat-context";
+
+/** Render basic markdown (bold, italic, line breaks) as React elements. */
+function renderMarkdown(text: string): ReactNode[] {
+  const parts: ReactNode[] = [];
+  // Split by **bold** markers using a simple approach
+  const segments = text.split(/\*\*([\s\S]*?)\*\*/g);
+  let key = 0;
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (!seg) continue;
+    if (i % 2 === 1) {
+      // Odd indices are content between ** markers = bold
+      parts.push(<strong key={key++} className="font-semibold text-foreground">{seg}</strong>);
+    } else {
+      // Even indices are plain text  - handle line breaks
+      const lines = seg.split("\n");
+      lines.forEach((line, li) => {
+        if (line) parts.push(<span key={key++}>{line}</span>);
+        if (li < lines.length - 1) parts.push(<br key={key++} />);
+      });
+    }
+  }
+  return parts;
+}
 
 /**
  * Camo Chat Widget - AI assistant for Zikit.
@@ -20,9 +44,27 @@ interface Message {
   timestamp: number;
 }
 
-const WELCOME = {
+const WELCOME_LANDING = {
   content: "Hey! I'm Camo, your monitoring assistant. Ask me anything about Zikit!",
   actions: ["How does it work?", "What can I monitor?", "Show me pricing"],
+};
+
+const WELCOME_DASHBOARD = {
+  content: "Hey! Need help? I can manage your monitors, explain changes, or answer any question.",
+  actions: [
+    "What changed today?",
+    "Create a monitor for me",
+    "Show my latest alerts",
+  ],
+};
+
+const WELCOME_MONITOR = {
+  content: "I'm watching this page with you. Ask me anything about the changes I've detected.",
+  actions: [
+    "Summarize recent changes",
+    "Is this page healthy?",
+    "What should I watch for here?",
+  ],
 };
 
 export function CamoChatWidget() {
@@ -38,6 +80,13 @@ export function CamoChatWidget() {
     confirmMessage: string;
   } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Pick welcome message based on context
+  const welcome = pageContext.monitorName
+    ? WELCOME_MONITOR
+    : typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard")
+    ? WELCOME_DASHBOARD
+    : WELCOME_LANDING;
 
   // Clear messages when switching monitors
   useEffect(() => {
@@ -179,11 +228,11 @@ export function CamoChatWidget() {
                 <div className="flex items-start gap-2">
                   <Image src="/assets/camo-happy.webp" alt="" width={24} height={24} className="mt-1 flex-shrink-0" />
                   <div className="bg-muted/50 rounded-2xl rounded-bl-sm px-3 py-2 text-sm">
-                    {WELCOME.content}
+                    {welcome.content}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5 ml-8">
-                  {WELCOME.actions.map((a) => (
+                  {welcome.actions.map((a) => (
                     <button
                       key={a}
                       onClick={() => sendMessage(a)}
@@ -206,7 +255,7 @@ export function CamoChatWidget() {
                     ? "bg-primary text-primary-foreground rounded-br-sm"
                     : "bg-muted/50 rounded-bl-sm"
                 }`}>
-                  {msg.content}
+                  {msg.role === "assistant" ? renderMarkdown(msg.content) : msg.content}
                 </div>
               </div>
             ))}

@@ -1,8 +1,9 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserAndOrg } from "@/lib/db/ensure-user";
 import { db } from "@/lib/db";
 import { monitors, changes } from "@/lib/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 import Link from "next/link";
 import Image from "next/image";
 import { StatusBar } from "@/components/dashboard/status-bar";
@@ -13,7 +14,7 @@ import { DashboardChatContext } from "@/components/dashboard/dashboard-chat-cont
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) redirect("/login");
 
   let org;
   try {
@@ -33,8 +34,22 @@ export default async function DashboardPage() {
   let totalChanges = 0;
   try {
     allMonitors = await db.select().from(monitors).where(eq(monitors.orgId, org.id)).orderBy(desc(monitors.createdAt));
-    recentChanges = await db.select().from(changes).where(eq(changes.orgId, org.id)).orderBy(desc(changes.createdAt)).limit(10);
-    const countResult = await db.select({ count: sql<number>`count(*)` }).from(changes).where(eq(changes.orgId, org.id));
+    recentChanges = await db
+      .select({
+        id: changes.id,
+        monitorId: changes.monitorId,
+        summary: changes.summary,
+        importanceScore: changes.importanceScore,
+        createdAt: changes.createdAt,
+        monitorName: monitors.name,
+      })
+      .from(changes)
+      .leftJoin(monitors, eq(changes.monitorId, monitors.id))
+      .where(eq(changes.orgId, org.id))
+      .orderBy(desc(changes.createdAt))
+      .limit(10);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const countResult = await db.select({ count: sql<number>`count(*)` }).from(changes).where(and(eq(changes.orgId, org.id), gte(changes.createdAt, sevenDaysAgo)));
     totalChanges = Number(countResult[0]?.count || 0);
   } catch {}
 
@@ -55,7 +70,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div>
       {/* Set chat context with real dashboard data */}
       <DashboardChatContext
         monitorsCount={allMonitors.length}
@@ -65,13 +80,13 @@ export default async function DashboardPage() {
         recentChangeSummaries={recentChanges.map((c: any) => c.summary).filter(Boolean)}
       />
       {/* Welcome */}
-      <div className="relative card-glass p-6 sm:p-8 mb-6 overflow-hidden !bg-gradient-to-r !from-[#1a3a1a] !to-[#2d4a2d]">
-        <div className="absolute right-2 bottom-0 opacity-30 hidden sm:block">
+      <div className="relative card-glass p-8 sm:p-10 mb-6 overflow-hidden !bg-gradient-to-r !from-[#122117] !via-[#173021] !to-[#0d1812]">
+        <div className="absolute right-4 bottom-0 opacity-[0.18] hidden sm:block">
           <Image src="/assets/camo-happy.webp" alt="Camo mascot waving" width={120} height={120} />
         </div>
         <div className="relative z-10">
-          <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-cream)]">Hey {firstName}!</h1>
-          <p className="text-[var(--text-muted)] mt-1 text-sm">{welcomeSubtext}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-cream)]">Hey {firstName}!</h1>
+          <p className="text-[var(--text-muted)] mt-1 text-base">{welcomeSubtext}</p>
         </div>
       </div>
 
@@ -81,6 +96,16 @@ export default async function DashboardPage() {
           recentChanges={totalChanges}
           hasErrors={allMonitors.some((m: any) => m.healthStatus === "error")}
           errorCount={errorCount}
+          lastCheckAt={allMonitors.reduce((latest: string | null, m: any) => {
+            if (!m.lastCheckedAt) return latest;
+            if (!latest) return m.lastCheckedAt;
+            return new Date(m.lastCheckedAt) > new Date(latest) ? m.lastCheckedAt : latest;
+          }, null)?.toString() || undefined}
+          nextCheckAt={allMonitors.reduce((earliest: string | null, m: any) => {
+            if (!m.nextCheckAt || m.isPaused) return earliest;
+            if (!earliest) return m.nextCheckAt;
+            return new Date(m.nextCheckAt) < new Date(earliest) ? m.nextCheckAt : earliest;
+          }, null)?.toString() || undefined}
         />
       )}
 
@@ -128,26 +153,26 @@ export default async function DashboardPage() {
       ) : (
         <>
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-lime)]/5 !border-[var(--accent-lime)]/20 relative overflow-hidden">
+          <div className="grid grid-cols-3 gap-4 sm:gap-5 mb-6">
+            <div className="card-glass card-lift card-enter p-6 !border-[var(--accent-lime)]/15 relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-eye.webp" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
-                <p className="text-[10px] text-[var(--accent-lime)] font-semibold uppercase tracking-wider">Pages tracked</p>
-                <p className="text-2xl font-bold text-[var(--accent-lime)] mt-1 count-pop">{activeCount}</p>
+                <p className="text-sm text-[var(--accent-lime)] font-semibold uppercase tracking-[0.12em]">Pages tracked</p>
+                <p className="text-4xl font-bold text-[var(--accent-lime)] mt-1 tracking-tight count-pop">{activeCount}</p>
               </div>
             </div>
-            <div className="card-glass card-lift card-enter p-4 !bg-[var(--accent-gold)]/5 !border-[var(--accent-gold)]/20 relative overflow-hidden">
+            <div className="card-glass card-lift card-enter p-6 !border-[var(--accent-gold)]/15 relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-spiral.webp" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
-                <p className="text-[10px] text-[var(--accent-gold)] font-semibold uppercase tracking-wider">Updates found</p>
-                <p className="text-2xl font-bold text-[var(--accent-gold)] mt-1 count-pop">{totalChanges}</p>
+                <p className="text-sm text-[var(--accent-gold)] font-semibold uppercase tracking-[0.12em]">Changes this week</p>
+                <p className="text-4xl font-bold text-[var(--accent-gold)] mt-1 tracking-tight count-pop">{totalChanges}</p>
               </div>
             </div>
-            <Link href="/dashboard/billing" className="card-glass card-lift card-enter p-4 !bg-[var(--accent-ember)]/5 !border-[var(--accent-ember)]/20 relative overflow-hidden block hover:!border-[var(--accent-ember)]/40 transition">
+            <Link href="/dashboard/billing" className="card-glass card-lift card-enter p-3 sm:p-6 !border-[var(--accent-ember)]/15 relative overflow-hidden block hover:!border-[var(--accent-ember)]/30 transition">
               <div className="absolute inset-0 opacity-[0.03]"><Image src="/assets/pat-scales.webp" alt="" fill className="object-cover" /></div>
               <div className="relative z-10">
-                <p className="text-[10px] text-[var(--accent-ember)] font-semibold uppercase tracking-wider">Plan</p>
-                <p className="text-2xl font-bold text-[var(--accent-ember)] mt-1 capitalize count-pop">{org.plan}</p>
+                <p className="text-sm text-[var(--accent-ember)] font-semibold uppercase tracking-[0.12em]">Plan</p>
+                <p className="text-lg font-bold text-[var(--accent-ember)] mt-2 capitalize">{org.plan}</p>
               </div>
             </Link>
           </div>
@@ -155,15 +180,16 @@ export default async function DashboardPage() {
           {/* Activity Feed */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Image src="/assets/camo-watch.webp" alt="Camo watching activity" width={20} height={20} />
+              <h2 className="text-base font-semibold flex items-center gap-2">
+                <Image src="/assets/camo-watch.webp" alt="Camo watching activity" width={22} height={22} />
                 Activity
               </h2>
             </div>
-            <div className="card-glass p-2 rounded-xl">
+            <div className="card-glass p-3 rounded-xl">
               <ActivityFeed activities={recentChanges.map((c: any) => ({
                 id: c.id,
                 monitorId: c.monitorId,
+                monitorName: c.monitorName || undefined,
                 type: c.importanceScore >= 7 ? "alert" as const : "change" as const,
                 message: c.summary,
                 timestamp: c.createdAt,
@@ -175,8 +201,8 @@ export default async function DashboardPage() {
           {/* Monitors */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-[var(--text-cream)]">Monitors</h2>
-              <Link href="/dashboard/monitors/new" className="text-xs text-[var(--accent-lime)] hover:underline font-medium">+ Add</Link>
+              <h2 className="text-base font-semibold text-[var(--text-cream)]">Monitors</h2>
+              <Link href="/dashboard/monitors/new" className="text-sm text-[var(--accent-lime)] hover:underline font-medium">+ Add</Link>
             </div>
             <div className="space-y-2">
               {allMonitors.map((m: any) => (
@@ -187,8 +213,13 @@ export default async function DashboardPage() {
                   url={m.url}
                   checkFrequency={m.checkFrequency}
                   healthStatus={m.healthStatus || "healthy"}
-                  isActive={m.isActive}
+                  isActive={m.isActive && !m.isPaused}
+                  isPaused={m.isPaused}
                   lastCheckedAt={m.lastCheckedAt}
+                  nextCheckAt={m.nextCheckAt}
+                  changesCount={m.totalChanges}
+                  totalChecks={m.totalChecks}
+                  tags={m.tags}
                 />
               ))}
             </div>

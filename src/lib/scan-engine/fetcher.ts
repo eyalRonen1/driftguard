@@ -90,7 +90,7 @@ export async function validateUrl(
   try {
     const dnsResult = await Promise.race([
       dns.promises.lookup(hostname),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("DNS timeout")), 2000)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("DNS timeout")), 5000)),
     ]);
     if (isPrivateIp(dnsResult.address)) {
       return { ok: false, reason: "URL resolves to a private/internal IP address" };
@@ -135,6 +135,7 @@ export interface FetchResult {
   responseTimeMs: number;
   contentLength: number;
   error: string | null;
+  fetchMethod?: "http" | "proxy" | "browser";
 }
 
 /**
@@ -456,7 +457,8 @@ export async function smartFetch(
   if (options?.forceBrowser) {
     const browserAvailable = await isPlaywrightAvailable();
     if (browserAvailable) {
-      return fetchPageWithBrowser(url, { timeoutMs: options?.timeoutMs });
+      const browserResult = await fetchPageWithBrowser(url, { timeoutMs: options?.timeoutMs });
+      return { ...browserResult, fetchMethod: "browser" as const };
     }
   }
 
@@ -484,7 +486,7 @@ export async function smartFetch(
   );
 
   if (!isBlocked && !isJsOnly) {
-    return result; // Tier 1 succeeded
+    return { ...result, fetchMethod: "http" as const }; // Tier 1 succeeded
   }
 
   // ── Tier 2: Scraping proxy (fast, works on serverless) ──
@@ -493,11 +495,11 @@ export async function smartFetch(
   if (isBlocked && !isConnectionRefused && (process.env.SCRAPE_DO_TOKEN || process.env.SCRAPING_API_KEY)) {
     const proxyResult = await fetchViaProxy(url);
     if (!proxyResult.error && proxyResult.text.length > 50) {
-      return proxyResult;
+      return { ...proxyResult, fetchMethod: "proxy" as const };
     }
     // If proxy got content but less than 50 chars, still return it if better than nothing
     if (proxyResult.text.length > 0 && !proxyResult.error) {
-      return proxyResult;
+      return { ...proxyResult, fetchMethod: "proxy" as const };
     }
   }
 
@@ -509,12 +511,12 @@ export async function smartFetch(
         timeoutMs: options?.timeoutMs || 30000,
       });
       if (!browserResult.error && browserResult.text.length > result.text.length) {
-        return browserResult;
+        return { ...browserResult, fetchMethod: "browser" as const };
       }
     }
   }
 
-  return result;
+  return { ...result, fetchMethod: "http" as const };
 }
 
 /**

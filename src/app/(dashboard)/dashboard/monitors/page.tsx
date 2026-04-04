@@ -16,8 +16,12 @@ interface Monitor {
   isActive: boolean;
   isPaused: boolean;
   lastCheckedAt: string | null;
+  nextCheckAt: string | null;
   consecutiveErrors: number;
   healthStatus?: string;
+  totalChanges?: number;
+  totalChecks?: number;
+  tags?: string;
 }
 
 const FILTERS = [
@@ -36,6 +40,7 @@ export default function MonitorsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [busyMonitors, setBusyMonitors] = useState<Record<string, string>>({});
+  const [plan, setPlan] = useState("free");
 
   useEffect(() => { fetchMonitors(); }, []);
 
@@ -45,6 +50,7 @@ export default function MonitorsPage() {
       if (!res.ok) throw new Error(`Failed to fetch monitors (${res.status})`);
       const data = await res.json();
       setMonitors(data.monitors || []);
+      setPlan(data.plan || "free");
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load monitors");
@@ -119,29 +125,50 @@ export default function MonitorsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-xl font-bold">Monitors</h1>
-          <p className="text-sm text-muted-foreground">{monitors.length} total</p>
+          <h1 className="text-2xl font-bold">Monitors</h1>
+          <p className="text-base text-muted-foreground">{monitors.length} total</p>
         </div>
         <div className="flex items-center gap-2">
-          <a
-            href="/api/v1/changes/export"
-            download
-            className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border/50 rounded-lg hover:bg-muted/50 transition inline-flex items-center gap-1.5"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Export all changes
-          </a>
+          {plan !== "free" && (
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/v1/changes/export");
+                  if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Export failed");
+                    return;
+                  }
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `zikit-changes-${new Date().toISOString().slice(0, 10)}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch {
+                  alert("Export failed. Please try again.");
+                }
+              }}
+              className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border/50 rounded-lg hover:bg-muted/50 transition inline-flex items-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              <span className="hidden sm:inline">Export all changes</span>
+              <span className="sm:hidden">Export</span>
+            </button>
+          )}
           <Button onClick={() => router.push("/dashboard/monitors/new")}>
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Add monitor
+            <span className="hidden sm:inline">Add monitor</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -215,7 +242,12 @@ export default function MonitorsPage() {
               checkFrequency={m.checkFrequency}
               healthStatus={m.healthStatus || "healthy"}
               isActive={m.isActive && !m.isPaused}
+              isPaused={m.isPaused}
               lastCheckedAt={m.lastCheckedAt}
+              nextCheckAt={m.nextCheckAt}
+              changesCount={m.totalChanges}
+              totalChecks={m.totalChecks}
+              tags={m.tags}
               busyLabel={busyMonitors[m.id]}
               onCheck={() => handleCheck(m.id)}
               onPause={() => handlePause(m.id)}

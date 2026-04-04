@@ -1,0 +1,13 @@
+{
+  "name": "Zikit - Website Change Monitoring",
+  "short_name": "Zikit",
+  "description": "AI-powered website change monitoring. Get plain-English summaries of what changed.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f0a",
+  "theme_color": "#7CCB8B",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

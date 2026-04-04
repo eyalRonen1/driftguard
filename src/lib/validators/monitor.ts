@@ -29,6 +29,8 @@ export const createMonitorSchema = z.object({
   useCase: z.enum(["competitor", "regulatory", "ecommerce", "jobs", "content", "custom"]).optional(),
   watchKeywords: z.string().max(500).optional(),
   keywordMode: z.enum(["any", "appear", "disappear"]).optional(),
+  preferredCheckHour: z.number().int().min(0).max(23).nullable().optional(),
+  preferredCheckDay: z.number().int().min(0).max(6).nullable().optional(),
 });
 
 export const updateMonitorSchema = createMonitorSchema.partial().extend({

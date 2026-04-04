@@ -12,6 +12,7 @@ import {
 import { eq, inArray } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { logActivity } from "@/lib/activity-log";
 
 /**
  * DELETE /api/v1/account
@@ -47,66 +48,51 @@ export async function DELETE() {
       .limit(1);
 
     if (!dbUser) {
-      // User has auth but no DB record -- just sign out
       await supabase.auth.signOut();
       return NextResponse.json({ deleted: true });
     }
 
-    // Find organizations owned by this user
-    const userOrgs = await db
-      .select({ id: organizations.id })
-      .from(organizations)
-      .where(eq(organizations.ownerId, dbUser.id));
-
-    const orgIds = userOrgs.map((o) => o.id);
-
+    // Log before deletion since the org gets deleted in the transaction
+    const orgIds = (await db.select({ id: organizations.id }).from(organizations).where(eq(organizations.ownerId, dbUser.id))).map(o => o.id);
     if (orgIds.length > 0) {
-      // Find all monitors in those orgs
-      const orgMonitors = await db
-        .select({ id: monitors.id })
-        .from(monitors)
-        .where(inArray(monitors.orgId, orgIds));
-
-      const monitorIds = orgMonitors.map((m) => m.id);
-
-      if (monitorIds.length > 0) {
-        // Delete alert configs for these monitors
-        await db
-          .delete(alertConfigs)
-          .where(inArray(alertConfigs.monitorId, monitorIds));
-
-        // Delete snapshots for these monitors
-        await db
-          .delete(snapshots)
-          .where(inArray(snapshots.monitorId, monitorIds));
-      }
-
-      // Delete changes for these orgs
-      await db.delete(changes).where(inArray(changes.orgId, orgIds));
-
-      // Delete org-level alert configs (those without a specific monitor)
-      await db.delete(alertConfigs).where(inArray(alertConfigs.orgId, orgIds));
-
-      // Delete monitors
-      if (monitorIds.length > 0) {
-        await db.delete(monitors).where(inArray(monitors.id, monitorIds));
-      }
-
-      // Delete organizations
-      await db.delete(organizations).where(inArray(organizations.id, orgIds));
+      logActivity({
+        orgId: orgIds[0],
+        userEmail: authUser.email,
+        action: "account.delete",
+        targetType: "user",
+        targetId: dbUser.id,
+      });
     }
 
-    // Delete user record
-    await db.delete(users).where(eq(users.id, dbUser.id));
+    // Delete user in a transaction — cascade handles orgs→monitors→changes→snapshots→alerts
+    await db.transaction(async (tx) => {
+      const userOrgs = await tx.select({ id: organizations.id }).from(organizations).where(eq(organizations.ownerId, dbUser.id));
+      const orgIds = userOrgs.map((o) => o.id);
 
-    // Delete the Supabase Auth user using admin API
+      if (orgIds.length > 0) {
+        const orgMonitors = await tx.select({ id: monitors.id }).from(monitors).where(inArray(monitors.orgId, orgIds));
+        const monitorIds = orgMonitors.map((m) => m.id);
+
+        if (monitorIds.length > 0) {
+          await tx.delete(alertConfigs).where(inArray(alertConfigs.monitorId, monitorIds));
+          await tx.delete(snapshots).where(inArray(snapshots.monitorId, monitorIds));
+        }
+
+        await tx.delete(changes).where(inArray(changes.orgId, orgIds));
+        await tx.delete(alertConfigs).where(inArray(alertConfigs.orgId, orgIds));
+        if (monitorIds.length > 0) await tx.delete(monitors).where(inArray(monitors.id, monitorIds));
+        await tx.delete(organizations).where(inArray(organizations.id, orgIds));
+      }
+
+      await tx.delete(users).where(eq(users.id, dbUser.id));
+    });
+
+    // Only delete from Supabase Auth AFTER DB transaction succeeds
     const supabaseAdmin = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     await supabaseAdmin.auth.admin.deleteUser(authUser.id);
-
-    // Sign out the Supabase session
     await supabase.auth.signOut();
 
     return NextResponse.json({ deleted: true });

@@ -30,7 +30,20 @@ function getUpstashLimiter(maxRequests: number): Ratelimit | null {
 
 // ── In-memory fallback (development / no Redis) ─────────────────────
 
+const RATE_LIMIT_MAP_MAX_SIZE = 10_000;
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+/** Evict oldest entries when the map exceeds the LRU cap */
+function evictOldEntries() {
+  if (rateLimitMap.size <= RATE_LIMIT_MAP_MAX_SIZE) return;
+  const toDelete = rateLimitMap.size - RATE_LIMIT_MAP_MAX_SIZE;
+  let deleted = 0;
+  for (const key of rateLimitMap.keys()) {
+    if (deleted >= toDelete) break;
+    rateLimitMap.delete(key);
+    deleted++;
+  }
+}
 
 if (typeof globalThis !== "undefined" && !hasUpstash) {
   setInterval(() => {
@@ -38,6 +51,7 @@ if (typeof globalThis !== "undefined" && !hasUpstash) {
     for (const [key, value] of rateLimitMap) {
       if (value.resetAt < now) rateLimitMap.delete(key);
     }
+    evictOldEntries();
   }, 5 * 60 * 1000);
 }
 
@@ -47,6 +61,7 @@ function inMemoryLimit(key: string, maxRequests: number, windowMs: number): { al
 
   if (!entry || entry.resetAt < now) {
     rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    evictOldEntries();
     return { allowed: true, remaining: maxRequests - 1 };
   }
 

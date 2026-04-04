@@ -49,7 +49,23 @@ function extractTimestamp(signatureHeader: string | null): string | null {
   return match ? match[1] : null;
 }
 
-const processedEvents = new Set<string>();
+// DB-based idempotency: check if event was already processed
+import { db } from "@/lib/db";
+import { sql } from "drizzle-orm";
+
+async function isEventProcessed(eventId: string): Promise<boolean> {
+  if (!eventId) return false;
+  try {
+    // Use a lightweight query on a dedicated table or pg advisory lock
+    // Simple approach: try INSERT into a dedup table, if conflict → already processed
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS webhook_events (event_id text PRIMARY KEY, processed_at timestamptz DEFAULT now())`);
+    await db.execute(sql`INSERT INTO webhook_events (event_id) VALUES (${eventId})`);
+    return false; // New event
+  } catch (err: any) {
+    if (err?.code === "23505") return true; // Duplicate key — already processed
+    return false; // On error, process anyway (safe side)
+  }
+}
 
 // POST /api/webhooks/paddle - Handle Paddle webhook events
 export async function POST(request: NextRequest) {
@@ -72,15 +88,14 @@ export async function POST(request: NextRequest) {
   try {
     const event = JSON.parse(rawBody);
     const eventId = event.event_id || event.notification_id || "";
-    if (eventId && processedEvents.has(eventId)) {
+    if (await isEventProcessed(eventId)) {
       return NextResponse.json({ received: true, duplicate: true }, { status: 200 });
     }
     await handlePaddleWebhook(event);
-    if (eventId) { processedEvents.add(eventId); setTimeout(() => processedEvents.delete(eventId), 3600000); }
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error("Paddle webhook processing error:", err);
-    // Return 200 to prevent Paddle retry storms -- handle errors asynchronously
-    return NextResponse.json({ received: true, processed: false }, { status: 200 });
+    // Return 500 for transient errors so Paddle retries
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 }

@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { alertConfigs, monitors } from "@/lib/db/schema";
+import { alertConfigs, monitors, organizations } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { getAuthenticatedOrgFromApiKey } from "@/lib/db/get-org-api-key";
 import { rateLimit } from "@/lib/rate-limit";
+import { PLAN_LIMITS, type PlanCode } from "@/lib/billing/paddle";
 import { z } from "zod";
+import { logActivity } from "@/lib/activity-log";
 
 const alertConfigSchema = z.object({
   monitorId: z.string().uuid(),
-  channel: z.enum(["email", "slack"]),
+  channel: z.enum(["email", "slack", "webhook", "discord", "telegram"]),
   destination: z.string().min(1).max(500),
   minImportance: z.number().int().min(1).max(10).default(3),
   isActive: z.boolean().default(true),
@@ -16,7 +19,7 @@ const alertConfigSchema = z.object({
 
 // GET /api/v1/alert-configs?monitorId=...
 export async function GET(request: NextRequest) {
-  const auth = await getAuthenticatedOrg();
+  const auth = await getAuthenticatedOrg() ?? await getAuthenticatedOrgFromApiKey(request);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { allowed: readAllowed } = await rateLimit('alerts-read:' + auth.user.id, 60, 60000);
@@ -49,7 +52,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/v1/alert-configs - Create or update an alert config
 export async function POST(request: NextRequest) {
-  const auth = await getAuthenticatedOrg();
+  const auth = await getAuthenticatedOrg() ?? await getAuthenticatedOrgFromApiKey(request);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { allowed: writeAllowed } = await rateLimit('alerts-write:' + auth.user.id, 20, 60000);
@@ -64,13 +67,45 @@ export async function POST(request: NextRequest) {
 
   const parsed = alertConfigSchema.safeParse(body);
   if (!parsed.success) {
+    const issues = parsed.error.issues.map(i => i.message).join(", ");
     return NextResponse.json(
-      { error: "Validation failed", details: parsed.error.flatten() },
+      { error: `Please check your input: ${issues}` },
       { status: 400 }
     );
   }
 
   const data = parsed.data;
+
+  // Plan-based channel gating
+  const plan = (auth.org.plan || "free") as PlanCode;
+  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  if (data.channel === "slack" && !limits.slackAlerts) {
+    return NextResponse.json(
+      { error: "Slack alerts require a Pro or Business plan." },
+      { status: 403 }
+    );
+  }
+  if (data.channel === "webhook" && !limits.export) {
+    return NextResponse.json({ error: "Custom webhooks require a Business plan." }, { status: 403 });
+  }
+  if ((data.channel === "discord" || data.channel === "telegram") && !limits.slackAlerts) {
+    return NextResponse.json({ error: `${data.channel} alerts require a Pro or Business plan.` }, { status: 403 });
+  }
+
+  // Validate webhook-style destinations are valid URLs
+  if (["webhook", "discord"].includes(data.channel)) {
+    try { new URL(data.destination); } catch {
+      return NextResponse.json({ error: `${data.channel} destination must be a valid URL.` }, { status: 400 });
+    }
+  }
+  // Validate Slack URL pattern
+  if (data.channel === "slack" && !data.destination.startsWith("https://hooks.slack.com/")) {
+    return NextResponse.json({ error: "Slack destination must be a hooks.slack.com URL." }, { status: 400 });
+  }
+  // Validate Discord URL pattern
+  if (data.channel === "discord" && !data.destination.startsWith("https://discord.com/api/webhooks/")) {
+    return NextResponse.json({ error: "Discord destination must be a discord.com webhook URL." }, { status: 400 });
+  }
 
   try {
     // Verify monitor belongs to this org
@@ -112,6 +147,25 @@ export async function POST(request: NextRequest) {
         })
         .returning();
     }
+
+    // Re-subscribe: if user enables email alerts, clear the org-level unsubscribe flag.
+    // This is the ONLY way to re-enable emails after one-click unsubscribe.
+    if (data.channel === "email" && data.isActive) {
+      await db.update(organizations)
+        .set({ emailUnsubscribedAt: null })
+        .where(eq(organizations.id, auth.org.id));
+    }
+
+    const ip = request.headers.get("x-forwarded-for") || undefined;
+    logActivity({
+      orgId: auth.org.id,
+      userEmail: auth.user.email,
+      action: "alert.save",
+      targetType: "alert_config",
+      targetId: config.id,
+      details: { channel: data.channel, monitorId: data.monitorId, isActive: data.isActive },
+      ip,
+    });
 
     return NextResponse.json({ config }, { status: existing ? 200 : 201 });
   } catch (err) {

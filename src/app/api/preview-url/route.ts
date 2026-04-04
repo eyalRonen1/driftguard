@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
-import { smartFetch } from "@/lib/scan-engine/fetcher";
+import { fetchPage } from "@/lib/scan-engine/fetcher";
 
 /**
- * Public API endpoint - previews a URL for the landing page and dashboard.
- * Uses smartFetch (HTTP → Proxy → Browser) for maximum compatibility.
+ * Public API endpoint - previews a URL for the landing page demo.
+ * Uses fetchPage (HTTP only, no proxy credits) with tight rate limit.
  */
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || "unknown";
-  const { allowed } = await rateLimit(`preview:${ip}`, 5, 60000);
+  const { allowed } = await rateLimit(`preview:${ip}`, 3, 60000);
   if (!allowed) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
   let body;
@@ -18,13 +18,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const url = body.url;
+  let url = body.url;
   if (!url || typeof url !== "string") {
     return NextResponse.json({ error: "URL is required" }, { status: 400 });
   }
 
+  // Normalize: auto-prepend https:// if missing
+  url = url.trim();
+  if (/^www\./i.test(url)) url = "https://" + url;
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
   try {
-    const result = await smartFetch(url, { timeoutMs: 3000 });
+    const result = await fetchPage(url, { timeoutMs: 5000 });
 
     if (result.error && result.text.length === 0) {
       if (result.error.includes("403") || result.error.includes("Forbidden") || result.error.includes("Blocked")) {

@@ -21,8 +21,8 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-foreground mt-6">2. Payment & Billing</h2>
           <p>Payments are processed by our merchant of record, Paddle.com Market Limited, who also acts as the reseller of the Service. Paddle handles all billing, invoicing, sales tax, and payment processing on our behalf. By purchasing a subscription, you agree to Paddle&apos;s <a href="https://www.paddle.com/legal/terms" className="text-primary hover:underline">Terms of Service</a>.</p>
 
-          <h2 className="text-lg font-semibold text-foreground mt-6">3. Free Trial</h2>
-          <p>We offer a 14-day free trial with limited features. No credit card is required. After the trial period, you may upgrade to a paid plan to continue using the Service.</p>
+          <h2 className="text-lg font-semibold text-foreground mt-6">3. Free Plan</h2>
+          <p>We offer a free plan with limited features (3 monitors, daily checks, email alerts). No credit card is required. You may upgrade to a paid plan at any time for additional features.</p>
 
           <h2 className="text-lg font-semibold text-foreground mt-6">4. Acceptable Use</h2>
           <p>You agree to only monitor web pages you have a legitimate interest in. You must not use the Service to monitor pages in violation of any applicable laws or the terms of service of the monitored websites.</p>

@@ -4,14 +4,16 @@ import { monitors, snapshots } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { createMonitorSchema } from "@/lib/validators/monitor";
 import { getAuthenticatedOrg } from "@/lib/db/get-org";
+import { getAuthenticatedOrgFromApiKey } from "@/lib/db/get-org-api-key";
 import { fetchPage } from "@/lib/scan-engine/fetcher";
 import { rateLimit } from "@/lib/rate-limit";
 import { PLAN_LIMITS, type PlanCode } from "@/lib/billing/paddle";
 import { getNextCheckTime } from "@/lib/utils/check-schedule";
+import { logActivity } from "@/lib/activity-log";
 
 // GET /api/v1/monitors - List all monitors
-export async function GET() {
-  const auth = await getAuthenticatedOrg();
+export async function GET(request: NextRequest) {
+  const auth = await getAuthenticatedOrg() ?? await getAuthenticatedOrgFromApiKey(request);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { allowed } = await rateLimit(`list:${auth.user.id}`, 60, 60000);
@@ -24,7 +26,7 @@ export async function GET() {
       .where(eq(monitors.orgId, auth.org.id))
       .orderBy(monitors.createdAt);
 
-    return NextResponse.json({ monitors: result });
+    return NextResponse.json({ monitors: result, plan: auth.org.plan || "free", timezone: auth.org.timezone || "UTC" });
   } catch (err) {
     console.error("Failed to fetch monitors:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -33,7 +35,7 @@ export async function GET() {
 
 // POST /api/v1/monitors - Create a new monitor (rate limited)
 export async function POST(request: NextRequest) {
-  const auth = await getAuthenticatedOrg();
+  const auth = await getAuthenticatedOrg() ?? await getAuthenticatedOrgFromApiKey(request);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Rate limit: 20 monitor creations per hour
@@ -81,6 +83,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Enforce CSS selector by plan
+  const planLimits = PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+  if (data.cssSelector && !planLimits.cssSelector) {
+    return NextResponse.json(
+      { error: "CSS selectors require a Pro or Business plan." },
+      { status: 403 }
+    );
+  }
+
   // Preflight check: try to fetch the URL (non-blocking — monitor is created even if this fails)
   const preflight = await fetchPage(data.url, { cssSelector: data.cssSelector, timeoutMs: 10000 });
   const preflightOk = !preflight.error && preflight.text.length > 0;
@@ -101,10 +112,12 @@ export async function POST(request: NextRequest) {
       useCase: data.useCase ?? null,
       watchKeywords: data.watchKeywords ?? null,
       keywordMode: data.keywordMode ?? "any",
+      preferredCheckHour: data.preferredCheckHour ?? null,
+      preferredCheckDay: data.preferredCheckDay ?? null,
       lastContentHash: preflightOk ? preflight.hash : null,
       lastContentText: preflightOk ? preflight.text : null,
       lastCheckedAt: new Date(),
-      nextCheckAt: getNextCheckTime(data.checkFrequency),
+      nextCheckAt: getNextCheckTime(data.checkFrequency, data.preferredCheckHour, data.preferredCheckDay),
       healthStatus: preflightOk ? "healthy" : "unstable",
       healthReason: preflightOk ? null : `Initial fetch returned: ${preflight.error || "empty content"}. Will retry with Smart Browser.`,
     })
@@ -121,6 +134,18 @@ export async function POST(request: NextRequest) {
       responseTimeMs: preflight.responseTimeMs,
     });
   }
+
+  const ip = request.headers.get("x-forwarded-for") || undefined;
+  logActivity({
+    orgId: auth.org.id,
+    userEmail: auth.user.email,
+    action: "monitor.create",
+    targetType: "monitor",
+    targetId: monitor.id,
+    targetName: monitor.name,
+    details: { url: data.url, checkFrequency: data.checkFrequency },
+    ip,
+  });
 
   return NextResponse.json({
     monitor,

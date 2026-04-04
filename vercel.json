@@ -3,6 +3,10 @@
     {
       "path": "/api/internal/dispatch-scans",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/internal/weekly-digest",
+      "schedule": "0 8 * * 1"
     }
   ],
   "functions": {
@@ -11,6 +15,10 @@
       "memory": 1024
     },
     "app/api/internal/dispatch-scans/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/internal/weekly-digest/route.ts": {
       "maxDuration": 60,
       "memory": 1024
     }
